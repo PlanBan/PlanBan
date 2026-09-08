@@ -2,37 +2,49 @@
 
 ## Current base
 - Project line: approved staged Shadowfall3D, Stage 11/20.
-- Latest local checkpoint commit: `d3f9b15` — `11/20 checkpoint: import Quaternius CC0 nature pack subset`.
+- Latest local checkpoint commit: `21ad73c` — `11/20 checkpoint: replace start nature with Quaternius pack`.
+- Import checkpoint: `d3f9b15`.
 - Previous one-scene checkpoint: `d5d9441`.
 - Do not return to the rejected simplified Full Game prototype.
 
-## COMPLETE START IN ONE TSCN
+## ONE SCENE START
 Open this one scene for start-world editing:
 `scenes/main/Stage09QuestGuild.tscn`
 
 The current start remains physically stored in that one scene: road, forest, start houses/interiors, caravan/merchant/corpses/sword, Ravenfall gate and Ravenfall city. Actual New Game route remains `Stage11Rangers -> Stage10OldFarmContract -> Stage09QuestGuild`, so Stage09 edits propagate into the current build.
 
-## 2026-09-08 — Quaternius nature refresh in progress
+## 2026-09-08 — Quaternius CC0 nature refresh COMPLETE
 User supplied `drive-download-20260908T124025Z-1-001.zip`.
 
-Verified pack metadata from its included license:
+Verified included license:
 - LowPoly Models by @Quaternius
-- License: CC0 1.0 Universal / Public Domain Dedication
+- CC0 1.0 Universal / Public Domain Dedication
 
-Completed checkpoint:
-- Imported curated green forest subset into `assets/third_party/quaternius_nature/`.
-- Preserved `License.txt`.
-- Added source/license entry to `THIRD_PARTY_ASSETS.md`.
-- Imported pine, birch, common-tree, willow, dead-tree, bush, grass/plant/flower, rock/moss-rock, stump and log OBJ+MTL assets.
-- Snow, palm and cactus variants were intentionally not imported to keep the active project smaller.
-- Local ZIP checkpoint: `Shadowfall3D_quaternius_import_checkpoint.zip`.
+Implemented:
+- Curated 45-model green forest subset imported into `assets/third_party/quaternius_nature/` as OBJ+MTL.
+- `License.txt` preserved and source/license recorded in `THIRD_PARTY_ASSETS.md`.
+- All 80 placed start-forest temporary tree instances replaced with direct Quaternius pine/birch/common-tree/willow meshes.
+- 34 bushes, 26 grass objects, 14 flowers/plants and 10 rocks replaced with Quaternius assets.
+- Small Ravenfall city vegetation set also replaced with Quaternius assets.
+- Added extra dead trees, stumps and fallen logs around the road/ambush/forest edges.
+- No new environment level scene was introduced; every placed nature object remains selectable/editable directly in Stage09.
 
-### Exact next step
-Mass-replace the temporary placed nature in `scenes/main/Stage09QuestGuild.tscn` while preserving the ONE-SCENE requirement:
-1. Replace `Forest` temporary tree PackedScene instances with direct Quaternius OBJ-backed MeshInstance3D tree nodes, retaining positions/rotation variety and simple near-road collisions.
-2. Replace `EDIT_ME_START_BushesGrassRocks` temporary bushes/grass/flowers/rocks with Quaternius models.
-3. Add a small number of Quaternius stumps/logs/dead trees around the ambush and forest edges.
-4. Apply visibility-range/shadow optimization and run static TSCN/resource validation.
+Optimization:
+- 38 far trees are direct MeshInstance3D nodes without physics collision.
+- 42 near/playable-area trees keep cheap shared trunk collision.
+- Small foliage/rocks use no dynamic shadows/GI and visibility-range culling.
+- Imported MTL specular values were reduced for a rougher, less plastic dark-fantasy look.
+- Approximate Quaternius geometry if all 178 placed mesh uses were visible at once: ~198,826 triangles; culling reduces actual frame load.
 
-## Recovery
-Resume from local commit `d3f9b15` or `Shadowfall3D_quaternius_import_checkpoint.zip`. Do not re-split the start across multiple level scenes.
+Validation:
+- All 45 imported OBJ models parse successfully.
+- Every imported OBJ has its MTL sidecar.
+- 0 missing ExtResource IDs.
+- 0 missing SubResource IDs.
+- 0 missing `res://` resource paths.
+- 0 duplicate resource IDs in Stage09 static validation.
+- JSON validation passes.
+- Native Godot executable is not installed in the execution environment, so runtime validation must be performed in the user's Godot 4.7.x.
+
+Recovery:
+Resume from local commit `21ad73c` or `Shadowfall3D_quaternius_start_refresh_checkpoint.zip` / newer final ZIP. Do not re-split the start across multiple level scenes.
