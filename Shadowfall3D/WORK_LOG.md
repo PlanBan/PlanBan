@@ -15,29 +15,31 @@
 
 ## 2026-09-08 — Quaternius nature-pack refresh
 - Verified user-provided nature pack license: LowPoly Models by @Quaternius, CC0 1.0 Universal / Public Domain Dedication.
-- Imported a curated 45-model green-forest subset into `assets/third_party/quaternius_nature/` instead of the full 150-model pack.
-- Preserved `License.txt` and documented the source/license in `THIRD_PARTY_ASSETS.md`.
-- Replaced all 80 placed start-forest temporary tree instances in Stage09 with direct Quaternius OBJ-backed nodes using pine/birch/common-tree/willow variety.
-- Replaced 34 bushes, 26 grass clumps, 14 flower/plant spots and 10 rock spots with Quaternius assets.
-- Replaced the small Ravenfall city vegetation set with Quaternius assets too.
-- Added hand-placed Quaternius dead trees, stumps and fallen logs around the road/ambush/forest edges.
-- Kept the one-scene rule: all placed nature remains directly selectable in `Stage09QuestGuild.tscn`; no new environment level scenes were introduced.
-- Optimization: 38 far trees are direct MeshInstance3D nodes without physics; 42 near/playable-area trees retain cheap shared trunk collision; small foliage has shadows/GI disabled and visibility-range culling.
-- Tuned imported MTL specular values to reduce the plastic look under dark-fantasy lighting.
-- All 45 imported OBJ files parse successfully and have MTL sidecars.
-- Approximate Quaternius geometry if every placed imported mesh were visible simultaneously: ~198,826 triangles before culling.
-- Static validation passes: no missing ExtResource/SubResource IDs, no missing `res://` paths, no duplicate resource IDs, all JSON parses.
-- Local import checkpoint: `d3f9b15` / `Shadowfall3D_quaternius_import_checkpoint.zip`.
-- Local replacement checkpoint: `21ad73c` / `Shadowfall3D_quaternius_start_refresh_checkpoint.zip`.
+- Imported a curated green-forest subset into `assets/third_party/quaternius_nature/`.
+- Replaced the active start forest/bush/grass/flower/rock placeholders while preserving the one-scene Stage09 layout.
+- Optimization/culling pass and static validation completed.
+- Local replacement checkpoint: `21ad73c`.
 
 ## 2026-09-08 — runtime launch hotfix
 - Investigated user screenshot showing 44 editor errors and New Game failing.
 - Traced the first real error to `Stage09QuestGuild.tscn` line ~5800.
-- Found three malformed patrol route values written as `PackedVector3Array(Vector3(...), ...)` during the one-scene city flattening.
-- Rewrote CityPatrol, SquareGuard and Citizen patrol routes to canonical Godot TSCN flat numeric packed-vector syntax.
-- Corrected the same three values in `RavenfallCityEditable.tscn` backup.
-- Confirmed project-wide search now has 0 remaining malformed `PackedVector3Array(Vector3...)` TSCN expressions.
-- Confirmed the Stage10/Stage11 errors from the screenshot were cascading failures caused by Stage09 not loading.
-- Static validation after the fix: referenced resources exist, ExtResource/SubResource IDs resolve, JSON parses.
+- Rewrote three malformed patrol routes to canonical Godot PackedVector3Array syntax.
 - Local hotfix commit: `bb4daf5`.
-- Recovery checkpoint: `Shadowfall3D_runtime_parser_hotfix_checkpoint.zip`.
+
+## 2026-09-08 — RPG Items replacement pass
+- Inspected the user-provided Ultimate RPG Items archive and verified Quaternius CC0 1.0 license.
+- Imported a curated replacement subset into `assets/third_party/quaternius_rpg_items/` with its license.
+- Replaced existing `old_sword` with `Sword.obj` and `iron_sword` with `Sword_big.obj`; did not leave the old procedural weapon meshes beside them.
+- Replaced ranger/player bow with `Bow_Wooden.obj`, keeping the gameplay-controlled draw/string logic.
+- Replaced physical arrow visual with `Arrow.obj` while preserving projectile gravity/collision/hit multipliers.
+- Added distinct first-person switching between old_sword and iron_sword by existing item ID, without changing item stats.
+- Replaced world pickup and inventory previews for swords/bow/armor with pack meshes.
+- Replaced Ranged Raider bow, Gate Sentry weapon and Captain Garrett weapon so active start NPCs no longer retain the old primitive weapon design.
+- Replaced existing GoldPickup cylinder visuals with RPG-pack Coin meshes.
+- Replaced existing LootPile primitive sack/crystal visuals with RPG-pack Bag and Crystal meshes; loot logic unchanged.
+- Replaced existing weapon icons with matching RPG-pack PNGs and removed now-unused old internal weapon SVGs.
+- Potions were intentionally left alone except for no-op preservation, per user request.
+- Validation: 0 missing res paths, Ext/Sub resources resolve, JSON passes, packed arrays remain canonical, RPG OBJ/MTL sidecars present, `git diff --check` clean.
+- Local import checkpoint: `6d8ef95`.
+- Local weapon replacement checkpoint: `a8d74d0` / `Shadowfall3D_rpg_weapon_replacement_checkpoint.zip`.
+- Next: replace existing nature/decor in-place using Ultimate Stylized Nature + the supplied LowPoly Nature archive, without increasing object count or breaking the one-scene start.
