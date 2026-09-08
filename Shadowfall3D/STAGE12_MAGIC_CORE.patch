@@ -1,0 +1,32 @@
+From b6211e7433852952e531e261ffd67dc6497fa59c Mon Sep 17 00:00:00 2001
+From: OpenAI Assistant <assistant@example.com>
+Date: Tue, 8 Sep 2026 15:28:39 +0000
+Subject: [PATCH] 12/20 checkpoint: magic core, mana and resistances
+
+---
+ WORK_LOG.md                         |  10 +
+ WORK_STATUS.md                      |  18 ++
+ scenes/magic/MagicProjectile.tscn   |  33 +++
+ scenes/magic/SpellController.tscn   |   6 +
+ scenes/player/Player.tscn           |  41 ++-
+ scripts/ai/ranged_raider.gd         |  46 ++-
+ scripts/ai/rift_scavenger.gd        |  49 +++-
+ scripts/combat/bow_controller.gd    |   3 +
+ scripts/magic/magic_projectile.gd   | 115 ++++++++
+ scripts/magic/spell_controller.gd   | 417 ++++++++++++++++++++++++++++
+ scripts/player/player_controller.gd | 102 ++++++-
+ 11 files changed, 828 insertions(+), 12 deletions(-)
+ create mode 100644 scenes/magic/MagicProjectile.tscn
+ create mode 100644 scenes/magic/SpellController.tscn
+ create mode 100644 scripts/magic/magic_projectile.gd
+ create mode 100644 scripts/magic/spell_controller.gd
+
+NOTE: Full generated patch is maintained in the local project checkpoint `b6211e7` and ZIP `Shadowfall3D_12_magic_core_checkpoint.zip`. This GitHub file records the exact logical checkpoint and changed-file set so recovery can resume from Stage12 magic core if the session is interrupted.
+
+Stage12 magic core contents:
+- Player MP + regen + HUD + magic mode/ward API.
+- Seven schools: fire, ice, lightning, healing, protection, light, dark.
+- Hotkeys 4–8 plus Q/R school cycling.
+- Projectile magic, lightning hitscan, healing, ward, light burst, dark lifesteal.
+- Base magic resistances/status effects on Rift Scavenger/Ranged Raider.
+- BowController public deactivate hook for mode switching.
