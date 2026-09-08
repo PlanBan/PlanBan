@@ -2,63 +2,56 @@
 
 ## Current base
 - Project line: approved staged Shadowfall3D, Stage 11/20.
-- Latest local checkpoint commit: `a8d74d0` — `11/20 checkpoint: replace existing weapon visuals with RPG pack`.
+- Latest local checkpoint commit: `6841d81` — `11/20 checkpoint: replace training blade asset`.
+- Stylized Nature replacement checkpoint: `8954681`.
+- Stylized Nature import checkpoint: `3a89886`.
+- RPG weapon replacement checkpoint: `a8d74d0`.
 - RPG import checkpoint: `6d8ef95`.
 - Runtime parser hotfix: `bb4daf5`.
-- Quaternius nature replacement checkpoint: `21ad73c`.
 - Do not return to the rejected simplified Full Game prototype.
 
 ## ONE SCENE START
-Open this one scene for start-world editing:
+Open this scene for current start-world editing:
 `scenes/main/Stage09QuestGuild.tscn`
 
-The current start remains physically stored in that one scene: road, forest, start houses/interiors, caravan/merchant/corpses/sword, Ravenfall gate and Ravenfall city. Actual New Game route remains `Stage11Rangers -> Stage10OldFarmContract -> Stage09QuestGuild`, so Stage09 edits propagate into the current build.
+Actual New Game route remains:
+`Stage11Rangers -> Stage10OldFarmContract -> Stage09QuestGuild`.
 
-## 2026-09-08 — RPG ITEMS WEAPON/DESIGN REPLACEMENT CHECKPOINT
-User supplied `Ultimate RPG Items Pack - Aug 2019-20260908T130721Z-1-001.zip` and explicitly requested replacement rather than additive duplicates.
+## 2026-09-08 — three-pack replacement pass
+User requested replacement, not additive duplicates, using three supplied Quaternius archives.
 
-Verified included license:
-- LowPoly Models by @Quaternius
-- CC0 1.0 Universal / Public Domain Dedication
+### RPG Items replacement COMPLETE
+- old_sword -> Quaternius `Sword.obj`.
+- iron_sword -> `Sword_big.obj`.
+- ranger_bow/player bow -> `Bow_Wooden.obj`.
+- hunting_arrow / physical projectile -> `Arrow.obj`.
+- World sword pickup, first-person weapons and inventory previews updated to the same replacement assets.
+- Ranged Raider bow, Gate Sentry weapon, Captain Garrett weapon and CombatEffigy practice weapon replaced so primitive weapon geometry does not remain in current gameplay scenes.
+- Existing GoldPickup visuals -> RPG `Coin` meshes.
+- Existing LootPile visuals -> RPG `Bag + Crystal` meshes.
+- Existing armor previews/NPC armor use RPG leather/metal armor meshes.
+- Weapon icons replaced by pack PNGs; old unused internal weapon SVGs removed.
+- Potions intentionally not mass-redesigned.
+- Gameplay IDs, stats, stamina, ammo, projectile, quest and inventory behavior preserved.
 
-Completed replacement block:
-- `old_sword` visual replaced with Quaternius `Sword.obj`.
-- `iron_sword` visual replaced with distinct Quaternius `Sword_big.obj`.
-- `ranger_bow` visual replaced with `Bow_Wooden.obj`; existing draw mechanic retained with a dynamic game-controlled string.
-- `hunting_arrow` / physical projectile visual replaced with `Arrow.obj` while gravity/collision/damage logic remains unchanged.
-- Player first-person weapon switching now shows the correct old/iron sword model by item ID without changing gameplay stats.
-- World sword pickup and inventory 3D previews now use the same replacement assets.
-- Ranged raider bow, Gate Sentry weapon and Captain Garrett weapon were replaced so old primitive weapon geometry does not remain in the active start.
-- Existing armor previews use RPG-pack leather/metal armor meshes.
-- Existing gold pickup visual replaced with RPG-pack coins.
-- Existing LootPile sack/crystal visual replaced with RPG-pack Bag + Crystal; loot behavior unchanged.
-- Existing weapon item icons replaced with matching pack PNG icons.
-- Old internal SVG weapon icons were removed after confirming there were no remaining references.
-- Potions were intentionally not mass-redesigned.
+### Stylized Nature replacement COMPLETE for active nature pipeline
+- Curated Ultimate Stylized Nature subset imported with CC0 license.
+- Existing Stage09 living nature resources remapped IN PLACE to Stylized Nature; no second forest/object layer was added.
+- Positions/rotations preserved.
+- Scale compensation calculated from source/target OBJ bounds to keep world composition close to the previous layout.
+- Reusable scenes `PineTree`, `PineTreeTall`, `PineTreeWide`, `BirchTree`, `BushClump`, `GrassClump`, `FlowerPatch`, `RockCluster` were rewritten to use Stylized Nature meshes instead of primitive procedural geometry.
+- This automatically updates Stage10 Old Farm, Stage11 Ranger Camp, older stage scenes and backup environment scenes that instance those reusable assets.
+- Logs/stumps remain from the supplied LowPoly Nature archive because the Stylized archive has no equivalent.
+- Small foliage keeps shadows/GI disabled and visibility culling; trees keep simple collision where reusable wrappers are used.
 
-Preserved logic:
-- item IDs, melee/ranged stats, stamina costs, bow ammo logic, arrow flight/hit logic and quest/inventory behavior were preserved.
-
-Validation at this checkpoint:
+## Validation
 - 0 missing `res://` resources.
-- TSCN ExtResource/SubResource references resolve statically.
-- 0 duplicate TSCN resource IDs.
+- 0 unresolved TSCN ExtResource/SubResource IDs.
+- 0 duplicate TSCN resource IDs in static validation.
 - JSON validation passes.
 - 0 malformed `PackedVector3Array(Vector3...)` expressions.
-- imported RPG OBJ files have MTL sidecars.
-- `git diff --check` was clean before commit.
-- Native Godot runtime is still not available in the execution container; user runtime test remains required.
-
-Local recovery ZIP:
-`Shadowfall3D_rpg_weapon_replacement_checkpoint.zip`
-
-## Exact next step
-Continue the same user request using the other two supplied nature archives, still by REPLACEMENT rather than adding duplicates:
-1. Import a curated subset from `Ultimate Stylized Nature - May 2022-20260908T131010Z-1-001.zip` with its CC0 license.
-2. Replace existing live Stage09 tree/bush/grass/flower/rock mesh resources in-place while preserving object count/positions and the one-scene rule.
-3. Use the third LowPoly Nature archive only for appropriate complementary replacements where the stylized pack has no good equivalent (willow/log/stump/dead accents etc.).
-4. Replace existing matching decor props from the RPG pack only where a current old placeholder exists; do not add loot/rewards/items just to show more assets.
-5. Re-run full static validation, save checkpoints, then package final ZIP.
+- `git diff --check` clean at each checkpoint.
+- Native Godot 4.7.2 binary could not be downloaded in the execution container because the container has no external network/DNS access. Runtime launch validation still requires Godot on the user's machine unless a runnable Godot binary becomes available here.
 
 ## Recovery
-Resume from local commit `a8d74d0` or `Shadowfall3D_rpg_weapon_replacement_checkpoint.zip`. Preserve the one-scene start and the fixed canonical PackedVector3Array syntax.
+Resume from local commit `6841d81` or `8954681` plus newer work. Checkpoints include `Shadowfall3D_stylized_nature_replacement_checkpoint.zip`. Preserve the one-scene start and do not re-add old asset geometry beside replacement assets.
