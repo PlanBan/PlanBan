@@ -5,37 +5,34 @@
 - Confirmed the start was split between Stage09 and RoadsideExpansion.
 - Merged RoadsideExpansion content directly into Stage09 and removed the separate Stage10 instance.
 - Merged both forest sets under Stage09 `Forest`.
-- Flattened the three start cabin scenes into Stage09, preserving their furniture/interiors.
-- Flattened Ravenfall gate into Stage09 while preserving gameplay paths.
-- Flattened Ravenfall city into Stage09 while preserving city trigger paths and NPC groups.
-- Static validation completed.
+- Flattened cabins, Ravenfall gate and Ravenfall city into Stage09 while preserving gameplay paths.
 - Local checkpoint: `d5d9441`.
 
 ## 2026-09-08 — runtime launch hotfix
 - Fixed malformed Stage09 city patrol PackedVector3Array serialization reported by the user's Godot 4.7.2 runtime screenshot.
 - Local hotfix: `bb4daf5`.
 
-## 2026-09-08 — RPG Items replacement pass
-- Inspected user-provided Ultimate RPG Items archive and verified Quaternius CC0 1.0 license.
-- Imported curated replacement subset.
-- Replaced old_sword, iron_sword, bow, physical arrows, world pickup and inventory previews with RPG-pack meshes.
-- Replaced Ranged Raider bow, Gate Sentry weapon and Captain Garrett weapon.
-- Replaced existing GoldPickup with RPG coins and LootPile visual with Bag + Crystal.
-- Replaced weapon icons and removed unused old SVG weapon icons.
-- Potions intentionally preserved.
-- Local checkpoints: `6d8ef95`, `a8d74d0`.
+## 2026-09-08 — three-pack asset replacement
+- Ultimate RPG Items, Ultimate Stylized Nature and LowPoly Nature archives inspected; Quaternius CC0 licenses verified.
+- Existing weapon/item visuals replaced in place: swords, bow, arrows, NPC weapons, gold, loot bag/crystal and relevant icons/previews.
+- Existing nature replaced in place with Stylized Nature, retaining LowPoly logs/stumps where useful.
+- No duplicate environment layer/items added.
+- Local checkpoints include `a8d74d0`, `8954681`, `6841d81`.
 
-## 2026-09-08 — Ultimate Stylized Nature replacement
-- Imported curated Stylized Nature subset with CC0 license.
-- Remapped 41 existing Stage09 nature resource IDs in place to stylized equivalents rather than adding a duplicate environment layer.
-- Applied per-resource scale compensation from old/new OBJ bounds so existing layout size is preserved.
-- Rewrote reusable PineTree/PineTreeTall/PineTreeWide/BirchTree/BushClump/GrassClump/FlowerPatch/RockCluster scenes to use stylized Quaternius mesh assets instead of primitive procedural meshes.
-- Stage10 Old Farm and Stage11 Ranger Camp therefore inherit the new nature style automatically through their existing scene references.
-- Logs/stumps remain from the supplied LowPoly Nature archive where Stylized Nature has no corresponding model.
-- Static validation: 0 missing res paths, 0 unresolved resource IDs, JSON valid, diff check clean.
-- Local checkpoints: `3a89886`, `8954681` / `Shadowfall3D_stylized_nature_replacement_checkpoint.zip`.
+## 2026-09-08 — Stage 12 magic core checkpoint
+- User explicitly asked to continue story/game creation; Stage12 development started.
+- Added Player MP/max MP/regeneration/regeneration delay and MP HUD.
+- Added magic mode integrated with existing sword/bow modes.
+- Added seven schools: Fire, Ice, Lightning, Healing, Protection, Light, Dark.
+- Controls: 4–8 select core spells, Q/R cycles all schools, LMB casts while magic mode is active.
+- Added physical/ray-stepped magic projectile, lightning hitscan beam, healing, ward, light burst and dark lifesteal.
+- Added base elemental resistances and fire/ice/lightning status effects to current enemies.
+- Corrupted Wolf inherits the Rift Scavenger resistance system.
+- Added BowController safe deactivate hook to prevent overlapping bow/magic visuals.
+- Static resource/TSCN/JSON validation and diff check completed.
+- Local commit: `b6211e7`.
+- Local ZIP: `Shadowfall3D_12_magic_core_checkpoint.zip`.
+- GitHub recovery file: `STAGE12_MAGIC_CORE.patch`.
 
-## 2026-09-08 — weapon cleanup follow-up
-- Replaced CombatEffigy primitive practice BladeMesh/GuardMesh with RPG-pack Sword mesh.
-- Removed obsolete primitive practice-weapon subresources.
-- Local checkpoint: `6841d81`.
+## Next
+Build Stage12 story integration: Selen/Arcanists, Arcane Trial region, quest, magic-resistant enemies, Stage12 save/load and Main Menu route.
