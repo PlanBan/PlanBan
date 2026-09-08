@@ -2,7 +2,8 @@
 
 ## Current base
 - Project line: approved staged Shadowfall3D, Stage 11/20.
-- Latest local checkpoint commit: `21ad73c` — `11/20 checkpoint: replace start nature with Quaternius pack`.
+- Latest local checkpoint commit: `bb4daf5` — `11/20 hotfix: fix Stage09 PackedVector3Array parser error`.
+- Quaternius replacement checkpoint: `21ad73c`.
 - Import checkpoint: `d3f9b15`.
 - Previous one-scene checkpoint: `d5d9441`.
 - Do not return to the rejected simplified Full Game prototype.
@@ -36,15 +37,25 @@ Optimization:
 - Imported MTL specular values were reduced for a rougher, less plastic dark-fantasy look.
 - Approximate Quaternius geometry if all 178 placed mesh uses were visible at once: ~198,826 triangles; culling reduces actual frame load.
 
-Validation:
-- All 45 imported OBJ models parse successfully.
-- Every imported OBJ has its MTL sidecar.
-- 0 missing ExtResource IDs.
-- 0 missing SubResource IDs.
-- 0 missing `res://` resource paths.
-- 0 duplicate resource IDs in Stage09 static validation.
-- JSON validation passes.
-- Native Godot executable is not installed in the execution environment, so runtime validation must be performed in the user's Godot 4.7.x.
+## 2026-09-08 — Godot 4.7.2 runtime parser hotfix
+User runtime screenshot showed New Game could not launch and the editor reported a parse error in `Stage09QuestGuild.tscn` around line 5800. Because Stage10 and Stage11 inherit Stage09, that one base-scene parse failure cascaded into many additional errors.
 
-Recovery:
-Resume from local commit `21ad73c` or `Shadowfall3D_quaternius_start_refresh_checkpoint.zip` / newer final ZIP. Do not re-split the start across multiple level scenes.
+Root cause fixed:
+- `CityPatrol.patrol_points` had been serialized as invalid `PackedVector3Array(Vector3(...), ...)` text during city flattening.
+- `SquareGuard.patrol_points` had the same invalid form.
+- `Citizen.patrol_points` had the same invalid form.
+- All three are now serialized in canonical Godot TSCN packed-vector form using flat numeric values, e.g. `PackedVector3Array(0, 0, 0, ...)`.
+- The same malformed values were corrected in backup `scenes/world/RavenfallCityEditable.tscn` so the bug is not reintroduced from that source scene.
+- Project-wide search finds 0 remaining `PackedVector3Array(Vector3...)` TSCN expressions.
+
+Validation after hotfix:
+- all referenced `res://` resources exist;
+- TSCN ExtResource/SubResource references resolve statically;
+- JSON validation passes;
+- packed-vector serialization now matches canonical Godot `.tscn` examples;
+- current local checkpoint ZIP: `Shadowfall3D_runtime_parser_hotfix_checkpoint.zip`.
+
+Native Godot 4.7.2 is not installed in the execution container, so final runtime confirmation must still be done in the user's Godot 4.7.2 editor.
+
+## Recovery
+Resume from local commit `bb4daf5` or `Shadowfall3D_runtime_parser_hotfix_checkpoint.zip` / newer final ZIP. Do not re-split the start across multiple level scenes and do not restore the malformed PackedVector3Array syntax.
