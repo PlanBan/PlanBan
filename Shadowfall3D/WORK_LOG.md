@@ -1,38 +1,43 @@
 # Shadowfall3D — WORK LOG
 
 ## 2026-09-08 — one-scene start conversion
-- Audited the actual inheritance chain: Stage11 -> Stage10 -> Stage09.
-- Confirmed the start was split between Stage09 and RoadsideExpansion.
-- Merged RoadsideExpansion content directly into Stage09 and removed the separate Stage10 instance.
-- Merged both forest sets under Stage09 `Forest`.
-- Flattened cabins, Ravenfall gate and Ravenfall city into Stage09 while preserving gameplay paths.
-- Local checkpoint: `d5d9441`.
-
-## 2026-09-08 — runtime launch hotfix
-- Fixed malformed Stage09 city patrol PackedVector3Array serialization reported by the user's Godot 4.7.2 runtime screenshot.
-- Local hotfix: `bb4daf5`.
+- Start world was consolidated into Stage09 and kept editable.
+- Runtime parser hotfix later corrected malformed city PackedVector3Array serialization.
 
 ## 2026-09-08 — three-pack asset replacement
 - Ultimate RPG Items, Ultimate Stylized Nature and LowPoly Nature archives inspected; Quaternius CC0 licenses verified.
-- Existing weapon/item visuals replaced in place: swords, bow, arrows, NPC weapons, gold, loot bag/crystal and relevant icons/previews.
-- Existing nature replaced in place with Stylized Nature, retaining LowPoly logs/stumps where useful.
-- No duplicate environment layer/items added.
-- Local checkpoints include `a8d74d0`, `8954681`, `6841d81`.
+- Existing weapon/item and nature placeholders replaced in place without duplicate environment/item layers.
 
-## 2026-09-08 — Stage 12 magic core checkpoint
+## 2026-09-08 — Stage 12 magic core
 - User explicitly asked to continue story/game creation; Stage12 development started.
-- Added Player MP/max MP/regeneration/regeneration delay and MP HUD.
+- Added Player MP/max MP/regeneration and MP HUD.
 - Added magic mode integrated with existing sword/bow modes.
 - Added seven schools: Fire, Ice, Lightning, Healing, Protection, Light, Dark.
-- Controls: 4–8 select core spells, Q/R cycles all schools, LMB casts while magic mode is active.
-- Added physical/ray-stepped magic projectile, lightning hitscan beam, healing, ward, light burst and dark lifesteal.
-- Added base elemental resistances and fire/ice/lightning status effects to current enemies.
-- Corrupted Wolf inherits the Rift Scavenger resistance system.
-- Added BowController safe deactivate hook to prevent overlapping bow/magic visuals.
-- Static resource/TSCN/JSON validation and diff check completed.
-- Local commit: `b6211e7`.
-- Local ZIP: `Shadowfall3D_12_magic_core_checkpoint.zip`.
-- GitHub recovery file: `STAGE12_MAGIC_CORE.patch`.
+- Controls: 4–8 direct spell selection; Q/R cycles all schools; LMB casts while magic mode is active.
+- Added ray-stepped projectile magic, lightning hitscan, healing, ward, light burst and dark lifesteal.
+- Added base elemental resistances and fire/ice/lightning status effects to existing enemies.
+- Local checkpoint: `b6211e7` / `Shadowfall3D_12_magic_core_checkpoint.zip`.
 
-## Next
-Build Stage12 story integration: Selen/Arcanists, Arcane Trial region, quest, magic-resistant enemies, Stage12 save/load and Main Menu route.
+## 2026-09-08 — Stage 12 Arcanist story
+- Added `Stage12Magic.tscn` inheriting Stage11.
+- Selen now opens the `Резонанс кристалла` story after Ranger completion.
+- Added mentor Ilara Vein and the Arcane Trial annex.
+- Added Fire/Frost/Storm Magic Echoes with distinct elemental resistances/vulnerabilities.
+- Added quest flow: Selen -> annex -> mana attunement -> 3 echoes -> Ilara.
+- Added Stage12 save/load for MP, spells and arcane progression.
+- Local checkpoint: `4375c1c` / `Shadowfall3D_12_arcanist_story_checkpoint.zip`.
+
+## 2026-09-08 — Stage 12 integration/polish
+- Main Menu New Game and Continue switched from Stage11 to `Stage12Magic.tscn`.
+- Added `docs/STAGE_12.md` and updated roadmap.
+- Restored final Quaternius practice-sword replacement that was newer than the nature ZIP used as the local recovery base.
+- Rift Scavenger now skips LootPile creation for empty loot tables; Magic Echoes therefore leave no empty reward sacks.
+- Magic Echoes suppress 85% of non-elemental physical damage so the resistance lesson cannot be trivially bypassed with sword/bow spam.
+- Automated audits verified project resource paths, TSCN IDs, JSON/dialogue links, Stage12 quest-objective IDs, save-key roundtrip and both menu route references.
+- Local integration commits: `38e4b2d`, `a542b8c`, `a42f607`, `6eda1ee`.
+- Test ZIP: `Shadowfall3D_12_TEST_BUILD.zip`.
+- Full Stage12 recovery delta stored on GitHub as `STAGE12_CURRENT.patch.gz.b64`.
+
+## Remaining Stage12 gate
+- Native Godot 4.7.2 cannot run in the current execution container: no binary is installed and external DNS is blocked, so the official build cannot be downloaded here.
+- User Godot 4.7.2 runtime test is required. Fix any red parser/runtime errors before starting Stage13.
