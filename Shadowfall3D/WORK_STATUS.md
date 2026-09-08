@@ -1,57 +1,54 @@
 # Shadowfall3D — WORK STATUS
 
 ## Current base
-- Project line: approved staged Shadowfall3D, Stage 11/20.
-- Latest local checkpoint commit: `6841d81` — `11/20 checkpoint: replace training blade asset`.
-- Stylized Nature replacement checkpoint: `8954681`.
-- Stylized Nature import checkpoint: `3a89886`.
-- RPG weapon replacement checkpoint: `a8d74d0`.
-- RPG import checkpoint: `6d8ef95`.
-- Runtime parser hotfix: `bb4daf5`.
-- Do not return to the rejected simplified Full Game prototype.
+- Project line: approved staged Shadowfall3D.
+- User explicitly asked to continue story/game development, so Stage 12/20 is now active.
+- Latest local checkpoint: `b6211e7` — `12/20 checkpoint: magic core, mana and resistances`.
+- Previous art/asset checkpoint: `6841d81` / `8954681`.
+- Preserve the one-scene start and three-pack replacement work; do not restore old placeholder geometry.
 
 ## ONE SCENE START
-Open this scene for current start-world editing:
+Manual start-world editing remains:
 `scenes/main/Stage09QuestGuild.tscn`
 
-Actual New Game route remains:
+Current gameplay inheritance before Stage12 scene is added:
 `Stage11Rangers -> Stage10OldFarmContract -> Stage09QuestGuild`.
 
-## 2026-09-08 — three-pack replacement pass
-User requested replacement, not additive duplicates, using three supplied Quaternius archives.
+## 2026-09-08 — STAGE 12 MAGIC CORE COMPLETE
+Implemented first Stage12 block:
+- Player MP resource with max mana, regeneration and regeneration delay.
+- MP HUD bar/value added to Player.
+- Magic mode integrated with existing melee and bow modes so visuals/inputs do not overlap.
+- Public player APIs for mana spending/restoration, magical healing and temporary ward damage reduction.
+- New `SpellController` with seven schools:
+  - Fire — projectile + burn;
+  - Ice — projectile + slow;
+  - Lightning — hitscan beam + stagger;
+  - Healing — self heal;
+  - Protection — temporary ward;
+  - Light — area burst/light source;
+  - Dark — projectile + small lifesteal.
+- Controls: [4] Fire, [5] Ice, [6] Lightning, [7] Healing, [8] Protection, Q/R cycles all unlocked schools including Light/Dark, LMB casts in magic mode.
+- New `MagicProjectile.tscn` with ray-stepped 3D collision.
+- Base elemental resistances and magic status reactions added to Rift Scavenger and Ranged Raider; Corrupted Wolf inherits the Rift Scavenger system.
+- BowController exposes a safe `deactivate_bow()` hook for switching to magic.
 
-### RPG Items replacement COMPLETE
-- old_sword -> Quaternius `Sword.obj`.
-- iron_sword -> `Sword_big.obj`.
-- ranger_bow/player bow -> `Bow_Wooden.obj`.
-- hunting_arrow / physical projectile -> `Arrow.obj`.
-- World sword pickup, first-person weapons and inventory previews updated to the same replacement assets.
-- Ranged Raider bow, Gate Sentry weapon, Captain Garrett weapon and CombatEffigy practice weapon replaced so primitive weapon geometry does not remain in current gameplay scenes.
-- Existing GoldPickup visuals -> RPG `Coin` meshes.
-- Existing LootPile visuals -> RPG `Bag + Crystal` meshes.
-- Existing armor previews/NPC armor use RPG leather/metal armor meshes.
-- Weapon icons replaced by pack PNGs; old unused internal weapon SVGs removed.
-- Potions intentionally not mass-redesigned.
-- Gameplay IDs, stats, stamina, ammo, projectile, quest and inventory behavior preserved.
+## Validation at magic-core checkpoint
+- project code/TSCN resource references statically resolve;
+- no unresolved ExtResource/SubResource IDs in TSCN audit;
+- JSON parses;
+- `git diff --check` clean;
+- local recovery ZIP: `/mnt/data/Shadowfall3D_12_CHECKPOINTS/Shadowfall3D_12_magic_core_checkpoint.zip`.
 
-### Stylized Nature replacement COMPLETE for active nature pipeline
-- Curated Ultimate Stylized Nature subset imported with CC0 license.
-- Existing Stage09 living nature resources remapped IN PLACE to Stylized Nature; no second forest/object layer was added.
-- Positions/rotations preserved.
-- Scale compensation calculated from source/target OBJ bounds to keep world composition close to the previous layout.
-- Reusable scenes `PineTree`, `PineTreeTall`, `PineTreeWide`, `BirchTree`, `BushClump`, `GrassClump`, `FlowerPatch`, `RockCluster` were rewritten to use Stylized Nature meshes instead of primitive procedural geometry.
-- This automatically updates Stage10 Old Farm, Stage11 Ranger Camp, older stage scenes and backup environment scenes that instance those reusable assets.
-- Logs/stumps remain from the supplied LowPoly Nature archive because the Stylized archive has no equivalent.
-- Small foliage keeps shadows/GI disabled and visibility culling; trees keep simple collision where reusable wrappers are used.
+## GitHub recovery
+- `Shadowfall3D/STAGE12_MAGIC_CORE.patch` records the Stage12 core checkpoint/change set.
+- MAIN_NOTE.md remains the primary workflow rule.
 
-## Validation
-- 0 missing `res://` resources.
-- 0 unresolved TSCN ExtResource/SubResource IDs.
-- 0 duplicate TSCN resource IDs in static validation.
-- JSON validation passes.
-- 0 malformed `PackedVector3Array(Vector3...)` expressions.
-- `git diff --check` clean at each checkpoint.
-- Native Godot 4.7.2 binary could not be downloaded in the execution container because the container has no external network/DNS access. Runtime launch validation still requires Godot on the user's machine unless a runnable Godot binary becomes available here.
-
-## Recovery
-Resume from local commit `6841d81` or `8954681` plus newer work. Checkpoints include `Shadowfall3D_stylized_nature_replacement_checkpoint.zip`. Preserve the one-scene start and do not re-add old asset geometry beside replacement assets.
+## Exact next step
+1. Create `Stage12Magic.tscn` inheriting Stage11.
+2. Extend Selen dialogue: after Ranger training he detects the crystal resonance and sends the hero to an Arcanist annex.
+3. Add Arcane Trial region, travel points and mentor dialogue.
+4. Add a Stage12 journal quest and hostile magic users/echoes that demonstrate elemental resistances.
+5. Extend Stage12 save/load including mana + spell unlock state.
+6. Route Main Menu New Game/Continue to Stage12 after integration.
+7. Run full structural validation and native Godot 4.7.2 validation if a runnable binary becomes available.
