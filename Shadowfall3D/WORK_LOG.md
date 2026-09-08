@@ -29,3 +29,15 @@
 - Static validation passes: no missing ExtResource/SubResource IDs, no missing `res://` paths, no duplicate resource IDs, all JSON parses.
 - Local import checkpoint: `d3f9b15` / `Shadowfall3D_quaternius_import_checkpoint.zip`.
 - Local replacement checkpoint: `21ad73c` / `Shadowfall3D_quaternius_start_refresh_checkpoint.zip`.
+
+## 2026-09-08 — runtime launch hotfix
+- Investigated user screenshot showing 44 editor errors and New Game failing.
+- Traced the first real error to `Stage09QuestGuild.tscn` line ~5800.
+- Found three malformed patrol route values written as `PackedVector3Array(Vector3(...), ...)` during the one-scene city flattening.
+- Rewrote CityPatrol, SquareGuard and Citizen patrol routes to canonical Godot TSCN flat numeric packed-vector syntax.
+- Corrected the same three values in `RavenfallCityEditable.tscn` backup.
+- Confirmed project-wide search now has 0 remaining malformed `PackedVector3Array(Vector3...)` TSCN expressions.
+- Confirmed the Stage10/Stage11 errors from the screenshot were cascading failures caused by Stage09 not loading.
+- Static validation after the fix: referenced resources exist, ExtResource/SubResource IDs resolve, JSON parses.
+- Local hotfix commit: `bb4daf5`.
+- Recovery checkpoint: `Shadowfall3D_runtime_parser_hotfix_checkpoint.zip`.
