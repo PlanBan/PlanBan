@@ -1,1 +1,13 @@
-PLACEHOLDER
+# Stage 11 recovery note
+
+The binary/project checkpoint is stored locally as `09_stage11_parser_hotfix.zip` and the live source-of-truth status is `STAGE11_WORK_STATUS.md`.
+
+Latest local Git commit recorded for the parser hotfix: `fe7fb3e`.
+
+Hotfix summary:
+- fixed Godot 4.7.2 parser failure in `ravenfall_city_builder.gd` by replacing inferred `var x := ...` with explicit float typing/conversion;
+- added explicit typing to new Stage 11 ranger-region positions;
+- proactively removed runtime local `:=` inference from new bow, physical arrow and ranged-raider code where practical;
+- structural validation passed after the hotfix.
+
+If a later session resumes work, read `MAIN_NOTE.md` and `STAGE11_WORK_STATUS.md` first. The user-approved base remains Stage 10 Expanded + Guidance and Stage 11 should not be replaced with the rejected simplified Full Game prototype.
