@@ -2,38 +2,38 @@
 
 ## Current base
 - Project line: approved staged Shadowfall3D, Stage 11/20.
-- Current local source checkpoint commit: `fbc3cee`.
-- Previous checkpoints: `d2a0a33`, `e5a88e1`, `71ab4cd`.
+- Latest local checkpoint commit: `ec33495` — `Checkpoint: unify complete start into Stage09 scene`.
+- Previous editable-world checkpoint: `fbc3cee`.
 - Do not return to the rejected simplified Full Game prototype.
 
-## 2026-09-08 — EDITABLE WORLD conversion
-The current Stage 11 world art was restructured so the user can manually edit it in Godot 3D instead of relying on runtime-only environment builders.
+## 2026-09-08 — ONE SCENE START WORLD
+The user correctly reported that the start was still scattered between `Stage09QuestGuild.tscn` and a separately instanced `RoadsideExpansion.tscn`.
 
-Editable scenes:
-- `scenes/world/RoadsideExpansion.tscn` — start road, houses, forest, bushes, grass, flowers and rocks.
-- `scenes/world/RavenfallGateEditable.tscn` — Ravenfall gate, towers and decoration.
-- `scenes/world/RavenfallCityEditable.tscn` — city walls, streets, buildings, props, NPCs and triggers.
-- `scenes/world/OldFarmRegion.tscn` — Old Farm visuals and gameplay wolves.
-- `scenes/world/RangerTrainingRegion.tscn` — Ranger camp and forest edge.
-- `scenes/world/EDIT_WORLD_OVERVIEW.tscn` — daylight overview for manual level-art work.
-- `scenes/main/Stage09QuestGuild.tscn` — base gameplay start inherited by Stage10/Stage11: player, wounded merchant, caravan, near-road forest and scene gameplay nodes.
-- Actual New Game scene remains `scenes/main/Stage11Rangers.tscn`.
+This has now been structurally fixed:
+- `RoadsideExpansion.tscn` content is merged directly into `scenes/main/Stage09QuestGuild.tscn`.
+- `Stage10OldFarmContract.tscn` no longer instances RoadsideExpansion separately.
+- Original Stage09 trees and former RoadsideExpansion trees are combined under the single `Forest` node: 80 editor-visible tree instances at this checkpoint.
+- Start houses are in `EDIT_ME_START_Houses`.
+- Cobble road / expanded ground / house paths are in `EDIT_ME_START_RoadAndGround`.
+- Bushes, grass, flowers and rocks are in `EDIT_ME_START_BushesGrassRocks`.
+- `BrokenCaravan`, `WoundedMerchant`, corpses, sword pickup, encounter and enemies remain in the same Stage09 scene.
+- `Ravenfall` gate and `RavenfallCity` are present directly in Stage09 and have Editable Children enabled, so they can be manipulated while editing Stage09 without opening another level scene.
+- Cabin instances also have Editable Children enabled for furniture/interior edits.
 
-Important implementation state:
-- Roadside visuals are no longer created by `roadside_expansion.gd`; the scene contains real editor-visible nodes.
-- Ravenfall city is now instanced from `RavenfallCityEditable.tscn` instead of the runtime city builder.
-- Old Farm and Ranger camp environment objects are stored in their TSCN files; scripts are reduced to gameplay/navigation accessors where needed.
-- Ravenfall gate was extracted to `RavenfallGateEditable.tscn`; stage_06 uses direct `Ravenfall/...` node paths.
-- Stage09 close forest now mixes pine/tall pine/wide pine/birch variants.
-- A generated cobblestone road texture is used as one central road surface instead of hundreds of separate stone meshes.
-- Optimization: small foliage/flowers/rocks have shadows disabled and visibility-range culling; trees have distance culling while keeping shadows.
-- `EDIT_ME_FIRST.md` and `docs/EDITING_WORLD.md` explain manual editing.
+### Single scene to edit the current start
+`scenes/main/Stage09QuestGuild.tscn`
 
-Validation at checkpoint:
-- Static TSCN resource validation: 0 missing `res://` resources.
-- 0 unresolved ExtResource/SubResource IDs.
+Actual New Game remains:
+`Stage11Rangers.tscn -> Stage10OldFarmContract.tscn -> Stage09QuestGuild.tscn`
+Therefore edits saved in Stage09 propagate into the current Stage11 New Game build.
+
+## Validation
+- 0 missing `res://` resources.
+- 0 unresolved TSCN ExtResource/SubResource IDs.
+- 0 duplicate resource IDs in TSCN validation.
 - JSON validation passes.
-- Native Godot runtime validation is still required on the user's Godot 4.7.2 installation.
+- Stage10 contains no RoadsideExpansion instance after merge.
+- Native Godot executable is not installed in the current execution environment, so runtime validation must be performed in the user's Godot 4.7.x.
 
 ## Recovery rule
-On resume: read `MAIN_NOTE.md`, then this file, then `WORK_LOG.md`. Continue from the latest editable-world checkpoint rather than rebuilding the environment from scripts.
+On resume: read `MAIN_NOTE.md`, then this file, then `WORK_LOG.md` if present. Continue from local checkpoint `ec33495` / `Shadowfall3D_one_scene_start_checkpoint.zip` or newer. Do not re-split the start into separate runtime environment scenes.
