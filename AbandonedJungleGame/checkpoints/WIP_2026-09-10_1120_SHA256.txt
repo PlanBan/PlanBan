@@ -1,0 +1,3 @@
+Checkpoint archive: AbandonedJungleGame_WIP_2026-09-10_1120.zip
+SHA256: b9a62b962dab810a7a6f2d5e447588b99c993211fb1e64c57150732e42a34388
+State: exact snapshot of /mnt/data/jungle_build after interrupted work; still essentially the corrected Neon Courier baseline, jungle conversion not yet implemented.
