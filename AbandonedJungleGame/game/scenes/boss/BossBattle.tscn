@@ -1,0 +1,384 @@
+[gd_scene load_steps=16 format=3]
+
+[ext_resource type="Script" path="res://scripts/boss_battle.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/boss/JungleGuardian.tscn" id="2_guardian"]
+[ext_resource type="PackedScene" path="res://scenes/boss/Soul.tscn" id="3_soul"]
+[ext_resource type="PackedScene" path="res://scenes/boss/BossProjectile.tscn" id="4_projectile"]
+[ext_resource type="Texture2D" path="res://assets/environment/v2/jungle_far.svg" id="5_far"]
+[ext_resource type="Texture2D" path="res://assets/environment/v2/jungle_ruins.svg" id="6_ruins"]
+[ext_resource type="Texture2D" path="res://assets/environment/v2/jungle_mist.svg" id="7_mist"]
+[ext_resource type="AudioStream" path="res://assets/audio/music/jungle_ambience.ogg" id="8_music"]
+[ext_resource type="Script" path="res://scripts/ambient_loop.gd" id="9_loop"]
+
+[sub_resource type="StyleBoxFlat" id="PanelStyle"]
+bg_color = Color(0.025,0.04,0.03,0.96)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.55,0.78,0.34,0.9)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="ButtonNormal"]
+bg_color = Color(0.06,0.08,0.06,0.97)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.72,0.52,0.23,0.9)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="ButtonHover"]
+bg_color = Color(0.22,0.13,0.06,0.98)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1,0.74,0.29,1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="OverlayStyle"]
+bg_color = Color(0.01,0.018,0.012,0.94)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.35,0.58,0.28,0.9)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[sub_resource type="StyleBoxFlat" id="BossBarBG"]
+bg_color = Color(0.06,0.07,0.06,0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.38,0.43,0.32,0.9)
+
+[sub_resource type="StyleBoxFlat" id="BossBarFill"]
+bg_color = Color(0.56,0.76,0.27,0.96)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.83,0.94,0.49,0.8)
+
+[node name="BossBattle" type="Node2D"]
+script = ExtResource("1_script")
+projectile_scene = ExtResource("4_projectile")
+
+[node name="Background" type="Node2D" parent="."]
+z_index = -30
+[node name="Far" type="Parallax2D" parent="Background"]
+repeat_size = Vector2(1280,720)
+scroll_scale = Vector2(0.1,0.1)
+[node name="Image" type="Sprite2D" parent="Background/Far"]
+texture = ExtResource("5_far")
+position = Vector2(640,360)
+modulate = Color(0.34,0.43,0.31,1)
+[node name="Ruins" type="Parallax2D" parent="Background"]
+repeat_size = Vector2(1280,720)
+scroll_scale = Vector2(0.2,0.2)
+[node name="Image" type="Sprite2D" parent="Background/Ruins"]
+texture = ExtResource("6_ruins")
+position = Vector2(640,360)
+modulate = Color(0.45,0.52,0.4,0.86)
+[node name="Mist" type="Parallax2D" parent="Background"]
+repeat_size = Vector2(1280,720)
+autoscroll = Vector2(-6,0)
+scroll_scale = Vector2(0.4,0.4)
+[node name="Image" type="Sprite2D" parent="Background/Mist"]
+texture = ExtResource("7_mist")
+position = Vector2(640,360)
+modulate = Color(0.63,0.72,0.56,0.16)
+
+[node name="Chamber" type="Node2D" parent="."]
+z_index = -6
+[node name="BackWall" type="Polygon2D" parent="Chamber"]
+polygon = PackedVector2Array(0,0,1280,0,1280,720,0,720)
+color = Color(0.018,0.032,0.024,0.62)
+[node name="LeftColumn" type="Polygon2D" parent="Chamber"]
+polygon = PackedVector2Array(82,600,82,90,152,58,218,94,218,600)
+color = Color(0.12,0.15,0.12,0.92)
+[node name="RightColumn" type="Polygon2D" parent="Chamber"]
+polygon = PackedVector2Array(1062,600,1062,94,1128,58,1198,90,1198,600)
+color = Color(0.12,0.15,0.12,0.92)
+[node name="LeftMoss" type="Line2D" parent="Chamber"]
+points = PackedVector2Array(118,80,104,150,132,220,111,306,140,395)
+width = 11.0
+default_color = Color(0.15,0.32,0.14,0.78)
+[node name="RightMoss" type="Line2D" parent="Chamber"]
+points = PackedVector2Array(1162,80,1174,162,1148,242,1171,332,1145,420)
+width = 11.0
+default_color = Color(0.15,0.32,0.14,0.78)
+[node name="Floor" type="Polygon2D" parent="Chamber"]
+polygon = PackedVector2Array(0,565,1280,565,1280,720,0,720)
+color = Color(0.07,0.085,0.07,0.97)
+[node name="FloorCrackA" type="Line2D" parent="Chamber"]
+points = PackedVector2Array(225,604,338,575,430,620,526,588)
+width = 3.0
+default_color = Color(0.02,0.03,0.02,0.8)
+[node name="FloorCrackB" type="Line2D" parent="Chamber"]
+points = PackedVector2Array(775,592,864,620,968,578,1052,610)
+width = 3.0
+default_color = Color(0.02,0.03,0.02,0.8)
+
+[node name="Guardian" parent="." instance=ExtResource("2_guardian")]
+position = Vector2(640,205)
+scale = Vector2(0.72,0.72)
+
+[node name="BattleArena" type="Node2D" parent="."]
+position = Vector2(640,430)
+[node name="ArenaFill" type="Polygon2D" parent="BattleArena"]
+polygon = PackedVector2Array(-255,-125,255,-125,255,125,-255,125)
+color = Color(0.008,0.012,0.009,0.98)
+[node name="ArenaBorder" type="Line2D" parent="BattleArena"]
+points = PackedVector2Array(-255,-125,255,-125,255,125,-255,125,-255,-125)
+width = 5.0
+default_color = Color(0.86,0.9,0.72,0.95)
+[node name="InnerRuneTop" type="Line2D" parent="BattleArena"]
+points = PackedVector2Array(-190,-112,-120,-118,-40,-110,40,-118,120,-110,190,-116)
+width = 2.0
+default_color = Color(0.23,0.38,0.17,0.52)
+[node name="Projectiles" type="Node2D" parent="BattleArena"]
+[node name="Soul" parent="BattleArena" instance=ExtResource("3_soul")]
+
+[node name="HUD" type="CanvasLayer" parent="."]
+layer = 20
+[node name="BossName" type="Label" parent="HUD"]
+offset_left = 390.0
+offset_top = 24.0
+offset_right = 890.0
+offset_bottom = 62.0
+theme_override_colors/font_color = Color(0.79,0.91,0.57,1)
+theme_override_colors/font_shadow_color = Color(0,0,0,0.85)
+theme_override_font_sizes/font_size = 26
+text = "ANCIENT WARDEN"
+horizontal_alignment = 1
+[node name="BossHP" type="ProgressBar" parent="HUD"]
+offset_left = 390.0
+offset_top = 66.0
+offset_right = 890.0
+offset_bottom = 88.0
+show_percentage = false
+max_value = 10.0
+value = 10.0
+theme_override_styles/background = SubResource("BossBarBG")
+theme_override_styles/fill = SubResource("BossBarFill")
+[node name="PlayerHP" type="Label" parent="HUD"]
+offset_left = 35.0
+offset_top = 28.0
+offset_right = 260.0
+offset_bottom = 63.0
+theme_override_colors/font_color = Color(0.96,0.47,0.36,1)
+theme_override_font_sizes/font_size = 21
+text = "SOUL  6 / 6"
+[node name="Round" type="Label" parent="HUD"]
+offset_left = 1025.0
+offset_top = 28.0
+offset_right = 1245.0
+offset_bottom = 63.0
+theme_override_colors/font_color = Color(0.72,0.79,0.63,1)
+theme_override_font_sizes/font_size = 20
+text = "TURN  01"
+horizontal_alignment = 2
+
+[node name="MessagePanel" type="Panel" parent="HUD"]
+offset_left = 42.0
+offset_top = 575.0
+offset_right = 1238.0
+offset_bottom = 633.0
+theme_override_styles/panel = SubResource("PanelStyle")
+[node name="Message" type="Label" parent="HUD/MessagePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 8.0
+offset_right = -20.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.89,0.91,0.79,1)
+theme_override_font_sizes/font_size = 17
+text = "The vines close behind you."
+vertical_alignment = 1
+
+[node name="FightButton" type="Button" parent="HUD"]
+offset_left = 494.0
+offset_top = 648.0
+offset_right = 786.0
+offset_bottom = 704.0
+theme_override_colors/font_color = Color(1,0.76,0.29,1)
+theme_override_font_sizes/font_size = 23
+theme_override_styles/normal = SubResource("ButtonNormal")
+theme_override_styles/hover = SubResource("ButtonHover")
+theme_override_styles/focus = SubResource("ButtonHover")
+text = "FIGHT"
+
+[node name="AttackMeter" type="Control" parent="HUD"]
+visible = false
+offset_left = 340.0
+offset_top = 651.0
+offset_right = 940.0
+offset_bottom = 697.0
+[node name="Track" type="ColorRect" parent="HUD/AttackMeter"]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 10.0
+offset_right = 600.0
+offset_bottom = 36.0
+color = Color(0.06,0.07,0.06,1)
+[node name="LeftBand" type="ColorRect" parent="HUD/AttackMeter"]
+offset_left = 205.0
+offset_top = 10.0
+offset_right = 395.0
+offset_bottom = 36.0
+color = Color(0.35,0.23,0.08,0.7)
+[node name="SweetSpot" type="ColorRect" parent="HUD/AttackMeter"]
+offset_left = 270.0
+offset_top = 7.0
+offset_right = 330.0
+offset_bottom = 39.0
+color = Color(0.93,0.68,0.24,0.95)
+[node name="Marker" type="ColorRect" parent="HUD/AttackMeter"]
+offset_left = 5.0
+offset_top = 2.0
+offset_right = 13.0
+offset_bottom = 44.0
+color = Color(0.95,0.97,0.88,1)
+
+[node name="Victory" type="Control" parent="HUD"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+[node name="Dark" type="ColorRect" parent="HUD/Victory"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.005,0.012,0.007,0.72)
+[node name="Panel" type="Panel" parent="HUD/Victory"]
+offset_left = 365.0
+offset_top = 205.0
+offset_right = 915.0
+offset_bottom = 520.0
+theme_override_styles/panel = SubResource("OverlayStyle")
+[node name="Title" type="Label" parent="HUD/Victory/Panel"]
+offset_left = 30.0
+offset_top = 30.0
+offset_right = 520.0
+offset_bottom = 85.0
+theme_override_colors/font_color = Color(0.82,0.97,0.57,1)
+theme_override_font_sizes/font_size = 33
+text = "WARDEN DEFEATED"
+horizontal_alignment = 1
+[node name="Text" type="Label" parent="HUD/Victory/Panel"]
+offset_left = 45.0
+offset_top = 100.0
+offset_right = 505.0
+offset_bottom = 155.0
+theme_override_colors/font_color = Color(0.75,0.82,0.68,1)
+theme_override_font_sizes/font_size = 17
+text = "The heart of the lost temple is open."
+horizontal_alignment = 1
+[node name="Replay" type="Button" parent="HUD/Victory"]
+offset_left = 455.0
+offset_top = 390.0
+offset_right = 825.0
+offset_bottom = 446.0
+theme_override_font_sizes/font_size = 20
+text = "EXPLORE AGAIN"
+[node name="Menu" type="Button" parent="HUD/Victory"]
+offset_left = 455.0
+offset_top = 458.0
+offset_right = 825.0
+offset_bottom = 514.0
+theme_override_font_sizes/font_size = 20
+text = "MAIN MENU"
+
+[node name="Defeat" type="Control" parent="HUD"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+[node name="Dark" type="ColorRect" parent="HUD/Defeat"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.01,0.005,0.005,0.79)
+[node name="Panel" type="Panel" parent="HUD/Defeat"]
+offset_left = 365.0
+offset_top = 220.0
+offset_right = 915.0
+offset_bottom = 500.0
+theme_override_styles/panel = SubResource("OverlayStyle")
+[node name="Title" type="Label" parent="HUD/Defeat/Panel"]
+offset_left = 30.0
+offset_top = 32.0
+offset_right = 520.0
+offset_bottom = 88.0
+theme_override_colors/font_color = Color(0.94,0.45,0.36,1)
+theme_override_font_sizes/font_size = 33
+text = "THE JUNGLE REMEMBERS"
+horizontal_alignment = 1
+[node name="Text" type="Label" parent="HUD/Defeat/Panel"]
+offset_left = 35.0
+offset_top = 105.0
+offset_right = 515.0
+offset_bottom = 152.0
+theme_override_colors/font_color = Color(0.78,0.72,0.67,1)
+theme_override_font_sizes/font_size = 17
+text = "Try the Warden again and learn its patterns."
+horizontal_alignment = 1
+[node name="Retry" type="Button" parent="HUD/Defeat"]
+offset_left = 455.0
+offset_top = 380.0
+offset_right = 825.0
+offset_bottom = 436.0
+theme_override_font_sizes/font_size = 20
+text = "RETRY BOSS"
+[node name="Menu" type="Button" parent="HUD/Defeat"]
+offset_left = 455.0
+offset_top = 448.0
+offset_right = 825.0
+offset_bottom = 504.0
+theme_override_font_sizes/font_size = 20
+text = "MAIN MENU"
+
+[node name="BossMusic" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("8_music")
+volume_db = -7.0
+pitch_scale = 0.82
+script = ExtResource("9_loop")
+
+[connection signal="pressed" from="HUD/FightButton" to="." method="_on_fight_pressed"]
+[connection signal="pressed" from="HUD/Victory/Replay" to="." method="_on_replay_pressed"]
+[connection signal="pressed" from="HUD/Victory/Menu" to="." method="_on_menu_pressed"]
+[connection signal="pressed" from="HUD/Defeat/Retry" to="." method="_on_retry_pressed"]
+[connection signal="pressed" from="HUD/Defeat/Menu" to="." method="_on_menu_pressed"]
+[connection signal="finished" from="BossMusic" to="BossMusic" method="_on_finished"]
