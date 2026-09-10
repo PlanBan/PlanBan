@@ -11,8 +11,8 @@ Turn the existing prototype into an editable 2D abandoned-jungle platformer usin
 - [x] Create editable Godot folder structure under `game/`.
 - [x] Create `MainMenu.tscn` with `Play` and `Quit` buttons.
 - [x] Add animated/moving jungle background to the menu.
-- [ ] Add player scene with `AnimatedSprite2D` and inspector-editable gameplay values.
-- [ ] Add player idle/walk/jump/attack/hurt/death animations.
+- [x] Add player scene with `AnimatedSprite2D` and inspector-editable gameplay values.
+- [x] Add player idle/walk/jump/attack/hurt/death animations.
 - [ ] Add enemy scene(s) using free sprite assets and animations.
 - [ ] Build first abandoned-jungle/ruins level with editable scene nodes / TileMapLayer.
 - [ ] Add collectible/objective and level exit.
