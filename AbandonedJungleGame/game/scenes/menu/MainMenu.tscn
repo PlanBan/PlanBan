@@ -1,48 +1,49 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/main_menu.gd" id="1_menu"]
-[ext_resource type="Texture2D" path="res://assets/environment/menu_jungle_far.svg" id="2_far"]
-[ext_resource type="Texture2D" path="res://assets/environment/menu_ruins_mid.svg" id="3_ruins"]
-[ext_resource type="Texture2D" path="res://assets/environment/menu_mist.svg" id="4_mist"]
-[ext_resource type="Texture2D" path="res://assets/environment/menu_leaves.svg" id="5_leaves"]
+[ext_resource type="Texture2D" path="res://assets/environment/v2/jungle_far.svg" id="2_far"]
+[ext_resource type="Texture2D" path="res://assets/environment/v2/jungle_ruins.svg" id="3_ruins"]
+[ext_resource type="Texture2D" path="res://assets/environment/v2/jungle_mist.svg" id="4_mist"]
+[ext_resource type="Texture2D" path="res://assets/environment/v2/jungle_foreground.svg" id="5_leaves"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ui_click.wav" id="6_click"]
+[ext_resource type="AudioStream" path="res://assets/audio/music/jungle_ambience.ogg" id="7_ambience"]
+[ext_resource type="Script" path="res://scripts/ambient_loop.gd" id="8_loop"]
 
 [sub_resource type="StyleBoxFlat" id="StylePanel"]
-bg_color = Color(0.025, 0.09, 0.06, 0.86)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.37, 0.65, 0.35, 0.72)
-corner_radius_top_left = 18
-corner_radius_top_right = 18
-corner_radius_bottom_right = 18
-corner_radius_bottom_left = 18
-shadow_color = Color(0, 0, 0, 0.45)
-shadow_size = 18
-
+bg_color = Color(0.025,0.035,0.03,0.88)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.48,0.44,0.31,0.58)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+shadow_color = Color(0,0,0,0.55)
+shadow_size = 24
 [sub_resource type="StyleBoxFlat" id="StyleButton"]
-bg_color = Color(0.09, 0.25, 0.14, 0.95)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.38, 0.72, 0.39, 0.9)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-
+bg_color = Color(0.11,0.13,0.11,0.94)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.48,0.43,0.29,0.8)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
 [sub_resource type="StyleBoxFlat" id="StyleButtonHover"]
-bg_color = Color(0.16, 0.4, 0.22, 0.98)
+bg_color = Color(0.20,0.23,0.17,0.98)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.65, 0.9, 0.52, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
+border_color = Color(0.73,0.66,0.42,1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -52,34 +53,32 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_menu")
-
 [node name="FarBackground" type="Sprite2D" parent="."]
 texture = ExtResource("2_far")
-position = Vector2(640, 360)
-
+position = Vector2(640,360)
+[node name="RuinsScroll" type="Parallax2D" parent="."]
+repeat_size = Vector2(1280,720)
+scroll_scale = Vector2(0.45,0.45)
+autoscroll = Vector2(1.2,0)
+[node name="Ruins" type="Sprite2D" parent="RuinsScroll"]
+texture = ExtResource("3_ruins")
+position = Vector2(640,360)
+modulate = Color(0.82,0.9,0.76,0.9)
 [node name="MistScroll" type="Parallax2D" parent="."]
-repeat_size = Vector2(1280, 0)
-autoscroll = Vector2(-8, 0)
-scroll_scale = Vector2(0.9, 0.9)
-
+repeat_size = Vector2(1280,720)
+autoscroll = Vector2(-10,0)
+scroll_scale = Vector2(0.82,0.82)
 [node name="Mist" type="Sprite2D" parent="MistScroll"]
 texture = ExtResource("4_mist")
-position = Vector2(640, 360)
-modulate = Color(0.82, 0.95, 0.84, 0.72)
-
-[node name="Ruins" type="Sprite2D" parent="."]
-texture = ExtResource("3_ruins")
-position = Vector2(640, 360)
-
+position = Vector2(640,360)
+modulate = Color(0.9,0.94,0.84,0.72)
 [node name="LeavesScroll" type="Parallax2D" parent="."]
-repeat_size = Vector2(1280, 720)
-autoscroll = Vector2(13, 4)
-scroll_scale = Vector2(1.05, 1.05)
-
+repeat_size = Vector2(1280,720)
+autoscroll = Vector2(2.5,0.4)
+scroll_scale = Vector2(1.03,1.03)
 [node name="Leaves" type="Sprite2D" parent="LeavesScroll"]
 texture = ExtResource("5_leaves")
-position = Vector2(640, 360)
-
+position = Vector2(640,360)
 [node name="Darken" type="ColorRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -88,77 +87,73 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.01, 0.035, 0.02, 0.23)
-
+color = Color(0.005,0.012,0.01,0.22)
 [node name="MenuPanel" type="PanelContainer" parent="."]
 layout_mode = 0
-offset_left = 385.0
-offset_top = 125.0
-offset_right = 895.0
-offset_bottom = 600.0
+offset_left = 94.0
+offset_top = 106.0
+offset_right = 530.0
+offset_bottom = 612.0
 theme_override_styles/panel = SubResource("StylePanel")
-
 [node name="Margin" type="MarginContainer" parent="MenuPanel"]
 layout_mode = 2
-theme_override_constants/margin_left = 45
-theme_override_constants/margin_top = 38
-theme_override_constants/margin_right = 45
-theme_override_constants/margin_bottom = 38
-
+theme_override_constants/margin_left = 42
+theme_override_constants/margin_top = 46
+theme_override_constants/margin_right = 42
+theme_override_constants/margin_bottom = 42
 [node name="VBox" type="VBoxContainer" parent="MenuPanel/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 18
+theme_override_constants/separation = 14
 alignment = 1
-
+[node name="Overline" type="Label" parent="MenuPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65,0.62,0.45,1)
+theme_override_font_sizes/font_size = 14
+text = "EXPEDITION 07  •  NO RETURN SIGNAL"
 [node name="Title" type="Label" parent="MenuPanel/Margin/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.77, 0.91, 0.61, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.7)
+theme_override_colors/font_color = Color(0.88,0.85,0.69,1)
+theme_override_colors/font_shadow_color = Color(0,0,0,0.75)
 theme_override_constants/shadow_offset_x = 3
 theme_override_constants/shadow_offset_y = 3
-theme_override_font_sizes/font_size = 44
-text = "ABANDONED\nJUNGLE RUINS"
-horizontal_alignment = 1
-
+theme_override_font_sizes/font_size = 48
+text = "THE LOST\nTEMPLE"
 [node name="Subtitle" type="Label" parent="MenuPanel/Margin/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.82, 0.66, 1)
-theme_override_font_sizes/font_size = 18
-text = "The ruins have been silent for centuries."
-horizontal_alignment = 1
-
+theme_override_colors/font_color = Color(0.67,0.72,0.61,1)
+theme_override_font_sizes/font_size = 17
+text = "Deep beneath the canopy,\nsomething ancient is awake."
 [node name="Spacer" type="Control" parent="MenuPanel/Margin/VBox"]
-custom_minimum_size = Vector2(0, 35)
+custom_minimum_size = Vector2(0,44)
 layout_mode = 2
-
 [node name="Play" type="Button" parent="MenuPanel/Margin/VBox"]
-custom_minimum_size = Vector2(0, 64)
+custom_minimum_size = Vector2(0,62)
 layout_mode = 2
-theme_override_font_sizes/font_size = 25
+theme_override_colors/font_color = Color(0.88,0.84,0.68,1)
+theme_override_colors/font_hover_color = Color(1,0.94,0.72,1)
+theme_override_font_sizes/font_size = 22
 theme_override_styles/normal = SubResource("StyleButton")
 theme_override_styles/hover = SubResource("StyleButtonHover")
 theme_override_styles/pressed = SubResource("StyleButtonHover")
 text = "PLAY"
-
 [node name="Quit" type="Button" parent="MenuPanel/Margin/VBox"]
-custom_minimum_size = Vector2(0, 64)
+custom_minimum_size = Vector2(0,62)
 layout_mode = 2
-theme_override_font_sizes/font_size = 25
+theme_override_colors/font_color = Color(0.77,0.76,0.65,1)
+theme_override_colors/font_hover_color = Color(1,0.94,0.72,1)
+theme_override_font_sizes/font_size = 22
 theme_override_styles/normal = SubResource("StyleButton")
 theme_override_styles/hover = SubResource("StyleButtonHover")
 theme_override_styles/pressed = SubResource("StyleButtonHover")
 text = "QUIT"
-
-[node name="Hint" type="Label" parent="."]
-layout_mode = 0
-offset_left = 340.0
-offset_top = 650.0
-offset_right = 940.0
-offset_bottom = 688.0
-theme_override_colors/font_color = Color(0.62, 0.75, 0.61, 0.8)
-theme_override_font_sizes/font_size = 15
-text = "All menu layers are separate Godot nodes and can be edited in the Inspector."
-horizontal_alignment = 1
-
+[node name="Audio" type="Node" parent="."]
+[node name="Click" type="AudioStreamPlayer" parent="Audio"]
+stream = ExtResource("6_click")
+volume_db = -5.0
+[node name="Ambience" type="AudioStreamPlayer" parent="Audio"]
+stream = ExtResource("7_ambience")
+volume_db = -13.0
+script = ExtResource("8_loop")
 [connection signal="pressed" from="MenuPanel/Margin/VBox/Play" to="." method="_on_play_pressed"]
 [connection signal="pressed" from="MenuPanel/Margin/VBox/Quit" to="." method="_on_quit_pressed"]
+[connection signal="finished" from="Audio/Ambience" to="Audio/Ambience" method="_on_finished"]
