@@ -18,13 +18,13 @@ The active rebuild is in `AbandonedJungleGame/game/` and locally in `/mnt/data/j
 - Player is a separate editable CharacterBody2D scene with Inspector movement/combat values and idle/walk/jump/attack/hurt/death animations.
 - Free Kenney CC0 character art is stored locally.
 - Animated Kenney CC0 bee enemy scene is complete with editable patrol/chase/HP/damage/score parameters.
-- First real jungle level now replaces the placeholder.
-- Level length is about 3600 px and contains editable ground segments, mossy stone platforms, ruin pillars, cracks and vines.
-- Environment uses layered `Parallax2D` jungle, ruins, moving mist and foreground leaves.
-- Player and five individually editable BeeEnemy instances are placed in the scene.
-- HUD shows HP, score, objective text and controls.
-- Game-over overlay has Restart and Main Menu buttons.
-- Ordinary level geometry is stored directly in the `.tscn` scene; it is not generated procedurally by GDScript.
+- First real 3600px jungle/ruins level is complete with editable ground, mossy stone platforms, ruin pillars, moving parallax jungle/mist/leaves, Player and five BeeEnemy instances.
+- HUD shows HP, score, objective and controls; Game Over overlay provides restart/menu.
+- Objective milestone is complete: `scenes/props/Relic.tscn` is an editable animated floating collectible.
+- Eight Relic instances are manually placed in `JungleLevel.tscn`, so their positions can be changed directly in the editor.
+- `scenes/props/ExitTemple.tscn` is an editable animated ancient gate with SEALED/OPEN states.
+- Collecting every relic activates the gate; entering it shows a Win overlay with Play Again/Main Menu.
+- Ordinary level geometry and collectible placement are stored directly in `.tscn` scenes rather than procedurally generated.
 
 ## Saving rule
 Before starting each substantial step, inspect this file and `PROJECT_PLAN.md`. After every completed step, commit the actual project files to `AbandonedJungleGame/game/`, update this status, and only then continue.
@@ -33,4 +33,4 @@ Before starting each substantial step, inspect this file and `PROJECT_PLAN.md`. 
 Kenney's New Platformer Pack is used for player/enemy art and is CC0. Final source/license notes must be recorded in `game/docs/ASSET_LICENSES.md`.
 
 ## Next action
-Add the collectible/objective and the level exit as their own editable scenes, place collectibles manually in JungleLevel, and make the exit activate when the objective is complete. Save that checkpoint before audio.
+Add audio as editable `AudioStreamPlayer` nodes/resources: menu UI feedback, jump/attack/hurt/collect/exit SFX, plus a looping jungle ambience. Save the audio checkpoint before license/validation/final ZIP.
