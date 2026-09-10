@@ -1,0 +1,205 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="Script" path="res://scripts/player.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/characters/explorer_idle.png" id="2_player"]
+
+[sub_resource type="CapsuleShape2D" id="PlayerShape"]
+radius = 21.0
+height = 74.0
+
+[sub_resource type="RectangleShape2D" id="AttackShape"]
+size = Vector2(78, 70)
+
+[sub_resource type="SpriteFrames" id="PlayerFrames"]
+animations = [{
+"frames": [{"duration": 1.0, "texture": ExtResource("2_player")}],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("2_player")}, {"duration": 1.0, "texture": ExtResource("2_player")}],
+"loop": true,
+"name": &"walk",
+"speed": 7.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("2_player")}],
+"loop": false,
+"name": &"jump",
+"speed": 5.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("2_player")}],
+"loop": false,
+"name": &"attack",
+"speed": 5.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("2_player")}],
+"loop": false,
+"name": &"hurt",
+"speed": 5.0
+}, {
+"frames": [{"duration": 1.0, "texture": ExtResource("2_player")}],
+"loop": false,
+"name": &"death",
+"speed": 5.0
+}]
+
+[sub_resource type="Animation" id="AnimReset"]
+resource_name = "RESET"
+length = 0.0
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D:position")
+tracks/0/keys = {"times": PackedFloat32Array(0), "transitions": PackedFloat32Array(1), "update": 0, "values": [Vector2(0, -28)]}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:rotation")
+tracks/1/keys = {"times": PackedFloat32Array(0), "transitions": PackedFloat32Array(1), "update": 0, "values": [0.0]}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("AnimatedSprite2D:scale")
+tracks/2/keys = {"times": PackedFloat32Array(0), "transitions": PackedFloat32Array(1), "update": 0, "values": [Vector2(0.72, 0.72)]}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("AnimatedSprite2D:modulate")
+tracks/3/keys = {"times": PackedFloat32Array(0), "transitions": PackedFloat32Array(1), "update": 0, "values": [Color(1, 1, 1, 1)]}
+
+[sub_resource type="Animation" id="AnimIdle"]
+resource_name = "idle"
+length = 1.2
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D:position")
+tracks/0/keys = {"times": PackedFloat32Array(0, 0.6, 1.2), "transitions": PackedFloat32Array(1, 1, 1), "update": 0, "values": [Vector2(0, -28), Vector2(0, -31), Vector2(0, -28)]}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:scale")
+tracks/1/keys = {"times": PackedFloat32Array(0, 0.6, 1.2), "transitions": PackedFloat32Array(1, 1, 1), "update": 0, "values": [Vector2(0.72, 0.72), Vector2(0.73, 0.70), Vector2(0.72, 0.72)]}
+
+[sub_resource type="Animation" id="AnimWalk"]
+resource_name = "walk"
+length = 0.36
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D:position")
+tracks/0/keys = {"times": PackedFloat32Array(0, 0.18, 0.36), "transitions": PackedFloat32Array(1, 1, 1), "update": 0, "values": [Vector2(0, -28), Vector2(0, -33), Vector2(0, -28)]}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:rotation")
+tracks/1/keys = {"times": PackedFloat32Array(0, 0.18, 0.36), "transitions": PackedFloat32Array(1, 1, 1), "update": 0, "values": [-0.055, 0.055, -0.055]}
+
+[sub_resource type="Animation" id="AnimJump"]
+resource_name = "jump"
+length = 0.3
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D:scale")
+tracks/0/keys = {"times": PackedFloat32Array(0, 0.3), "transitions": PackedFloat32Array(1, 1), "update": 0, "values": [Vector2(0.68, 0.77), Vector2(0.72, 0.72)]}
+
+[sub_resource type="Animation" id="AnimAttack"]
+resource_name = "attack"
+length = 0.24
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D:rotation")
+tracks/0/keys = {"times": PackedFloat32Array(0, 0.08, 0.24), "transitions": PackedFloat32Array(1, 1, 1), "update": 0, "values": [-0.12, 0.12, 0.0]}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AttackArea/Slash:rotation")
+tracks/1/keys = {"times": PackedFloat32Array(0, 0.12, 0.24), "transitions": PackedFloat32Array(1, 1, 1), "update": 0, "values": [-0.8, 0.35, 0.65]}
+
+[sub_resource type="Animation" id="AnimHurt"]
+resource_name = "hurt"
+length = 0.28
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D:modulate")
+tracks/0/keys = {"times": PackedFloat32Array(0, 0.08, 0.16, 0.28), "transitions": PackedFloat32Array(1, 1, 1, 1), "update": 0, "values": [Color(1, 0.45, 0.45, 1), Color(1, 1, 1, 1), Color(1, 0.45, 0.45, 1), Color(1, 1, 1, 1)]}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:position")
+tracks/1/keys = {"times": PackedFloat32Array(0, 0.08, 0.16, 0.28), "transitions": PackedFloat32Array(1, 1, 1, 1), "update": 0, "values": [Vector2(-5, -28), Vector2(5, -28), Vector2(-3, -28), Vector2(0, -28)]}
+
+[sub_resource type="Animation" id="AnimDeath"]
+resource_name = "death"
+length = 0.7
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D:rotation")
+tracks/0/keys = {"times": PackedFloat32Array(0, 0.7), "transitions": PackedFloat32Array(1, 1), "update": 0, "values": [0.0, 1.45]}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:modulate")
+tracks/1/keys = {"times": PackedFloat32Array(0, 0.7), "transitions": PackedFloat32Array(1, 1), "update": 0, "values": [Color(1, 1, 1, 1), Color(0.35, 0.35, 0.35, 0.25)]}
+
+[sub_resource type="AnimationLibrary" id="AnimLibrary"]
+_data = {
+&"RESET": SubResource("AnimReset"),
+&"attack": SubResource("AnimAttack"),
+&"death": SubResource("AnimDeath"),
+&"hurt": SubResource("AnimHurt"),
+&"idle": SubResource("AnimIdle"),
+&"jump": SubResource("AnimJump"),
+&"walk": SubResource("AnimWalk")
+}
+
+[node name="Player" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_script")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -34)
+shape = SubResource("PlayerShape")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -28)
+scale = Vector2(0.72, 0.72)
+sprite_frames = SubResource("PlayerFrames")
+animation = &"idle"
+centered = true
+
+[node name="AttackArea" type="Area2D" parent="."]
+position = Vector2(52, -35)
+collision_layer = 0
+collision_mask = 4
+monitoring = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackArea"]
+shape = SubResource("AttackShape")
+
+[node name="Slash" type="Line2D" parent="AttackArea"]
+visible = false
+points = PackedVector2Array(-22, 28, 3, -22, 38, -30)
+width = 8.0
+default_color = Color(0.78, 0.95, 0.62, 0.9)
+round_precision = 8
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(0, -90)
+position_smoothing_enabled = true
+position_smoothing_speed = 6.0
+limit_left = 0
+limit_top = 0
+limit_right = 3600
+limit_bottom = 900
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {&"": SubResource("AnimLibrary")}
+autoplay = "idle"
