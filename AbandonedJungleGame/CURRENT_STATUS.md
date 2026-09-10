@@ -1,15 +1,23 @@
 # CURRENT STATUS — Abandoned Jungle Game
 
-Last checkpoint: 2026-09-10
+Last checkpoint: 2026-09-10 11:20 (+02:00)
 Target engine: Godot 4.7.2
 
-## Important continuation instruction
-If work is interrupted, read this file and `PROJECT_PLAN.md` first, then continue from the first unchecked milestone. Do not restart the project from scratch.
+## Mandatory continuation rule
+Before doing ANY new work, read `WORKFLOW.md`, this file, and `PROJECT_PLAN.md`. Continue the unfinished milestone. Do not restart the project from scratch unless the user explicitly asks for a reset.
 
-## What exists right now
-The currently playable checkpoint is the corrected **Neon Courier** prototype. It is stored in `legacy_neon_prototype/` so no working progress is lost.
+## What I verified after the interrupted work
+I inspected the actual local working directories (`/mnt/data/jungle_build` and `/mnt/data/jungle_work`). They contain the same files and are still essentially the corrected Neon Courier prototype. The only later local change is the README timestamp/content checkpoint; the abandoned-jungle conversion itself had NOT yet been implemented before the interruption.
 
-Current prototype features:
+A fresh local ZIP snapshot was created from the exact current `jungle_build` directory:
+- `AbandonedJungleGame_WIP_2026-09-10_1120.zip`
+- SHA256: `b9a62b962dab810a7a6f2d5e447588b99c993211fb1e64c57150732e42a34388`
+- ZIP integrity check passed.
+
+## Stable recovery checkpoint
+The currently playable baseline is the corrected **Neon Courier** prototype under `legacy_neon_prototype/`.
+
+Baseline features:
 - 2D platformer movement;
 - jump;
 - dash;
@@ -23,10 +31,10 @@ Current prototype features:
 - basic main menu;
 - compatibility fix for Godot 4.7.2 (`draw_ellipse` conflict fixed).
 
-## User's new direction — this is the target
+## Target requested by the user
 Rebuild the prototype into an **abandoned jungle / lost ruins** game.
 
-The final project should be easy to edit manually in the Godot editor. Prefer Godot scenes, nodes, resources, AnimationPlayer/AnimatedSprite2D, TileMap/TileMapLayer, exported properties and inspector-editable values instead of generating most visuals and level content from GDScript.
+The final project must be easy to edit manually in Godot. Prefer Godot scenes, nodes, resources, AnimationPlayer/AnimatedSprite2D, TileMap/TileMapLayer, exported properties and inspector-editable values instead of generating most visuals and level content from GDScript.
 
 Required direction:
 - start menu with exactly `Play` and `Quit` buttons;
@@ -40,14 +48,13 @@ Required direction:
 - clear attribution/license notes for every external asset pack;
 - scenes/resources organized so the user can change them visually in Godot.
 
-## Current external asset research
-A free Kenney platformer character set was located on GitHub (`eturner58/game-assets`, New Platformer Pack). Character idle/walk images have been verified as accessible. Before final use, verify the upstream license/attribution information and copy that into `ASSET_LICENSES.md`.
+## External asset research already done
+A free Kenney platformer character set was located on GitHub (`eturner58/game-assets`, New Platformer Pack). Character idle/walk images were verified as accessible. Before final use, verify the upstream license/attribution information and record it in `ASSET_LICENSES.md`.
 
-## Next action
-1. Keep `legacy_neon_prototype/` untouched as a recovery checkpoint.
-2. Create a new Godot project structure in `game/` built around editable `.tscn` scenes rather than code-generated visuals.
-3. Add menu scene (`Play`, `Quit`) with moving jungle background.
-4. Add locally stored free sprite assets and animations.
-5. Build first jungle level and enemies.
-6. Add audio.
-7. Test/validate Godot 4.7.2 project structure and export a ZIP checkpoint.
+## Exact next action
+1. Save the just-created WIP ZIP into GitHub `checkpoints/`.
+2. Create the editable Godot folder structure under `game/`.
+3. Commit that structure immediately as its own checkpoint.
+4. Create `MainMenu.tscn` with `Play` and `Quit` and a moving jungle background.
+5. Commit menu milestone immediately before moving on.
+6. Then add local licensed character/enemy assets and animations, committing after each logical step.
