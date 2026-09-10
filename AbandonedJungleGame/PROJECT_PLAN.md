@@ -9,8 +9,8 @@ Turn the existing prototype into an editable 2D abandoned-jungle platformer usin
 - [x] Preserve the last working Neon Courier prototype as a recovery checkpoint.
 - [x] Document current status and continuation rules.
 - [x] Create editable Godot folder structure under `game/`.
-- [ ] Create `MainMenu.tscn` with `Play` and `Quit` buttons.
-- [ ] Add animated/moving jungle background to the menu.
+- [x] Create `MainMenu.tscn` with `Play` and `Quit` buttons.
+- [x] Add animated/moving jungle background to the menu.
 - [ ] Add player scene with `AnimatedSprite2D` and inspector-editable gameplay values.
 - [ ] Add player idle/walk/jump/attack/hurt/death animations.
 - [ ] Add enemy scene(s) using free sprite assets and animations.
