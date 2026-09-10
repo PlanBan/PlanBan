@@ -23,6 +23,7 @@ var spawn_position: Vector2
 var direction: float = 1.0
 var target: Node2D
 var dead: bool = false
+var hurt: bool = false
 
 func _ready() -> void:
 	hp = max_hp
@@ -67,15 +68,23 @@ func take_damage(amount: int, _from_position: Vector2 = Vector2.ZERO) -> void:
 	hp = maxi(hp - amount, 0)
 	if hp <= 0:
 		dead = true
-		collision_layer = 0
-		collision_mask = 0
-		$DamageArea.monitoring = false
+		hurt = false
+		set_deferred("collision_layer", 0)
+		set_deferred("collision_mask", 0)
+		$DamageArea.set_deferred("monitoring", false)
 		animation_player.play("death")
 		defeated.emit(score_value)
 		await animation_player.animation_finished
 		queue_free()
 	else:
+		if hurt:
+			return
+		hurt = true
 		animation_player.play("hurt")
+		await animation_player.animation_finished
+		if not dead:
+			hurt = false
+			animation_player.play("fly")
 
 func _on_damage_area_body_entered(body: Node2D) -> void:
 	if dead:
