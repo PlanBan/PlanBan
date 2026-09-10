@@ -1,5 +1,4 @@
-[gd_scene load_steps=17 format=3]
-
+[gd_scene load_steps=19 format=3]
 [ext_resource type="Script" path="res://scripts/jungle_level.gd" id="1_level"]
 [ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/BeeEnemy.tscn" id="3_bee"]
@@ -7,7 +6,8 @@
 [ext_resource type="Texture2D" path="res://assets/environment/menu_ruins_mid.svg" id="5_ruins"]
 [ext_resource type="Texture2D" path="res://assets/environment/menu_mist.svg" id="6_mist"]
 [ext_resource type="Texture2D" path="res://assets/environment/menu_leaves.svg" id="7_leaves"]
-
+[ext_resource type="PackedScene" path="res://scenes/props/Relic.tscn" id="8_relic"]
+[ext_resource type="PackedScene" path="res://scenes/props/ExitTemple.tscn" id="9_exit"]
 [sub_resource type="RectangleShape2D" id="Ground800"]
 size = Vector2(800, 90)
 [sub_resource type="RectangleShape2D" id="Ground650"]
@@ -26,61 +26,46 @@ size = Vector2(260, 34)
 size = Vector2(300, 34)
 [sub_resource type="RectangleShape2D" id="PillarShape"]
 size = Vector2(76, 150)
-
 [node name="JungleLevel" type="Node2D"]
 script = ExtResource("1_level")
-
 [node name="WorldBackground" type="Node2D" parent="."]
 z_index = -20
-
 [node name="Far" type="Parallax2D" parent="WorldBackground"]
 repeat_size = Vector2(1280, 720)
 scroll_scale = Vector2(0.2, 0.2)
-
 [node name="Image" type="Sprite2D" parent="WorldBackground/Far"]
 texture = ExtResource("4_far")
 position = Vector2(640, 360)
-
 [node name="Ruins" type="Parallax2D" parent="WorldBackground"]
 repeat_size = Vector2(1280, 720)
 scroll_scale = Vector2(0.45, 0.45)
-
 [node name="Image" type="Sprite2D" parent="WorldBackground/Ruins"]
 texture = ExtResource("5_ruins")
 position = Vector2(640, 360)
 modulate = Color(0.75, 0.88, 0.72, 0.8)
-
 [node name="Mist" type="Parallax2D" parent="WorldBackground"]
 repeat_size = Vector2(1280, 720)
 scroll_scale = Vector2(0.72, 0.72)
 autoscroll = Vector2(-7, 0)
-
 [node name="Image" type="Sprite2D" parent="WorldBackground/Mist"]
 texture = ExtResource("6_mist")
 position = Vector2(640, 360)
 modulate = Color(0.72, 0.9, 0.76, 0.48)
-
 [node name="TempleSilhouettes" type="Node2D" parent="."]
 z_index = -4
-
 [node name="BrokenTemple" type="Polygon2D" parent="TempleSilhouettes"]
 polygon = PackedVector2Array(1260, 625, 1260, 395, 1320, 395, 1320, 330, 1385, 330, 1385, 395, 1450, 395, 1450, 625)
 color = Color(0.12, 0.19, 0.105, 1)
-
 [node name="ArchLeft" type="Polygon2D" parent="TempleSilhouettes"]
 polygon = PackedVector2Array(2130, 625, 2130, 420, 2205, 370, 2280, 420, 2280, 625, 2240, 625, 2240, 445, 2205, 420, 2170, 445, 2170, 625)
 color = Color(0.105, 0.17, 0.09, 1)
-
 [node name="DeepPillarA" type="Polygon2D" parent="TempleSilhouettes"]
 polygon = PackedVector2Array(2860, 625, 2860, 335, 2940, 335, 2940, 625)
 color = Color(0.09, 0.15, 0.08, 1)
-
 [node name="DeepPillarB" type="Polygon2D" parent="TempleSilhouettes"]
 polygon = PackedVector2Array(3020, 625, 3020, 410, 3100, 410, 3100, 625)
 color = Color(0.09, 0.15, 0.08, 1)
-
 [node name="Terrain" type="Node2D" parent="."]
-
 [node name="Ground01" type="StaticBody2D" parent="Terrain"]
 position = Vector2(400, 695)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/Ground01"]
@@ -91,7 +76,6 @@ color = Color(0.145, 0.19, 0.12, 1)
 [node name="Moss" type="Polygon2D" parent="Terrain/Ground01"]
 polygon = PackedVector2Array(-400, -45, 400, -45, 400, -28, 250, -31, 150, -23, 20, -32, -130, -25, -260, -34, -400, -27)
 color = Color(0.22, 0.39, 0.17, 1)
-
 [node name="Ground02" type="StaticBody2D" parent="Terrain"]
 position = Vector2(1175, 695)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/Ground02"]
@@ -102,7 +86,6 @@ color = Color(0.13, 0.18, 0.11, 1)
 [node name="Moss" type="Polygon2D" parent="Terrain/Ground02"]
 polygon = PackedVector2Array(-325, -45, 325, -45, 325, -28, 160, -33, 40, -26, -95, -35, -210, -25, -325, -31)
 color = Color(0.19, 0.35, 0.15, 1)
-
 [node name="Ground03" type="StaticBody2D" parent="Terrain"]
 position = Vector2(1800, 695)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/Ground03"]
@@ -113,7 +96,6 @@ color = Color(0.155, 0.2, 0.125, 1)
 [node name="Moss" type="Polygon2D" parent="Terrain/Ground03"]
 polygon = PackedVector2Array(-250, -45, 250, -45, 250, -28, 115, -33, 0, -24, -125, -35, -250, -28)
 color = Color(0.24, 0.41, 0.18, 1)
-
 [node name="Ground04" type="StaticBody2D" parent="Terrain"]
 position = Vector2(2375, 695)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/Ground04"]
@@ -124,7 +106,6 @@ color = Color(0.13, 0.175, 0.105, 1)
 [node name="Moss" type="Polygon2D" parent="Terrain/Ground04"]
 polygon = PackedVector2Array(-275, -45, 275, -45, 275, -30, 135, -35, -5, -26, -140, -34, -275, -28)
 color = Color(0.18, 0.34, 0.14, 1)
-
 [node name="Ground05" type="StaticBody2D" parent="Terrain"]
 position = Vector2(3125, 695)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/Ground05"]
@@ -135,7 +116,6 @@ color = Color(0.145, 0.19, 0.115, 1)
 [node name="Moss" type="Polygon2D" parent="Terrain/Ground05"]
 polygon = PackedVector2Array(-475, -45, 475, -45, 475, -27, 300, -33, 120, -24, -40, -35, -210, -25, -350, -34, -475, -27)
 color = Color(0.21, 0.38, 0.16, 1)
-
 [node name="PlatformA" type="StaticBody2D" parent="Terrain"]
 position = Vector2(560, 580)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/PlatformA"]
@@ -147,7 +127,6 @@ color = Color(0.21, 0.25, 0.16, 1)
 points = PackedVector2Array(-106, -18, -45, -22, 25, -17, 105, -20)
 width = 9.0
 default_color = Color(0.3, 0.53, 0.21, 1)
-
 [node name="PlatformB" type="StaticBody2D" parent="Terrain"]
 position = Vector2(970, 545)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/PlatformB"]
@@ -159,7 +138,6 @@ color = Color(0.18, 0.23, 0.14, 1)
 points = PackedVector2Array(-126, -18, -70, -20, 0, -16, 72, -22, 126, -18)
 width = 8.0
 default_color = Color(0.28, 0.49, 0.19, 1)
-
 [node name="PlatformC" type="StaticBody2D" parent="Terrain"]
 position = Vector2(1400, 575)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/PlatformC"]
@@ -171,7 +149,6 @@ color = Color(0.2, 0.24, 0.15, 1)
 points = PackedVector2Array(-106, -18, -30, -21, 35, -16, 106, -20)
 width = 9.0
 default_color = Color(0.27, 0.48, 0.19, 1)
-
 [node name="PlatformD" type="StaticBody2D" parent="Terrain"]
 position = Vector2(1780, 535)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/PlatformD"]
@@ -183,7 +160,6 @@ color = Color(0.18, 0.22, 0.135, 1)
 points = PackedVector2Array(-145, -18, -80, -22, -5, -16, 72, -21, 145, -18)
 width = 8.0
 default_color = Color(0.3, 0.5, 0.2, 1)
-
 [node name="PlatformE" type="StaticBody2D" parent="Terrain"]
 position = Vector2(2240, 575)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/PlatformE"]
@@ -195,7 +171,6 @@ color = Color(0.19, 0.24, 0.145, 1)
 points = PackedVector2Array(-126, -18, -55, -21, 20, -16, 126, -20)
 width = 9.0
 default_color = Color(0.27, 0.49, 0.18, 1)
-
 [node name="PlatformF" type="StaticBody2D" parent="Terrain"]
 position = Vector2(2680, 535)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/PlatformF"]
@@ -207,7 +182,6 @@ color = Color(0.17, 0.22, 0.13, 1)
 points = PackedVector2Array(-126, -18, -60, -22, 5, -16, 82, -22, 126, -18)
 width = 8.0
 default_color = Color(0.28, 0.5, 0.19, 1)
-
 [node name="PlatformG" type="StaticBody2D" parent="Terrain"]
 position = Vector2(3130, 570)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/PlatformG"]
@@ -219,7 +193,6 @@ color = Color(0.19, 0.235, 0.14, 1)
 points = PackedVector2Array(-145, -18, -70, -22, 10, -16, 90, -21, 145, -18)
 width = 9.0
 default_color = Color(0.29, 0.51, 0.2, 1)
-
 [node name="Pillar01" type="StaticBody2D" parent="Terrain"]
 position = Vector2(1510, 575)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/Pillar01"]
@@ -235,7 +208,6 @@ default_color = Color(0.07, 0.11, 0.07, 0.8)
 points = PackedVector2Array(30, -70, 24, -22, 35, 18, 26, 62)
 width = 6.0
 default_color = Color(0.18, 0.42, 0.16, 1)
-
 [node name="Pillar02" type="StaticBody2D" parent="Terrain"]
 position = Vector2(2890, 575)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/Pillar02"]
@@ -247,58 +219,66 @@ color = Color(0.15, 0.195, 0.12, 1)
 points = PackedVector2Array(-30, -70, -25, -35, -34, 0, -20, 55)
 width = 7.0
 default_color = Color(0.17, 0.4, 0.15, 1)
-
 [node name="Actors" type="Node2D" parent="."]
-
 [node name="Player" parent="Actors" instance=ExtResource("2_player")]
 position = Vector2(150, 645)
 respawn_position = Vector2(150, 645)
-
 [node name="Bee01" parent="Actors" instance=ExtResource("3_bee")]
 position = Vector2(760, 475)
 patrol_half_width = 180.0
-
 [node name="Bee02" parent="Actors" instance=ExtResource("3_bee")]
 position = Vector2(1270, 455)
 patrol_half_width = 210.0
 chase_speed = 150.0
-
 [node name="Bee03" parent="Actors" instance=ExtResource("3_bee")]
 position = Vector2(1940, 445)
 patrol_half_width = 190.0
-
 [node name="Bee04" parent="Actors" instance=ExtResource("3_bee")]
 position = Vector2(2520, 450)
 patrol_half_width = 240.0
 chase_speed = 155.0
-
 [node name="Bee05" parent="Actors" instance=ExtResource("3_bee")]
 position = Vector2(3260, 430)
 patrol_half_width = 210.0
 max_hp = 3
 score_value = 250
-
+[node name="ObjectiveItems" type="Node2D" parent="."]
+[node name="Relic01" parent="ObjectiveItems" instance=ExtResource("8_relic")]
+position = Vector2(340, 600)
+[node name="Relic02" parent="ObjectiveItems" instance=ExtResource("8_relic")]
+position = Vector2(560, 520)
+[node name="Relic03" parent="ObjectiveItems" instance=ExtResource("8_relic")]
+position = Vector2(970, 485)
+[node name="Relic04" parent="ObjectiveItems" instance=ExtResource("8_relic")]
+position = Vector2(1400, 515)
+[node name="Relic05" parent="ObjectiveItems" instance=ExtResource("8_relic")]
+position = Vector2(1780, 475)
+[node name="Relic06" parent="ObjectiveItems" instance=ExtResource("8_relic")]
+position = Vector2(2240, 515)
+[node name="Relic07" parent="ObjectiveItems" instance=ExtResource("8_relic")]
+position = Vector2(2680, 475)
+[node name="Relic08" parent="ObjectiveItems" instance=ExtResource("8_relic")]
+position = Vector2(3130, 510)
+score_value = 150
+[node name="ExitTemple" parent="ObjectiveItems" instance=ExtResource("9_exit")]
+position = Vector2(3470, 650)
 [node name="ForegroundLeaves" type="Parallax2D" parent="."]
 z_index = 20
 repeat_size = Vector2(1280, 720)
 scroll_scale = Vector2(1.08, 1.08)
 autoscroll = Vector2(5, 1)
-
 [node name="Image" type="Sprite2D" parent="ForegroundLeaves"]
 texture = ExtResource("7_leaves")
 position = Vector2(640, 360)
 modulate = Color(0.74, 0.92, 0.67, 0.52)
-
 [node name="HUD" type="CanvasLayer" parent="."]
 layer = 50
-
 [node name="TopBar" type="ColorRect" parent="HUD"]
 offset_left = 22.0
 offset_top = 20.0
 offset_right = 1258.0
 offset_bottom = 72.0
 color = Color(0.025, 0.08, 0.045, 0.82)
-
 [node name="HP" type="Label" parent="HUD/TopBar"]
 offset_left = 20.0
 offset_top = 12.0
@@ -307,7 +287,6 @@ offset_bottom = 45.0
 theme_override_colors/font_color = Color(0.78, 0.94, 0.68, 1)
 theme_override_font_sizes/font_size = 20
 text = "HP  3 / 3"
-
 [node name="Score" type="Label" parent="HUD/TopBar"]
 offset_left = 970.0
 offset_top = 12.0
@@ -317,7 +296,6 @@ theme_override_colors/font_color = Color(0.88, 0.82, 0.48, 1)
 theme_override_font_sizes/font_size = 20
 text = "SCORE  00000"
 horizontal_alignment = 2
-
 [node name="Objective" type="Label" parent="HUD"]
 offset_left = 250.0
 offset_top = 82.0
@@ -330,7 +308,6 @@ theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 17
 text = "Explore the lost ruins"
 horizontal_alignment = 1
-
 [node name="Controls" type="Label" parent="HUD"]
 offset_left = 24.0
 offset_top = 670.0
@@ -340,7 +317,6 @@ theme_override_colors/font_color = Color(0.72, 0.83, 0.67, 0.82)
 theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
 theme_override_font_sizes/font_size = 15
 text = "A/D move   SPACE jump   SHIFT dash   F / LMB attack   ESC menu"
-
 [node name="GameOver" type="Control" parent="HUD"]
 visible = false
 layout_mode = 3
@@ -349,7 +325,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-
 [node name="Dark" type="ColorRect" parent="HUD/GameOver"]
 layout_mode = 1
 anchors_preset = 15
@@ -358,7 +333,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.01, 0.02, 0.012, 0.78)
-
 [node name="Title" type="Label" parent="HUD/GameOver"]
 offset_left = 390.0
 offset_top = 225.0
@@ -368,7 +342,6 @@ theme_override_colors/font_color = Color(0.83, 0.91, 0.62, 1)
 theme_override_font_sizes/font_size = 42
 text = "LOST TO THE JUNGLE"
 horizontal_alignment = 1
-
 [node name="Restart" type="Button" parent="HUD/GameOver"]
 offset_left = 465.0
 offset_top = 330.0
@@ -376,7 +349,6 @@ offset_right = 815.0
 offset_bottom = 390.0
 theme_override_font_sizes/font_size = 21
 text = "RESTART"
-
 [node name="Menu" type="Button" parent="HUD/GameOver"]
 offset_left = 465.0
 offset_top = 410.0
@@ -384,6 +356,55 @@ offset_right = 815.0
 offset_bottom = 470.0
 theme_override_font_sizes/font_size = 21
 text = "MAIN MENU"
-
+[node name="Win" type="Control" parent="HUD"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+[node name="Dark" type="ColorRect" parent="HUD/Win"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.01, 0.035, 0.018, 0.8)
+[node name="Title" type="Label" parent="HUD/Win"]
+offset_left = 330.0
+offset_top = 205.0
+offset_right = 950.0
+offset_bottom = 275.0
+theme_override_colors/font_color = Color(0.8, 0.96, 0.61, 1)
+theme_override_font_sizes/font_size = 44
+text = "THE RUINS AWAKEN"
+horizontal_alignment = 1
+[node name="Text" type="Label" parent="HUD/Win"]
+offset_left = 330.0
+offset_top = 285.0
+offset_right = 950.0
+offset_bottom = 330.0
+theme_override_colors/font_color = Color(0.73, 0.86, 0.67, 1)
+theme_override_font_sizes/font_size = 19
+text = "You recovered the lost relics and opened the ancient gate."
+horizontal_alignment = 1
+[node name="Restart" type="Button" parent="HUD/Win"]
+offset_left = 465.0
+offset_top = 365.0
+offset_right = 815.0
+offset_bottom = 425.0
+theme_override_font_sizes/font_size = 21
+text = "PLAY AGAIN"
+[node name="Menu" type="Button" parent="HUD/Win"]
+offset_left = 465.0
+offset_top = 445.0
+offset_right = 815.0
+offset_bottom = 505.0
+theme_override_font_sizes/font_size = 21
+text = "MAIN MENU"
 [connection signal="pressed" from="HUD/GameOver/Restart" to="." method="_on_restart_pressed"]
 [connection signal="pressed" from="HUD/GameOver/Menu" to="." method="_on_menu_pressed"]
+[connection signal="pressed" from="HUD/Win/Restart" to="." method="_on_restart_pressed"]
+[connection signal="pressed" from="HUD/Win/Menu" to="." method="_on_menu_pressed"]
