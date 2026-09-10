@@ -1,0 +1,1 @@
+This repository connector cannot directly upload arbitrary local binary files through the text-file action. The authoritative current checkpoint is the source tree under `legacy_neon_prototype/` plus the SHA256 metadata in this folder. The downloadable exact local ZIP remains available in the chat as `AbandonedJungleGame_WIP_2026-09-10_1120.zip`.
