@@ -13,31 +13,24 @@ The active rebuild is in `AbandonedJungleGame/game/` and locally in `/mnt/data/j
 
 ## Completed active rebuild milestones
 - Editable Godot folder structure created.
-- Input actions are stored in `project.godot` rather than generated at runtime.
-- `scenes/menu/MainMenu.tscn` is the project entry scene.
-- Main menu contains exactly two primary buttons: `PLAY` and `QUIT`.
-- `PLAY` changes to `scenes/levels/JungleLevel.tscn`; `QUIT` exits.
-- Menu visuals are separate editable nodes/assets.
-- Moving menu background uses `Parallax2D` with editable autoscroll mist and leaves.
-- Abandoned jungle / lost temple visual direction is established.
-- Player is a separate editable `CharacterBody2D` scene with `AnimatedSprite2D`, `AnimationPlayer`, collision shape, attack area, slash effect and camera.
-- Player movement/combat values are exported to the Inspector.
-- Player has editable idle/walk/jump/attack/hurt/death animations.
-- Free Kenney character art is stored locally under `assets/characters/`.
-- First enemy milestone is complete: `scenes/enemies/BeeEnemy.tscn` is a separate editable enemy scene.
-- Bee uses two free Kenney CC0 animation frames stored locally as `assets/enemies/bee_a.svg` and `bee_b.svg`.
-- Bee patrol/chase speed, range, HP, damage and score value are Inspector-editable exports.
-- Bee has flying, hurt and death animations plus a visible editable damage area.
-- Player is registered in the `player` group so enemies can discover it without hard-coded scene paths.
-
-## Target direction
-An editable 2D abandoned-jungle / lost-ruins platformer. Prefer `.tscn`, `AnimatedSprite2D`, `AnimationPlayer`, `AudioStreamPlayer`, `CollisionShape2D`, `TileMapLayer`, reusable props and Inspector values. Keep GDScript only for gameplay logic.
+- Main menu is the project entry scene with exactly `PLAY` and `QUIT`.
+- Menu has editable moving parallax mist and leaves plus lost-ruins layers.
+- Player is a separate editable CharacterBody2D scene with Inspector movement/combat values and idle/walk/jump/attack/hurt/death animations.
+- Free Kenney CC0 character art is stored locally.
+- Animated Kenney CC0 bee enemy scene is complete with editable patrol/chase/HP/damage/score parameters.
+- First real jungle level now replaces the placeholder.
+- Level length is about 3600 px and contains editable ground segments, mossy stone platforms, ruin pillars, cracks and vines.
+- Environment uses layered `Parallax2D` jungle, ruins, moving mist and foreground leaves.
+- Player and five individually editable BeeEnemy instances are placed in the scene.
+- HUD shows HP, score, objective text and controls.
+- Game-over overlay has Restart and Main Menu buttons.
+- Ordinary level geometry is stored directly in the `.tscn` scene; it is not generated procedurally by GDScript.
 
 ## Saving rule
 Before starting each substantial step, inspect this file and `PROJECT_PLAN.md`. After every completed step, commit the actual project files to `AbandonedJungleGame/game/`, update this status, and only then continue.
 
 ## Asset research
-Kenney's New Platformer Pack is used for the player and bee enemy and is CC0. Final source/license notes must be recorded in `game/docs/ASSET_LICENSES.md`.
+Kenney's New Platformer Pack is used for player/enemy art and is CC0. Final source/license notes must be recorded in `game/docs/ASSET_LICENSES.md`.
 
 ## Next action
-Replace the temporary `JungleLevel.tscn` with the first playable abandoned-jungle / ruins level using editable scene nodes and reusable platform/prop scenes. Place Player and several BeeEnemy instances. Save the level milestone before adding collectible/objective and exit logic.
+Add the collectible/objective and the level exit as their own editable scenes, place collectibles manually in JungleLevel, and make the exit activate when the objective is complete. Save that checkpoint before audio.
