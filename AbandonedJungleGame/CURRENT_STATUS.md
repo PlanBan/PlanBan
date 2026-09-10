@@ -1,60 +1,40 @@
 # CURRENT STATUS — Abandoned Jungle Game
 
-Last checkpoint: 2026-09-10 11:20 (+02:00)
+Last checkpoint: 2026-09-10
 Target engine: Godot 4.7.2
 
-## Mandatory continuation rule
-Before doing ANY new work, read `WORKFLOW.md`, this file, and `PROJECT_PLAN.md`. Continue the unfinished milestone. Do not restart the project from scratch unless the user explicitly asks for a reset.
+## Important continuation instruction
+If work is interrupted, read this file and `PROJECT_PLAN.md` first, then continue from the first unchecked milestone. Do not restart the project from scratch.
 
-## What I verified after the interrupted work
-I inspected the actual local working directories (`/mnt/data/jungle_build` and `/mnt/data/jungle_work`). They contain the same files and are still essentially the corrected Neon Courier prototype. The only later local change is the README timestamp/content checkpoint; the abandoned-jungle conversion itself had NOT yet been implemented before the interruption.
+## What exists right now
+The corrected Neon Courier prototype is preserved in `legacy_neon_prototype/` as a recovery checkpoint.
 
-A fresh local ZIP snapshot was created from the exact current `jungle_build` directory:
-- `AbandonedJungleGame_WIP_2026-09-10_1120.zip`
-- SHA256: `b9a62b962dab810a7a6f2d5e447588b99c993211fb1e64c57150732e42a34388`
-- ZIP integrity check passed.
+A new editable Godot project structure has now been created locally in `/mnt/data/jungle_ruins_ready` and is being mirrored to `AbandonedJungleGame/game/` on GitHub. It contains `project.godot`, icon, editing README, and dedicated folders for scenes, scripts, assets, resources and docs.
 
-## Stable recovery checkpoint
-The currently playable baseline is the corrected **Neon Courier** prototype under `legacy_neon_prototype/`.
+## Target direction
+Rebuild the prototype into an **abandoned jungle / lost ruins** game that is easy to edit manually in Godot.
 
-Baseline features:
-- 2D platformer movement;
-- jump;
-- dash;
-- melee attack;
-- 3 HP and damage/knockback;
-- patrolling/chasing enemies;
-- 10 collectibles;
-- score;
-- locked exit until all collectibles are gathered;
-- win/lose overlay;
-- basic main menu;
-- compatibility fix for Godot 4.7.2 (`draw_ellipse` conflict fixed).
-
-## Target requested by the user
-Rebuild the prototype into an **abandoned jungle / lost ruins** game.
-
-The final project must be easy to edit manually in Godot. Prefer Godot scenes, nodes, resources, AnimationPlayer/AnimatedSprite2D, TileMap/TileMapLayer, exported properties and inspector-editable values instead of generating most visuals and level content from GDScript.
+Use Godot scenes/resources for ordinary content: `.tscn`, `AnimatedSprite2D`, `AnimationPlayer`, `AudioStreamPlayer`, `CollisionShape2D`, `TileMapLayer`, reusable props and inspector-editable exported values. Keep GDScript only for gameplay logic that genuinely needs code.
 
 Required direction:
 - start menu with exactly `Play` and `Quit` buttons;
 - animated/moving jungle menu background;
 - abandoned jungle atmosphere with ruins;
-- free-to-use character assets;
-- free-to-use enemy assets;
-- walk/idle/jump/attack/hurt/death animations where suitable assets allow it;
-- sound effects and ambient/music audio using assets with suitable licenses;
-- assets stored locally in the project so it works offline;
-- clear attribution/license notes for every external asset pack;
-- scenes/resources organized so the user can change them visually in Godot.
+- free-to-use character and enemy assets stored locally;
+- walking/idle/jump/attack/hurt/death animations where suitable assets allow;
+- sound effects and jungle ambience/music;
+- clear asset/license notes;
+- compatibility target Godot 4.7.2.
 
-## External asset research already done
-A free Kenney platformer character set was located on GitHub (`eturner58/game-assets`, New Platformer Pack). Character idle/walk images were verified as accessible. Before final use, verify the upstream license/attribution information and record it in `ASSET_LICENSES.md`.
+## Saving rule
+Before starting any substantial step, inspect this file and `PROJECT_PLAN.md`. After every completed step, save the actual project files to `AbandonedJungleGame/game/` in the same GitHub repository, update this status, and only then continue.
 
-## Exact next action
-1. Save the just-created WIP ZIP into GitHub `checkpoints/`.
-2. Create the editable Godot folder structure under `game/`.
-3. Commit that structure immediately as its own checkpoint.
-4. Create `MainMenu.tscn` with `Play` and `Quit` and a moving jungle background.
-5. Commit menu milestone immediately before moving on.
-6. Then add local licensed character/enemy assets and animations, committing after each logical step.
+## Asset research
+Kenney's New Platformer Pack is confirmed on Kenney's official site as Creative Commons CC0 and contains 440 files. Character idle/walk art is accessible from the public `eturner58/game-assets` mirror. External assets will be copied into the project and documented in `docs/ASSET_LICENSES.md`.
+
+## Completed this session
+- Created fresh editable `game/` folder structure without deleting the working legacy prototype.
+- Moved input definitions into `project.godot` instead of creating them dynamically at runtime.
+
+## Next action
+Create `scenes/menu/MainMenu.tscn` with `Play` and `Quit` buttons, plus editable moving jungle background layers. Save that milestone to GitHub before continuing to the player scene.
