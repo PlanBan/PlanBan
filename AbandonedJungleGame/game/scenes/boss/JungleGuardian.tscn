@@ -1,0 +1,142 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/jungle_guardian.gd" id="1_script"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/attack.wav" id="2_hit"]
+
+[sub_resource type="Animation" id="Idle"]
+resource_name = "idle"
+length = 2.4
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/path = NodePath("Visual:position")
+tracks/0/keys = {"times": PackedFloat32Array(0,1.2,2.4), "transitions": PackedFloat32Array(1,1,1), "update": 0, "values": [Vector2(0,0),Vector2(0,-6),Vector2(0,0)]}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Visual/EyeGlow:modulate")
+tracks/1/keys = {"times": PackedFloat32Array(0,1.2,2.4), "transitions": PackedFloat32Array(1,1,1), "update": 0, "values": [Color(0.75,1,0.56,0.7),Color(1,1,0.66,1),Color(0.75,1,0.56,0.7)]}
+
+[sub_resource type="Animation" id="Hurt"]
+resource_name = "hurt"
+length = 0.32
+tracks/0/type = "value"
+tracks/0/path = NodePath("Visual:position")
+tracks/0/keys = {"times": PackedFloat32Array(0,0.08,0.16,0.24,0.32), "transitions": PackedFloat32Array(1,1,1,1,1), "update": 0, "values": [Vector2(0,0),Vector2(-8,0),Vector2(7,-2),Vector2(-4,0),Vector2(0,0)]}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Visual:modulate")
+tracks/1/keys = {"times": PackedFloat32Array(0,0.12,0.32), "transitions": PackedFloat32Array(1,1,1), "update": 0, "values": [Color(1,0.5,0.38,1),Color(1,0.76,0.55,1),Color(1,1,1,1)]}
+
+[sub_resource type="Animation" id="Defeat"]
+resource_name = "defeat"
+length = 1.15
+tracks/0/type = "value"
+tracks/0/path = NodePath("Visual:position")
+tracks/0/keys = {"times": PackedFloat32Array(0,1.15), "transitions": PackedFloat32Array(1,1), "update": 0, "values": [Vector2(0,0),Vector2(0,42)]}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Visual:rotation")
+tracks/1/keys = {"times": PackedFloat32Array(0,1.15), "transitions": PackedFloat32Array(1,1), "update": 0, "values": [0.0,0.08]}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Visual:modulate")
+tracks/2/keys = {"times": PackedFloat32Array(0,0.75,1.15), "transitions": PackedFloat32Array(1,1,1), "update": 0, "values": [Color(1,1,1,1),Color(0.7,0.8,0.62,0.7),Color(0.45,0.55,0.4,0.28)]}
+
+[sub_resource type="AnimationLibrary" id="GuardianLibrary"]
+_data = {&"defeat": SubResource("Defeat"), &"hurt": SubResource("Hurt"), &"idle": SubResource("Idle")}
+
+[node name="JungleGuardian" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="BackRoots" type="Node2D" parent="."]
+z_index = -2
+[node name="RootA" type="Line2D" parent="BackRoots"]
+points = PackedVector2Array(-112,70,-154,34,-168,-20,-139,-65)
+width = 18.0
+default_color = Color(0.13,0.24,0.12,1)
+[node name="RootB" type="Line2D" parent="BackRoots"]
+points = PackedVector2Array(112,70,154,34,168,-20,139,-65)
+width = 18.0
+default_color = Color(0.13,0.24,0.12,1)
+[node name="RootC" type="Line2D" parent="BackRoots"]
+points = PackedVector2Array(-72,-66,-100,-116,-72,-145)
+width = 12.0
+default_color = Color(0.14,0.28,0.14,1)
+[node name="RootD" type="Line2D" parent="BackRoots"]
+points = PackedVector2Array(72,-66,100,-116,72,-145)
+width = 12.0
+default_color = Color(0.14,0.28,0.14,1)
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="Aura" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(0,-132,54,-114,102,-72,124,-18,118,46,82,102,26,128,-34,124,-88,96,-120,42,-124,-22,-98,-78,-52,-118)
+color = Color(0.27,0.58,0.27,0.13)
+
+[node name="Shoulders" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-120,72,-105,12,-72,-24,72,-24,105,12,120,72,86,104,-86,104)
+color = Color(0.19,0.235,0.19,1)
+
+[node name="MossShoulders" type="Line2D" parent="Visual"]
+points = PackedVector2Array(-105,17,-72,-29,-20,-19,20,-28,73,-29,105,17)
+width = 15.0
+default_color = Color(0.24,0.43,0.17,1)
+
+[node name="Head" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-74,-100,-42,-126,42,-126,74,-100,82,-37,62,22,31,48,-31,48,-62,22,-82,-37)
+color = Color(0.26,0.285,0.235,1)
+
+[node name="FacePlate" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-50,-77,-25,-98,25,-98,50,-77,57,-29,36,7,0,25,-36,7,-57,-29)
+color = Color(0.17,0.205,0.17,1)
+
+[node name="LeftBrow" type="Line2D" parent="Visual"]
+points = PackedVector2Array(-41,-55,-13,-47)
+width = 7.0
+default_color = Color(0.08,0.105,0.08,1)
+[node name="RightBrow" type="Line2D" parent="Visual"]
+points = PackedVector2Array(13,-47,41,-55)
+width = 7.0
+default_color = Color(0.08,0.105,0.08,1)
+
+[node name="EyeGlow" type="Node2D" parent="Visual"]
+[node name="LeftEye" type="Polygon2D" parent="Visual/EyeGlow"]
+polygon = PackedVector2Array(-37,-43,-19,-38,-29,-28,-43,-31)
+color = Color(0.82,1,0.5,1)
+[node name="RightEye" type="Polygon2D" parent="Visual/EyeGlow"]
+polygon = PackedVector2Array(37,-43,19,-38,29,-28,43,-31)
+color = Color(0.82,1,0.5,1)
+
+[node name="Rune" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(0,57,14,75,0,94,-14,75)
+color = Color(0.64,0.9,0.4,0.9)
+[node name="RuneInner" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(0,65,7,75,0,85,-7,75)
+color = Color(0.95,1,0.66,1)
+
+[node name="CrackA" type="Line2D" parent="Visual"]
+points = PackedVector2Array(-48,-85,-31,-67,-37,-45)
+width = 3.0
+default_color = Color(0.07,0.09,0.07,0.8)
+[node name="CrackB" type="Line2D" parent="Visual"]
+points = PackedVector2Array(46,-12,29,4,35,25)
+width = 3.0
+default_color = Color(0.07,0.09,0.07,0.8)
+
+[node name="CrownVineA" type="Line2D" parent="Visual"]
+points = PackedVector2Array(-45,-118,-67,-151,-49,-178)
+width = 7.0
+default_color = Color(0.16,0.37,0.14,1)
+[node name="CrownVineB" type="Line2D" parent="Visual"]
+points = PackedVector2Array(40,-120,61,-151,50,-180)
+width = 7.0
+default_color = Color(0.16,0.37,0.14,1)
+[node name="CrownVineC" type="Line2D" parent="Visual"]
+points = PackedVector2Array(-2,-127,2,-162,-12,-190)
+width = 6.0
+default_color = Color(0.18,0.41,0.15,1)
+
+[node name="HitSFX" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("2_hit")
+volume_db = -3.0
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {&"": SubResource("GuardianLibrary")}
+autoplay = "idle"
+
+[connection signal="animation_finished" from="AnimationPlayer" to="." method="_on_animation_finished"]
