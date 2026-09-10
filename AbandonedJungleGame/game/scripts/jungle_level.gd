@@ -70,6 +70,8 @@ func _update_objective() -> void:
 
 func _on_player_died() -> void:
 	game_over_panel.visible = true
+	for enemy in get_tree().get_nodes_in_group("enemies"):
+		enemy.set_physics_process(false)
 
 func _on_exit_entered() -> void:
 	win_panel.visible = true
