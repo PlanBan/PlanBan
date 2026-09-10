@@ -3,34 +3,35 @@
 Last checkpoint: 2026-09-10
 Target engine: Godot 4.7.2
 
-## Important continuation instruction
-If work is interrupted, read this file and `PROJECT_PLAN.md` first, then continue from the first unchecked milestone. Do not restart the project from scratch.
+## Continuation rule
+Read this file and `PROJECT_PLAN.md` before continuing. Work in `AbandonedJungleGame/game/`; do not restart from scratch. Save each substantial milestone before moving to the next one.
 
-## What exists right now
-The corrected Neon Courier prototype is preserved in `legacy_neon_prototype/` as a recovery checkpoint.
+## Stable recovery
+The old corrected Neon prototype remains in `legacy_neon_prototype/`. V1 jungle progress is also preserved by Git history and a local pre-V2 ZIP checkpoint.
 
-The active rebuild is in `AbandonedJungleGame/game/` and locally in `/mnt/data/jungle_ruins_ready`.
+## Current active version: V2
+V2 was started after user feedback that V1 launched but had a weak visual style, crooked attack animation and unreliable jumps.
 
-## Completed active rebuild milestones
-- Editable Godot folder structure created.
-- Main menu is the project entry scene with exactly `PLAY` and `QUIT`.
-- Menu has editable moving parallax mist and leaves plus lost-ruins layers.
-- Player is a separate editable CharacterBody2D scene with Inspector movement/combat values and idle/walk/jump/attack/hurt/death animations.
-- Free Kenney CC0 character art is stored locally.
-- Animated Kenney CC0 bee enemy scene is complete with editable patrol/chase/HP/damage/score parameters.
-- First real 3600px jungle/ruins level is complete with editable ground, mossy stone platforms, ruin pillars, moving parallax jungle/mist/leaves, Player and five BeeEnemy instances.
-- HUD shows HP, score, objective and controls; Game Over overlay provides restart/menu.
-- Objective milestone is complete: `scenes/props/Relic.tscn` is an editable animated floating collectible.
-- Eight Relic instances are manually placed in `JungleLevel.tscn`, so their positions can be changed directly in the editor.
-- `scenes/props/ExitTemple.tscn` is an editable animated ancient gate with SEALED/OPEN states.
-- Collecting every relic activates the gate; entering it shows a Win overlay with Play Again/Main Menu.
-- Ordinary level geometry and collectible placement are stored directly in `.tscn` scenes rather than procedurally generated.
+Completed V2 fixes:
+- Godot 4.7.2 relic error fixed: `monitoring` is now changed with `set_deferred()` inside `body_entered`.
+- Player art replaced with a dedicated jungle explorer set stored as separate editable SVG assets (`assets/characters/explorer_v2/`).
+- Real `AnimatedSprite2D` idle/walk/jump/attack/hurt/death visual states are used instead of repeating one texture.
+- Attack no longer rotates the whole player. A separate editable `WeaponPivot` contains a machete and attack arc; only the weapon swing is animated.
+- Attack hitbox now moves to the actual facing side instead of staying on the right.
+- Jump upgraded to `jump_velocity=-650`, `gravity=1600` with Inspector-editable values.
+- Added coyote time, jump buffering and variable jump release for more reliable platforming.
+- Player movement speed/acceleration and camera smoothing were tightened.
 
-## Saving rule
-Before starting each substantial step, inspect this file and `PROJECT_PLAN.md`. After every completed step, commit the actual project files to `AbandonedJungleGame/game/`, update this status, and only then continue.
+## Existing game systems retained
+- Main menu with exactly `PLAY` and `QUIT`.
+- Moving menu/background layers.
+- 3600 px editor-built jungle/ruins level.
+- Five enemies, HUD, damage/game over.
+- Eight relics and an unlockable ancient gate with win screen.
+- Local audio files and AudioStreamPlayer nodes exist in the working project and still need to be fully checkpointed/documented on GitHub.
 
-## Asset research
-Kenney's New Platformer Pack is used for player/enemy art and is CC0. Final source/license notes must be recorded in `game/docs/ASSET_LICENSES.md`.
+## Editing philosophy
+Level design, positions, visuals, weapon geometry, animations, props and UI should remain normal Godot scenes/nodes/resources editable in the Inspector. GDScript is only for behaviour.
 
 ## Next action
-Add audio as editable `AudioStreamPlayer` nodes/resources: menu UI feedback, jump/attack/hurt/collect/exit SFX, plus a looping jungle ambience. Save the audio checkpoint before license/validation/final ZIP.
+Continue V2 visual redesign: make the jungle/ruins scene and menu more cohesive and atmospheric, adjust platform heights for forgiving traversal, improve enemy presentation, then save another checkpoint. After that checkpoint audio binaries, licenses, validate references and produce the V2 ZIP.
