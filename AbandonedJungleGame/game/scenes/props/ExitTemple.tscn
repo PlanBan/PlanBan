@@ -1,0 +1,85 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/exit_temple.gd" id="1_script"]
+
+[sub_resource type="RectangleShape2D" id="PortalShape"]
+size = Vector2(104, 150)
+
+[sub_resource type="Animation" id="Sealed"]
+resource_name = "sealed"
+length = 1.8
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Visual/Portal:modulate")
+tracks/0/keys = {"times": PackedFloat32Array(0, 0.9, 1.8), "transitions": PackedFloat32Array(1, 1, 1), "update": 0, "values": [Color(0.65, 0.7, 0.65, 0.65), Color(1, 1, 1, 0.85), Color(0.65, 0.7, 0.65, 0.65)]}
+
+[sub_resource type="Animation" id="Active"]
+resource_name = "active"
+length = 1.1
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Visual/Portal:scale")
+tracks/0/keys = {"times": PackedFloat32Array(0, 0.55, 1.1), "transitions": PackedFloat32Array(1, 1, 1), "update": 0, "values": [Vector2(0.94, 1), Vector2(1.06, 1), Vector2(0.94, 1)]}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Visual/Portal:modulate")
+tracks/1/keys = {"times": PackedFloat32Array(0, 0.55, 1.1), "transitions": PackedFloat32Array(1, 1, 1), "update": 0, "values": [Color(0.72, 1, 0.7, 0.72), Color(1, 1, 0.78, 1), Color(0.72, 1, 0.7, 0.72)]}
+
+[sub_resource type="AnimationLibrary" id="Library"]
+_data = {&"active": SubResource("Active"), &"sealed": SubResource("Sealed")}
+
+[node name="ExitTemple" type="Area2D"]
+collision_layer = 0
+collision_mask = 2
+monitoring = false
+script = ExtResource("1_script")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -75)
+shape = SubResource("PortalShape")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="LeftPillar" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-78, 0, -78, -176, -45, -205, -26, -176, -26, 0)
+color = Color(0.18, 0.23, 0.15, 1)
+
+[node name="RightPillar" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(26, 0, 26, -176, 45, -205, 78, -176, 78, 0)
+color = Color(0.18, 0.23, 0.15, 1)
+
+[node name="Capstone" type="Polygon2D" parent="Visual"]
+polygon = PackedVector2Array(-82, -178, -52, -222, 52, -222, 82, -178)
+color = Color(0.21, 0.27, 0.17, 1)
+
+[node name="Moss" type="Line2D" parent="Visual"]
+points = PackedVector2Array(-70, -185, -25, -202, 12, -198, 65, -186)
+width = 11.0
+default_color = Color(0.23, 0.48, 0.18, 1)
+
+[node name="Portal" type="Polygon2D" parent="Visual"]
+position = Vector2(0, -85)
+polygon = PackedVector2Array(-40, -67, 40, -67, 52, -25, 45, 68, -45, 68, -52, -25)
+color = Color(0.16, 0.22, 0.15, 0.65)
+
+[node name="Rune" type="Label" parent="Visual"]
+offset_left = -55.0
+offset_top = -132.0
+offset_right = 55.0
+offset_bottom = -100.0
+theme_override_colors/font_color = Color(0.82, 0.91, 0.63, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_font_sizes/font_size = 17
+text = "SEALED"
+horizontal_alignment = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {&"": SubResource("Library")}
+autoplay = "sealed"
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
