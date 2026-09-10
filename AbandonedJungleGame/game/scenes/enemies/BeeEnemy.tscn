@@ -78,7 +78,7 @@ tracks/2/keys = {"times": PackedFloat32Array(0, 0.55), "transitions": PackedFloa
 [sub_resource type="AnimationLibrary" id="Library"]
 _data = {&"RESET": SubResource("Reset"), &"death": SubResource("Death"), &"fly": SubResource("Fly"), &"hurt": SubResource("Hurt")}
 
-[node name="BeeEnemy" type="CharacterBody2D"]
+[node name="BeeEnemy" type="CharacterBody2D" groups=["enemies"]]
 collision_layer = 4
 collision_mask = 1
 script = ExtResource("1_script")
