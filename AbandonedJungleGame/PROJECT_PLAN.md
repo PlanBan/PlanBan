@@ -15,7 +15,7 @@ Turn the existing prototype into an editable 2D abandoned-jungle platformer usin
 - [x] Add player idle/walk/jump/attack/hurt/death animations.
 - [x] Add enemy scene(s) using free sprite assets and animations.
 - [x] Build first abandoned-jungle/ruins level with editable scene nodes / TileMapLayer.
-- [ ] Add collectible/objective and level exit.
+- [x] Add collectible/objective and level exit.
 - [ ] Add sound effects for UI, footsteps/jump/attack/hurt/collect/exit.
 - [ ] Add looping jungle ambience / music from a suitable free-license source.
 - [ ] Create `ASSET_LICENSES.md` with source, author, license and attribution details.
