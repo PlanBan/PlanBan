@@ -14,8 +14,9 @@ func _on_body_entered(body: Node2D) -> void:
 		return
 	if body.is_in_group("player"):
 		enabled = false
-		monitoring = false
+		set_deferred("monitoring", false)
 		collected.emit(score_value)
+		$CollectSFX.play()
 		$AnimationPlayer.play("collect")
 		await $AnimationPlayer.animation_finished
 		queue_free()
