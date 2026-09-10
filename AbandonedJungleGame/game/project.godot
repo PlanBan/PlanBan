@@ -3,6 +3,7 @@ config_version=5
 
 [application]
 config/name="Abandoned Jungle Ruins"
+run/main_scene="res://scenes/menu/MainMenu.tscn"
 config/icon="res://icon.svg"
 
 [display]
