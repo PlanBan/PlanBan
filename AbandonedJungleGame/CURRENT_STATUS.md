@@ -1,37 +1,37 @@
 # CURRENT STATUS — Abandoned Jungle Game
 
 Last checkpoint: 2026-09-10
-Target engine: Godot 4.7.2
+Target engine: Godot 4.7.2 stable
+Active checkpoint: **Abandoned Jungle Ruins V2**
 
-## Continuation rule
-Read this file and `PROJECT_PLAN.md` before continuing. Work in `AbandonedJungleGame/game/`; do not restart from scratch. Save each substantial milestone before moving to the next one.
+## Continuation instruction
+Read this file, `PROJECT_PLAN.md`, `game/docs/V2_CHANGES.md`, `game/docs/VALIDATION_REPORT.md` and `checkpoints/V2_2026-09-10_MANIFEST.txt` before changing the project. Continue from V2; do not restart from the old Neon prototype.
 
-## Stable recovery
-The old corrected Neon prototype remains in `legacy_neon_prototype/`. V1 jungle progress is also preserved by Git history and a local pre-V2 ZIP checkpoint.
+## V2 completed in this checkpoint
+- Reworked the visual direction toward darker abandoned jungle / lost temple ruins.
+- Replaced the old player presentation with an explorer sprite set.
+- Reworked melee so the machete/attack arc swings independently instead of rotating the whole character.
+- Attack hitbox follows the facing direction.
+- Jump velocity increased; coyote time and jump input buffering added.
+- Level platform heights were normalized/lowered so the intended route is reachable.
+- Fixed the Godot 4.7 `Area2D.monitoring` physics-lock error on relic pickup.
+- Exit gate monitoring is also deferred, preventing the same error when the last relic opens the gate.
+- Bee hurt animation returns to fly; death collision disabling is deferred safely.
+- Game Over/Win freeze active enemies behind the overlay.
+- Main-menu rapid double actions are blocked and PLAY gets keyboard focus.
+- Editable SFX and looping jungle ambience were added to the packaged V2 project.
+- Asset/license notes and validation report were added.
 
-## Current active version: V2
-V2 was started after user feedback that V1 launched but had a weak visual style, crooked attack animation and unreliable jumps.
+## Validation/package
+Final user package: `Abandoned_Jungle_Ruins_V2_Godot_4.7.2.zip`
+SHA256: `876af92bb5c8a5fc02258473586b2cdbb7305cf6c54587d10554a281ed89717f`
 
-Completed V2 fixes:
-- Godot 4.7.2 relic error fixed: `monitoring` is now changed with `set_deferred()` inside `body_entered`.
-- Player art replaced with a dedicated jungle explorer set stored as separate editable SVG assets (`assets/characters/explorer_v2/`).
-- Real `AnimatedSprite2D` idle/walk/jump/attack/hurt/death visual states are used instead of repeating one texture.
-- Attack no longer rotates the whole player. A separate editable `WeaponPivot` contains a machete and attack arc; only the weapon swing is animated.
-- Attack hitbox now moves to the actual facing side instead of staying on the right.
-- Jump upgraded to `jump_velocity=-650`, `gravity=1600` with Inspector-editable values.
-- Added coyote time, jump buffering and variable jump release for more reliable platforming.
-- Player movement speed/acceleration and camera smoothing were tightened.
+Pre-package checks passed with zero project errors: `res://` targets, TSCN resource ids/load steps, menu buttons, SVG parsing, WAV validity, Vorbis OGG probe, known deferred-monitoring guards, and a fresh ZIP extraction/recheck. `unzip -t` also reports no errors.
 
-## Existing game systems retained
-- Main menu with exactly `PLAY` and `QUIT`.
-- Moving menu/background layers.
-- 3600 px editor-built jungle/ruins level.
-- Five enemies, HUD, damage/game over.
-- Eight relics and an unlockable ancient gate with win screen.
-- Local audio files and AudioStreamPlayer nodes exist in the working project and still need to be fully checkpointed/documented on GitHub.
+Important limitation: the build container does not contain a runnable Godot 4.7.2 editor executable, so this checkpoint was not engine-boot playtested inside the container. Do not claim otherwise.
 
-## Editing philosophy
-Level design, positions, visuals, weapon geometry, animations, props and UI should remain normal Godot scenes/nodes/resources editable in the Inspector. GDScript is only for behaviour.
+## GitHub persistence
+Updated V2 gameplay scripts, redesigned menu scene, V2 environment layers, documentation and a complete SHA256 manifest are saved in this repository. The manifest is the checksum record for the exact user-delivered V2 ZIP contents. The final ZIP itself is delivered through the conversation artifact.
 
 ## Next action
-Continue V2 visual redesign: make the jungle/ruins scene and menu more cohesive and atmospheric, adjust platform heights for forgiving traversal, improve enemy presentation, then save another checkpoint. After that checkpoint audio binaries, licenses, validate references and produce the V2 ZIP.
+User playtests the V2 ZIP in Godot 4.7.2. If any runtime error or visual/gameplay problem is reported, patch this V2 checkpoint rather than rebuilding from scratch, then issue a new numbered ZIP and update this status again.
