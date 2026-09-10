@@ -1,41 +1,389 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=17 format=3]
 
-[ext_resource type="Script" path="res://scripts/placeholder_level.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/jungle_level.gd" id="1_level"]
+[ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://scenes/enemies/BeeEnemy.tscn" id="3_bee"]
+[ext_resource type="Texture2D" path="res://assets/environment/menu_jungle_far.svg" id="4_far"]
+[ext_resource type="Texture2D" path="res://assets/environment/menu_ruins_mid.svg" id="5_ruins"]
+[ext_resource type="Texture2D" path="res://assets/environment/menu_mist.svg" id="6_mist"]
+[ext_resource type="Texture2D" path="res://assets/environment/menu_leaves.svg" id="7_leaves"]
 
-[node name="JungleLevel" type="Control"]
+[sub_resource type="RectangleShape2D" id="Ground800"]
+size = Vector2(800, 90)
+[sub_resource type="RectangleShape2D" id="Ground650"]
+size = Vector2(650, 90)
+[sub_resource type="RectangleShape2D" id="Ground500"]
+size = Vector2(500, 90)
+[sub_resource type="RectangleShape2D" id="Ground550"]
+size = Vector2(550, 90)
+[sub_resource type="RectangleShape2D" id="Ground950"]
+size = Vector2(950, 90)
+[sub_resource type="RectangleShape2D" id="Platform220"]
+size = Vector2(220, 34)
+[sub_resource type="RectangleShape2D" id="Platform260"]
+size = Vector2(260, 34)
+[sub_resource type="RectangleShape2D" id="Platform300"]
+size = Vector2(300, 34)
+[sub_resource type="RectangleShape2D" id="PillarShape"]
+size = Vector2(76, 150)
+
+[node name="JungleLevel" type="Node2D"]
+script = ExtResource("1_level")
+
+[node name="WorldBackground" type="Node2D" parent="."]
+z_index = -20
+
+[node name="Far" type="Parallax2D" parent="WorldBackground"]
+repeat_size = Vector2(1280, 720)
+scroll_scale = Vector2(0.2, 0.2)
+
+[node name="Image" type="Sprite2D" parent="WorldBackground/Far"]
+texture = ExtResource("4_far")
+position = Vector2(640, 360)
+
+[node name="Ruins" type="Parallax2D" parent="WorldBackground"]
+repeat_size = Vector2(1280, 720)
+scroll_scale = Vector2(0.45, 0.45)
+
+[node name="Image" type="Sprite2D" parent="WorldBackground/Ruins"]
+texture = ExtResource("5_ruins")
+position = Vector2(640, 360)
+modulate = Color(0.75, 0.88, 0.72, 0.8)
+
+[node name="Mist" type="Parallax2D" parent="WorldBackground"]
+repeat_size = Vector2(1280, 720)
+scroll_scale = Vector2(0.72, 0.72)
+autoscroll = Vector2(-7, 0)
+
+[node name="Image" type="Sprite2D" parent="WorldBackground/Mist"]
+texture = ExtResource("6_mist")
+position = Vector2(640, 360)
+modulate = Color(0.72, 0.9, 0.76, 0.48)
+
+[node name="TempleSilhouettes" type="Node2D" parent="."]
+z_index = -4
+
+[node name="BrokenTemple" type="Polygon2D" parent="TempleSilhouettes"]
+polygon = PackedVector2Array(1260, 625, 1260, 395, 1320, 395, 1320, 330, 1385, 330, 1385, 395, 1450, 395, 1450, 625)
+color = Color(0.12, 0.19, 0.105, 1)
+
+[node name="ArchLeft" type="Polygon2D" parent="TempleSilhouettes"]
+polygon = PackedVector2Array(2130, 625, 2130, 420, 2205, 370, 2280, 420, 2280, 625, 2240, 625, 2240, 445, 2205, 420, 2170, 445, 2170, 625)
+color = Color(0.105, 0.17, 0.09, 1)
+
+[node name="DeepPillarA" type="Polygon2D" parent="TempleSilhouettes"]
+polygon = PackedVector2Array(2860, 625, 2860, 335, 2940, 335, 2940, 625)
+color = Color(0.09, 0.15, 0.08, 1)
+
+[node name="DeepPillarB" type="Polygon2D" parent="TempleSilhouettes"]
+polygon = PackedVector2Array(3020, 625, 3020, 410, 3100, 410, 3100, 625)
+color = Color(0.09, 0.15, 0.08, 1)
+
+[node name="Terrain" type="Node2D" parent="."]
+
+[node name="Ground01" type="StaticBody2D" parent="Terrain"]
+position = Vector2(400, 695)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/Ground01"]
+shape = SubResource("Ground800")
+[node name="Stone" type="Polygon2D" parent="Terrain/Ground01"]
+polygon = PackedVector2Array(-400, -45, 400, -45, 400, 45, -400, 45)
+color = Color(0.145, 0.19, 0.12, 1)
+[node name="Moss" type="Polygon2D" parent="Terrain/Ground01"]
+polygon = PackedVector2Array(-400, -45, 400, -45, 400, -28, 250, -31, 150, -23, 20, -32, -130, -25, -260, -34, -400, -27)
+color = Color(0.22, 0.39, 0.17, 1)
+
+[node name="Ground02" type="StaticBody2D" parent="Terrain"]
+position = Vector2(1175, 695)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/Ground02"]
+shape = SubResource("Ground650")
+[node name="Stone" type="Polygon2D" parent="Terrain/Ground02"]
+polygon = PackedVector2Array(-325, -45, 325, -45, 325, 45, -325, 45)
+color = Color(0.13, 0.18, 0.11, 1)
+[node name="Moss" type="Polygon2D" parent="Terrain/Ground02"]
+polygon = PackedVector2Array(-325, -45, 325, -45, 325, -28, 160, -33, 40, -26, -95, -35, -210, -25, -325, -31)
+color = Color(0.19, 0.35, 0.15, 1)
+
+[node name="Ground03" type="StaticBody2D" parent="Terrain"]
+position = Vector2(1800, 695)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/Ground03"]
+shape = SubResource("Ground500")
+[node name="Stone" type="Polygon2D" parent="Terrain/Ground03"]
+polygon = PackedVector2Array(-250, -45, 250, -45, 250, 45, -250, 45)
+color = Color(0.155, 0.2, 0.125, 1)
+[node name="Moss" type="Polygon2D" parent="Terrain/Ground03"]
+polygon = PackedVector2Array(-250, -45, 250, -45, 250, -28, 115, -33, 0, -24, -125, -35, -250, -28)
+color = Color(0.24, 0.41, 0.18, 1)
+
+[node name="Ground04" type="StaticBody2D" parent="Terrain"]
+position = Vector2(2375, 695)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/Ground04"]
+shape = SubResource("Ground550")
+[node name="Stone" type="Polygon2D" parent="Terrain/Ground04"]
+polygon = PackedVector2Array(-275, -45, 275, -45, 275, 45, -275, 45)
+color = Color(0.13, 0.175, 0.105, 1)
+[node name="Moss" type="Polygon2D" parent="Terrain/Ground04"]
+polygon = PackedVector2Array(-275, -45, 275, -45, 275, -30, 135, -35, -5, -26, -140, -34, -275, -28)
+color = Color(0.18, 0.34, 0.14, 1)
+
+[node name="Ground05" type="StaticBody2D" parent="Terrain"]
+position = Vector2(3125, 695)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/Ground05"]
+shape = SubResource("Ground950")
+[node name="Stone" type="Polygon2D" parent="Terrain/Ground05"]
+polygon = PackedVector2Array(-475, -45, 475, -45, 475, 45, -475, 45)
+color = Color(0.145, 0.19, 0.115, 1)
+[node name="Moss" type="Polygon2D" parent="Terrain/Ground05"]
+polygon = PackedVector2Array(-475, -45, 475, -45, 475, -27, 300, -33, 120, -24, -40, -35, -210, -25, -350, -34, -475, -27)
+color = Color(0.21, 0.38, 0.16, 1)
+
+[node name="PlatformA" type="StaticBody2D" parent="Terrain"]
+position = Vector2(560, 580)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/PlatformA"]
+shape = SubResource("Platform220")
+[node name="Stone" type="Polygon2D" parent="Terrain/PlatformA"]
+polygon = PackedVector2Array(-110, -17, 110, -17, 100, 17, -100, 17)
+color = Color(0.21, 0.25, 0.16, 1)
+[node name="Moss" type="Line2D" parent="Terrain/PlatformA"]
+points = PackedVector2Array(-106, -18, -45, -22, 25, -17, 105, -20)
+width = 9.0
+default_color = Color(0.3, 0.53, 0.21, 1)
+
+[node name="PlatformB" type="StaticBody2D" parent="Terrain"]
+position = Vector2(970, 545)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/PlatformB"]
+shape = SubResource("Platform260")
+[node name="Stone" type="Polygon2D" parent="Terrain/PlatformB"]
+polygon = PackedVector2Array(-130, -17, 130, -17, 120, 17, -120, 17)
+color = Color(0.18, 0.23, 0.14, 1)
+[node name="Moss" type="Line2D" parent="Terrain/PlatformB"]
+points = PackedVector2Array(-126, -18, -70, -20, 0, -16, 72, -22, 126, -18)
+width = 8.0
+default_color = Color(0.28, 0.49, 0.19, 1)
+
+[node name="PlatformC" type="StaticBody2D" parent="Terrain"]
+position = Vector2(1400, 575)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/PlatformC"]
+shape = SubResource("Platform220")
+[node name="Stone" type="Polygon2D" parent="Terrain/PlatformC"]
+polygon = PackedVector2Array(-110, -17, 110, -17, 100, 17, -100, 17)
+color = Color(0.2, 0.24, 0.15, 1)
+[node name="Moss" type="Line2D" parent="Terrain/PlatformC"]
+points = PackedVector2Array(-106, -18, -30, -21, 35, -16, 106, -20)
+width = 9.0
+default_color = Color(0.27, 0.48, 0.19, 1)
+
+[node name="PlatformD" type="StaticBody2D" parent="Terrain"]
+position = Vector2(1780, 535)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/PlatformD"]
+shape = SubResource("Platform300")
+[node name="Stone" type="Polygon2D" parent="Terrain/PlatformD"]
+polygon = PackedVector2Array(-150, -17, 150, -17, 140, 17, -140, 17)
+color = Color(0.18, 0.22, 0.135, 1)
+[node name="Moss" type="Line2D" parent="Terrain/PlatformD"]
+points = PackedVector2Array(-145, -18, -80, -22, -5, -16, 72, -21, 145, -18)
+width = 8.0
+default_color = Color(0.3, 0.5, 0.2, 1)
+
+[node name="PlatformE" type="StaticBody2D" parent="Terrain"]
+position = Vector2(2240, 575)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/PlatformE"]
+shape = SubResource("Platform260")
+[node name="Stone" type="Polygon2D" parent="Terrain/PlatformE"]
+polygon = PackedVector2Array(-130, -17, 130, -17, 120, 17, -120, 17)
+color = Color(0.19, 0.24, 0.145, 1)
+[node name="Moss" type="Line2D" parent="Terrain/PlatformE"]
+points = PackedVector2Array(-126, -18, -55, -21, 20, -16, 126, -20)
+width = 9.0
+default_color = Color(0.27, 0.49, 0.18, 1)
+
+[node name="PlatformF" type="StaticBody2D" parent="Terrain"]
+position = Vector2(2680, 535)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/PlatformF"]
+shape = SubResource("Platform260")
+[node name="Stone" type="Polygon2D" parent="Terrain/PlatformF"]
+polygon = PackedVector2Array(-130, -17, 130, -17, 120, 17, -120, 17)
+color = Color(0.17, 0.22, 0.13, 1)
+[node name="Moss" type="Line2D" parent="Terrain/PlatformF"]
+points = PackedVector2Array(-126, -18, -60, -22, 5, -16, 82, -22, 126, -18)
+width = 8.0
+default_color = Color(0.28, 0.5, 0.19, 1)
+
+[node name="PlatformG" type="StaticBody2D" parent="Terrain"]
+position = Vector2(3130, 570)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/PlatformG"]
+shape = SubResource("Platform300")
+[node name="Stone" type="Polygon2D" parent="Terrain/PlatformG"]
+polygon = PackedVector2Array(-150, -17, 150, -17, 140, 17, -140, 17)
+color = Color(0.19, 0.235, 0.14, 1)
+[node name="Moss" type="Line2D" parent="Terrain/PlatformG"]
+points = PackedVector2Array(-145, -18, -70, -22, 10, -16, 90, -21, 145, -18)
+width = 9.0
+default_color = Color(0.29, 0.51, 0.2, 1)
+
+[node name="Pillar01" type="StaticBody2D" parent="Terrain"]
+position = Vector2(1510, 575)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/Pillar01"]
+shape = SubResource("PillarShape")
+[node name="Stone" type="Polygon2D" parent="Terrain/Pillar01"]
+polygon = PackedVector2Array(-38, -75, 38, -75, 38, 75, -38, 75)
+color = Color(0.16, 0.2, 0.13, 1)
+[node name="Crack" type="Line2D" parent="Terrain/Pillar01"]
+points = PackedVector2Array(-15, -60, 12, -25, -8, 8, 18, 42)
+width = 5.0
+default_color = Color(0.07, 0.11, 0.07, 0.8)
+[node name="Vine" type="Line2D" parent="Terrain/Pillar01"]
+points = PackedVector2Array(30, -70, 24, -22, 35, 18, 26, 62)
+width = 6.0
+default_color = Color(0.18, 0.42, 0.16, 1)
+
+[node name="Pillar02" type="StaticBody2D" parent="Terrain"]
+position = Vector2(2890, 575)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Terrain/Pillar02"]
+shape = SubResource("PillarShape")
+[node name="Stone" type="Polygon2D" parent="Terrain/Pillar02"]
+polygon = PackedVector2Array(-38, -75, 38, -75, 38, 75, -38, 75)
+color = Color(0.15, 0.195, 0.12, 1)
+[node name="Vine" type="Line2D" parent="Terrain/Pillar02"]
+points = PackedVector2Array(-30, -70, -25, -35, -34, 0, -20, 55)
+width = 7.0
+default_color = Color(0.17, 0.4, 0.15, 1)
+
+[node name="Actors" type="Node2D" parent="."]
+
+[node name="Player" parent="Actors" instance=ExtResource("2_player")]
+position = Vector2(150, 645)
+respawn_position = Vector2(150, 645)
+
+[node name="Bee01" parent="Actors" instance=ExtResource("3_bee")]
+position = Vector2(760, 475)
+patrol_half_width = 180.0
+
+[node name="Bee02" parent="Actors" instance=ExtResource("3_bee")]
+position = Vector2(1270, 455)
+patrol_half_width = 210.0
+chase_speed = 150.0
+
+[node name="Bee03" parent="Actors" instance=ExtResource("3_bee")]
+position = Vector2(1940, 445)
+patrol_half_width = 190.0
+
+[node name="Bee04" parent="Actors" instance=ExtResource("3_bee")]
+position = Vector2(2520, 450)
+patrol_half_width = 240.0
+chase_speed = 155.0
+
+[node name="Bee05" parent="Actors" instance=ExtResource("3_bee")]
+position = Vector2(3260, 430)
+patrol_half_width = 210.0
+max_hp = 3
+score_value = 250
+
+[node name="ForegroundLeaves" type="Parallax2D" parent="."]
+z_index = 20
+repeat_size = Vector2(1280, 720)
+scroll_scale = Vector2(1.08, 1.08)
+autoscroll = Vector2(5, 1)
+
+[node name="Image" type="Sprite2D" parent="ForegroundLeaves"]
+texture = ExtResource("7_leaves")
+position = Vector2(640, 360)
+modulate = Color(0.74, 0.92, 0.67, 0.52)
+
+[node name="HUD" type="CanvasLayer" parent="."]
+layer = 50
+
+[node name="TopBar" type="ColorRect" parent="HUD"]
+offset_left = 22.0
+offset_top = 20.0
+offset_right = 1258.0
+offset_bottom = 72.0
+color = Color(0.025, 0.08, 0.045, 0.82)
+
+[node name="HP" type="Label" parent="HUD/TopBar"]
+offset_left = 20.0
+offset_top = 12.0
+offset_right = 235.0
+offset_bottom = 45.0
+theme_override_colors/font_color = Color(0.78, 0.94, 0.68, 1)
+theme_override_font_sizes/font_size = 20
+text = "HP  3 / 3"
+
+[node name="Score" type="Label" parent="HUD/TopBar"]
+offset_left = 970.0
+offset_top = 12.0
+offset_right = 1210.0
+offset_bottom = 45.0
+theme_override_colors/font_color = Color(0.88, 0.82, 0.48, 1)
+theme_override_font_sizes/font_size = 20
+text = "SCORE  00000"
+horizontal_alignment = 2
+
+[node name="Objective" type="Label" parent="HUD"]
+offset_left = 250.0
+offset_top = 82.0
+offset_right = 1030.0
+offset_bottom = 116.0
+theme_override_colors/font_color = Color(0.72, 0.85, 0.66, 0.95)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 17
+text = "Explore the lost ruins"
+horizontal_alignment = 1
+
+[node name="Controls" type="Label" parent="HUD"]
+offset_left = 24.0
+offset_top = 670.0
+offset_right = 750.0
+offset_bottom = 706.0
+theme_override_colors/font_color = Color(0.72, 0.83, 0.67, 0.82)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_font_sizes/font_size = 15
+text = "A/D move   SPACE jump   SHIFT dash   F / LMB attack   ESC menu"
+
+[node name="GameOver" type="Control" parent="HUD"]
+visible = false
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Dark" type="ColorRect" parent="HUD/GameOver"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.025, 0.07, 0.04, 1)
+color = Color(0.01, 0.02, 0.012, 0.78)
 
-[node name="Label" type="Label" parent="."]
-layout_mode = 0
-offset_left = 340.0
-offset_top = 270.0
-offset_right = 940.0
-offset_bottom = 345.0
-theme_override_font_sizes/font_size = 34
-text = "ЗАБРОШЕННЫЕ ДЖУНГЛИ\nуровень собирается дальше"
+[node name="Title" type="Label" parent="HUD/GameOver"]
+offset_left = 390.0
+offset_top = 225.0
+offset_right = 890.0
+offset_bottom = 290.0
+theme_override_colors/font_color = Color(0.83, 0.91, 0.62, 1)
+theme_override_font_sizes/font_size = 42
+text = "LOST TO THE JUNGLE"
 horizontal_alignment = 1
 
-[node name="Back" type="Button" parent="."]
-layout_mode = 0
-offset_left = 515.0
-offset_top = 390.0
-offset_right = 765.0
-offset_bottom = 448.0
-text = "BACK TO MENU"
+[node name="Restart" type="Button" parent="HUD/GameOver"]
+offset_left = 465.0
+offset_top = 330.0
+offset_right = 815.0
+offset_bottom = 390.0
+theme_override_font_sizes/font_size = 21
+text = "RESTART"
 
-[connection signal="pressed" from="Back" to="." method="_on_back_pressed"]
+[node name="Menu" type="Button" parent="HUD/GameOver"]
+offset_left = 465.0
+offset_top = 410.0
+offset_right = 815.0
+offset_bottom = 470.0
+theme_override_font_sizes/font_size = 21
+text = "MAIN MENU"
+
+[connection signal="pressed" from="HUD/GameOver/Restart" to="." method="_on_restart_pressed"]
+[connection signal="pressed" from="HUD/GameOver/Menu" to="." method="_on_menu_pressed"]
