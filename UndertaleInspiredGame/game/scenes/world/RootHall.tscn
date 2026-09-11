@@ -1,10 +1,11 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/world_room.gd" id="1_room"]
 [ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="2_player"]
 [ext_resource type="PackedScene" path="res://scenes/ui/DialogueBox.tscn" id="3_dialogue"]
 [ext_resource type="PackedScene" path="res://scenes/world/components/Interactable.tscn" id="4_interact"]
 [ext_resource type="PackedScene" path="res://scenes/world/components/RoomExit.tscn" id="5_exit"]
+[ext_resource type="PackedScene" path="res://scenes/world/components/BattleTrigger.tscn" id="6_battle"]
 
 [sub_resource type="RectangleShape2D" id="HorizontalWall"]
 size = Vector2(1400,50)
@@ -102,6 +103,8 @@ default_color = Color(0.12,0.07,0.04,1)
 [node name="SpawnPoints" type="Node2D" parent="."]
 [node name="FromMossEntrance" type="Marker2D" parent="SpawnPoints"]
 position = Vector2(145,450)
+[node name="AfterTestBattle" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(1050,450)
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector2(145,450)
@@ -113,9 +116,13 @@ position = Vector2(700,545)
 dialogue_text = "Zwischen den Steinen hängt ein alter Eid.|\"Kein Herz ist nur rot vor Zorn.\"|\"Wenn der Moosritter dich prüft, höre zuerst zu.\""
 story_flag = &"heard_altar_echo"
 
-[node name="SealedDoor" parent="." instance=ExtResource("4_interact")]
-position = Vector2(1220,450)
-dialogue_text = "Eine Wurzelpforte versperrt den Weg.|Dahinter hörst du langsame Schritte.|Jemand übt bereits, was er dir auf Deutsch sagen wird."
+[node name="TrainingEncounter" parent="." instance=ExtResource("6_battle")]
+position = Vector2(1160,450)
+enemy_data_path = "res://scenes/battle/data/TestEnemy.tres"
+return_scene_path = "res://scenes/world/RootHall.tscn"
+return_spawn_id = &"AfterTestBattle"
+completion_flag = &"root_novice_cleared"
+cleared_dialogue = "Der Wurzel-Novize ist fort.|Nur ein ruhiges grünes Zeichen bleibt auf dem Stein zurück."
 
 [node name="ExitToMossEntrance" parent="." instance=ExtResource("5_exit")]
 position = Vector2(50,450)
