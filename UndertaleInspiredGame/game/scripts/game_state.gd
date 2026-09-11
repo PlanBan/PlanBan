@@ -18,6 +18,11 @@ var story_flags: Dictionary = {}
 var inventory: Array[StringName] = []
 var world_input_locked: bool = false
 
+var pending_battle_data_path: String = ""
+var battle_return_scene: String = ""
+var battle_return_spawn: StringName = &""
+var battle_completion_flag: StringName = &""
+
 func start_new_game() -> void:
 	max_hp = STARTING_HP
 	hp = max_hp
@@ -29,6 +34,10 @@ func start_new_game() -> void:
 	story_flags.clear()
 	inventory.clear()
 	world_input_locked = false
+	pending_battle_data_path = ""
+	battle_return_scene = ""
+	battle_return_spawn = &""
+	battle_completion_flag = &""
 	new_game_started.emit()
 	route_changed.emit(mercy_points, fight_points)
 
@@ -66,3 +75,36 @@ func get_route_name() -> StringName:
 	if fight_points > mercy_points:
 		return &"fight"
 	return &"neutral"
+
+func begin_battle(enemy_data_path: String, return_scene_path: String, return_spawn_id: StringName, completion_flag: StringName) -> void:
+	pending_battle_data_path = enemy_data_path
+	battle_return_scene = return_scene_path
+	battle_return_spawn = return_spawn_id
+	battle_completion_flag = completion_flag
+	world_input_locked = true
+
+func resolve_battle(spared: bool) -> void:
+	if battle_completion_flag != &"":
+		set_story_flag(battle_completion_flag, true)
+	if spared:
+		record_mercy()
+	else:
+		record_fight()
+
+func return_from_battle() -> void:
+	if battle_return_scene.is_empty():
+		clear_pending_battle()
+		world_input_locked = false
+		get_tree().change_scene_to_file("res://scenes/menu/MainMenu.tscn")
+		return
+	next_spawn_id = battle_return_spawn
+	var return_path := battle_return_scene
+	clear_pending_battle()
+	get_tree().change_scene_to_file(return_path)
+
+func clear_pending_battle(clear_return: bool = true) -> void:
+	pending_battle_data_path = ""
+	battle_completion_flag = &""
+	if clear_return:
+		battle_return_scene = ""
+		battle_return_spawn = &""
