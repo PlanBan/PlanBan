@@ -1,0 +1,130 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/world_room.gd" id="1_room"]
+[ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://scenes/ui/DialogueBox.tscn" id="3_dialogue"]
+[ext_resource type="PackedScene" path="res://scenes/world/components/Interactable.tscn" id="4_interact"]
+[ext_resource type="PackedScene" path="res://scenes/world/components/RoomExit.tscn" id="5_exit"]
+
+[sub_resource type="RectangleShape2D" id="HorizontalWall"]
+size = Vector2(1400,50)
+[sub_resource type="RectangleShape2D" id="VerticalWall"]
+size = Vector2(50,900)
+[sub_resource type="RectangleShape2D" id="DoorGapBlock"]
+size = Vector2(70,250)
+[sub_resource type="RectangleShape2D" id="PillarShape"]
+size = Vector2(100,180)
+[sub_resource type="RectangleShape2D" id="AltarShape"]
+size = Vector2(250,100)
+
+[node name="RootHall" type="Node2D"]
+script = ExtResource("1_room")
+room_id = &"root_hall"
+
+[node name="Floor" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0,0,1400,0,1400,900,0,900)
+color = Color(0.04,0.055,0.05,1)
+
+[node name="FloorInset" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(100,120,1300,120,1300,780,100,780)
+color = Color(0.07,0.075,0.06,1)
+
+[node name="CrackA" type="Line2D" parent="."]
+points = PackedVector2Array(220,160,310,250,280,370,390,460,350,590)
+width = 8.0
+default_color = Color(0.025,0.03,0.025,1)
+[node name="CrackB" type="Line2D" parent="."]
+points = PackedVector2Array(1120,150,1060,260,1115,355,1000,470,1050,690)
+width = 7.0
+default_color = Color(0.025,0.03,0.025,1)
+
+[node name="Bounds" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 2
+[node name="Top" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(700,25)
+shape = SubResource("HorizontalWall")
+[node name="Bottom" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(700,875)
+shape = SubResource("HorizontalWall")
+[node name="LeftTop" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(25,190)
+shape = SubResource("DoorGapBlock")
+[node name="LeftBottom" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(25,710)
+shape = SubResource("DoorGapBlock")
+[node name="Right" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(1375,450)
+shape = SubResource("VerticalWall")
+
+[node name="Pillar1" type="StaticBody2D" parent="."]
+position = Vector2(475,310)
+collision_layer = 1
+collision_mask = 2
+[node name="Visual" type="Polygon2D" parent="Pillar1"]
+polygon = PackedVector2Array(-50,-90,45,-90,52,75,30,90,-45,88,-54,65)
+color = Color(0.14,0.16,0.13,1)
+[node name="Rune" type="Line2D" parent="Pillar1"]
+points = PackedVector2Array(-15,-40,15,-15,-12,12,16,42)
+width = 4.0
+default_color = Color(0.3,0.5,0.28,0.75)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Pillar1"]
+shape = SubResource("PillarShape")
+
+[node name="Pillar2" type="StaticBody2D" parent="."]
+position = Vector2(910,310)
+collision_layer = 1
+collision_mask = 2
+[node name="Visual" type="Polygon2D" parent="Pillar2"]
+polygon = PackedVector2Array(-50,-90,45,-90,52,75,30,90,-45,88,-54,65)
+color = Color(0.14,0.16,0.13,1)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Pillar2"]
+shape = SubResource("PillarShape")
+
+[node name="Altar" type="StaticBody2D" parent="."]
+position = Vector2(700,650)
+collision_layer = 1
+collision_mask = 2
+[node name="Visual" type="Polygon2D" parent="Altar"]
+polygon = PackedVector2Array(-125,-50,125,-50,110,48,-110,48)
+color = Color(0.17,0.18,0.145,1)
+[node name="Moss" type="Polygon2D" parent="Altar"]
+polygon = PackedVector2Array(-120,-50,90,-50,50,-36,-35,-42,-100,-30)
+color = Color(0.18,0.3,0.13,1)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Altar"]
+shape = SubResource("AltarShape")
+
+[node name="RootCanopy" type="Line2D" parent="."]
+points = PackedVector2Array(160,80,280,170,420,130,560,190,720,115,900,175,1080,120,1240,195)
+width = 46.0
+default_color = Color(0.12,0.07,0.04,1)
+
+[node name="SpawnPoints" type="Node2D" parent="."]
+[node name="FromMossEntrance" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(145,450)
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(145,450)
+
+[node name="DialogueBox" parent="." instance=ExtResource("3_dialogue")]
+
+[node name="AltarEcho" parent="." instance=ExtResource("4_interact")]
+position = Vector2(700,545)
+dialogue_text = "Zwischen den Steinen hängt ein alter Eid.|\"Kein Herz ist nur rot vor Zorn.\"|\"Wenn der Moosritter dich prüft, höre zuerst zu.\""
+story_flag = &"heard_altar_echo"
+
+[node name="SealedDoor" parent="." instance=ExtResource("4_interact")]
+position = Vector2(1220,450)
+dialogue_text = "Eine Wurzelpforte versperrt den Weg.|Dahinter hörst du langsame Schritte.|Jemand übt bereits, was er dir auf Deutsch sagen wird."
+
+[node name="ExitToMossEntrance" parent="." instance=ExtResource("5_exit")]
+position = Vector2(50,450)
+target_scene_path = "res://scenes/world/MossEntrance.tscn"
+target_room_id = &"moss_entrance"
+target_spawn_id = &"FromRootHall"
+
+[node name="RoomName" type="Label" parent="."]
+position = Vector2(52,55)
+theme_override_colors/font_color = Color(0.54,0.65,0.52,0.8)
+theme_override_font_sizes/font_size = 18
+text = "WURZELHALLE"
