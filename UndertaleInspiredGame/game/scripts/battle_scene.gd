@@ -130,7 +130,7 @@ func _load_enemy() -> void:
 		path = DEFAULT_ENEMY_DATA
 	var loaded := load(path)
 	if loaded is BattleEnemyData:
-		enemy_data = loaded as BattleEnemyData
+		enemy_data = loaded
 	else:
 		enemy_data = load(DEFAULT_ENEMY_DATA) as BattleEnemyData
 	enemy_hp = enemy_data.max_hp
@@ -302,12 +302,17 @@ func _update_enemy_turn(delta: float) -> void:
 func _spawn_bullet() -> void:
 	if projectile_scene == null or enemy_data.attack_patterns.is_empty():
 		return
-	var projectile := projectile_scene.instantiate() as BattleProjectile
+	var pattern := enemy_data.attack_patterns[(enemy_round - 1) % enemy_data.attack_patterns.size()]
+	if pattern == "walls":
+		_spawn_wall_wave()
+		return
+	if pattern == "cross":
+		_spawn_cross_burst()
+		return
+
+	var projectile := _create_projectile()
 	if projectile == null:
 		return
-	projectile.damage = enemy_data.attack_damage
-	projectile_layer.add_child(projectile)
-	var pattern := enemy_data.attack_patterns[(enemy_round - 1) % enemy_data.attack_patterns.size()]
 	var speed := enemy_data.bullet_speed
 	match pattern:
 		"sides":
@@ -330,6 +335,45 @@ func _spawn_bullet() -> void:
 		_:
 			projectile.position = Vector2(randf_range(ARENA_RECT.position.x + 12.0, ARENA_RECT.end.x - 12.0), ARENA_RECT.position.y - 18.0)
 			projectile.velocity = Vector2(randf_range(-35.0, 35.0), speed)
+
+func _create_projectile() -> BattleProjectile:
+	var projectile := projectile_scene.instantiate() as BattleProjectile
+	if projectile == null:
+		return null
+	projectile.damage = enemy_data.attack_damage
+	projectile_layer.add_child(projectile)
+	return projectile
+
+func _spawn_wall_wave() -> void:
+	var from_left := enemy_round % 2 == 0
+	var lane_count := 5
+	var gap_lane := randi_range(0, lane_count - 1)
+	var lane_height := ARENA_RECT.size.y / float(lane_count)
+	for lane in range(lane_count):
+		if lane == gap_lane:
+			continue
+		var projectile := _create_projectile()
+		if projectile == null:
+			continue
+		var y := ARENA_RECT.position.y + lane_height * (float(lane) + 0.5)
+		projectile.position = Vector2(ARENA_RECT.position.x - 18.0 if from_left else ARENA_RECT.end.x + 18.0, y)
+		projectile.velocity = Vector2(enemy_data.bullet_speed if from_left else -enemy_data.bullet_speed, 0.0)
+
+func _spawn_cross_burst() -> void:
+	var center := ARENA_RECT.get_center()
+	var origins := [
+		Vector2(center.x, ARENA_RECT.position.y - 18.0),
+		Vector2(ARENA_RECT.end.x + 18.0, center.y),
+		Vector2(center.x, ARENA_RECT.end.y + 18.0),
+		Vector2(ARENA_RECT.position.x - 18.0, center.y)
+	]
+	for origin in origins:
+		var projectile := _create_projectile()
+		if projectile == null:
+			continue
+		projectile.position = origin
+		var target := center + Vector2(randf_range(-65.0,65.0), randf_range(-40.0,40.0))
+		projectile.velocity = origin.direction_to(target) * enemy_data.bullet_speed
 
 func _on_soul_damaged(amount: int) -> void:
 	if battle_state != BattleState.ENEMY_TURN:
