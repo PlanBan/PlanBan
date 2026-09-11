@@ -1,6 +1,6 @@
 extends Control
 
-@export_file("*.tscn") var first_scene_path: String = "res://scenes/world/PrototypeRoom.tscn"
+@export_file("*.tscn") var first_scene_path: String = "res://scenes/world/MossEntrance.tscn"
 @onready var play_button: Button = $MenuPanel/Margin/VBox/PlayButton
 @onready var quit_button: Button = $MenuPanel/Margin/VBox/QuitButton
 
