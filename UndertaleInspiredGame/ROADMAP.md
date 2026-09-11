@@ -6,7 +6,7 @@
 - [x] 0. Создать отдельную папку `UndertaleInspiredGame/` и правила восстановления.
 - [x] 1. Создать `game/`: project.godot, MainMenu, GameState/прогресс, базовые input actions.
 - [x] 2. Создать top-down игрока и систему исследования: движение, камера, столкновения, взаимодействие, переходы между комнатами.
-- [ ] 3. Создать универсальную BattleScene: KÄMPFEN / HANDELN / ITEM / VERSCHONEN, сердце, dodge-box, HP, немецкое окно диалога, тайминг удара.
+- [x] 3. Создать универсальную BattleScene: KÄMPFEN / HANDELN / ITEM / VERSCHONEN, сердце, dodge-box, HP, немецкое окно диалога, тайминг удара.
 - [ ] 4. Глава 1 — `Moosruinen`: несколько комнат, NPC/события, предметы, первый босс `Moosritter` с немецкими репликами и уникальными паттернами.
 - [ ] 5. Глава 2 — `Glasgarten`: новые комнаты/механики, босс `Glasfalter`, новые bullet-pattern атаки и ACT/MERCY условия.
 - [ ] 6. Глава 3 — `Versunkenes Archiv`: загадки/события, босс `Wurzelarchivar`, более сложные фазы и немецкий диалог.
