@@ -1,0 +1,217 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/main_menu.gd" id="1_menu"]
+
+[sub_resource type="StyleBoxFlat" id="PanelStyle"]
+bg_color = Color(0.018, 0.018, 0.025, 0.94)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.72, 0.72, 0.66, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_size = 16
+
+[sub_resource type="StyleBoxFlat" id="ButtonNormal"]
+bg_color = Color(0.04, 0.04, 0.055, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.6, 0.6, 0.56, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="ButtonHover"]
+bg_color = Color(0.12, 0.08, 0.05, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(1, 0.73, 0.23, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="Animation" id="RESET"]
+resource_name = "RESET"
+length = 0.0
+tracks/0/type = "value"
+tracks/0/path = NodePath("Backdrop/Moon:position")
+tracks/0/keys = {"times":PackedFloat32Array(0),"transitions":PackedFloat32Array(1),"update":0,"values":[Vector2(760, 116)]}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Backdrop/MistBand:position")
+tracks/1/keys = {"times":PackedFloat32Array(0),"transitions":PackedFloat32Array(1),"update":0,"values":[Vector2(-180, 360)]}
+tracks/2/type = "value"
+tracks/2/path = NodePath("TitleBlock/Heart:scale")
+tracks/2/keys = {"times":PackedFloat32Array(0),"transitions":PackedFloat32Array(1),"update":0,"values":[Vector2(1, 1)]}
+
+[sub_resource type="Animation" id="MenuMotion"]
+resource_name = "menu_motion"
+length = 8.0
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/path = NodePath("Backdrop/Moon:position")
+tracks/0/keys = {"times":PackedFloat32Array(0,4,8),"transitions":PackedFloat32Array(1,1,1),"update":0,"values":[Vector2(760,116),Vector2(770,106),Vector2(760,116)]}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Backdrop/MistBand:position")
+tracks/1/keys = {"times":PackedFloat32Array(0,8),"transitions":PackedFloat32Array(1,1),"update":0,"values":[Vector2(-180,360),Vector2(120,360)]}
+tracks/2/type = "value"
+tracks/2/path = NodePath("TitleBlock/Heart:scale")
+tracks/2/keys = {"times":PackedFloat32Array(0,0.45,0.9,8),"transitions":PackedFloat32Array(1,1,1,1),"update":0,"values":[Vector2(1,1),Vector2(1.12,1.12),Vector2(1,1),Vector2(1,1)]}
+
+[sub_resource type="AnimationLibrary" id="MenuLibrary"]
+_data = {&"RESET": SubResource("RESET"), &"menu_motion": SubResource("MenuMotion")}
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_menu")
+
+[node name="Backdrop" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Night" type="ColorRect" parent="Backdrop"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.018, 0.027, 0.038, 1)
+
+[node name="Moon" type="Polygon2D" parent="Backdrop"]
+position = Vector2(760, 116)
+polygon = PackedVector2Array(-52,0,-42,-30,-18,-49,14,-52,42,-34,54,-6,48,22,28,45,0,55,-30,45,-49,20)
+color = Color(0.64,0.7,0.62,0.75)
+
+[node name="Ruins" type="Polygon2D" parent="Backdrop"]
+position = Vector2(0, 285)
+polygon = PackedVector2Array(0,255,0,95,80,95,80,25,160,25,160,110,236,110,236,66,310,66,310,128,430,128,430,35,520,35,520,102,612,102,612,58,690,58,690,116,770,116,770,45,860,45,860,100,960,100,960,255)
+color = Color(0.055,0.075,0.07,1)
+
+[node name="Roots" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(0,430,130,390,218,424,330,375,440,418,558,366,690,410,820,360,960,402)
+width = 34.0
+default_color = Color(0.08,0.055,0.035,1)
+
+[node name="MistBand" type="ColorRect" parent="Backdrop"]
+position = Vector2(-180, 360)
+size = Vector2(1080, 56)
+color = Color(0.32,0.42,0.38,0.08)
+
+[node name="TitleBlock" type="Control" parent="."]
+layout_mode = 0
+offset_left = 150.0
+offset_top = 66.0
+offset_right = 810.0
+offset_bottom = 220.0
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="TitleBlock"]
+layout_mode = 0
+offset_left = 60.0
+offset_top = 8.0
+offset_right = 600.0
+offset_bottom = 72.0
+theme_override_colors/font_color = Color(0.92,0.92,0.88,1)
+theme_override_colors/font_shadow_color = Color(0,0,0,1)
+theme_override_constants/shadow_offset_x = 4
+theme_override_constants/shadow_offset_y = 4
+theme_override_font_sizes/font_size = 48
+text = "WURZELHERZ"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="TitleBlock"]
+layout_mode = 0
+offset_left = 65.0
+offset_top = 79.0
+offset_right = 595.0
+offset_bottom = 119.0
+theme_override_colors/font_color = Color(0.62,0.69,0.63,1)
+theme_override_font_sizes/font_size = 18
+text = "Eine Geschichte unter den vergessenen Wurzeln"
+horizontal_alignment = 1
+
+[node name="Heart" type="Polygon2D" parent="TitleBlock"]
+position = Vector2(330, 144)
+polygon = PackedVector2Array(0,18,-28,-10,-28,-28,-14,-40,0,-34,14,-40,28,-28,28,-10)
+color = Color(0.88,0.08,0.12,1)
+
+[node name="MenuPanel" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 335.0
+offset_top = 280.0
+offset_right = 625.0
+offset_bottom = 458.0
+theme_override_styles/panel = SubResource("PanelStyle")
+
+[node name="Margin" type="MarginContainer" parent="MenuPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 28
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 28
+theme_override_constants/margin_bottom = 24
+
+[node name="VBox" type="VBoxContainer" parent="MenuPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="PlayButton" type="Button" parent="MenuPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9,0.9,0.85,1)
+theme_override_colors/font_hover_color = Color(1,0.76,0.28,1)
+theme_override_colors/font_focus_color = Color(1,0.76,0.28,1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("ButtonNormal")
+theme_override_styles/hover = SubResource("ButtonHover")
+theme_override_styles/focus = SubResource("ButtonHover")
+text = "SPIELEN"
+
+[node name="QuitButton" type="Button" parent="MenuPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9,0.9,0.85,1)
+theme_override_colors/font_hover_color = Color(1,0.76,0.28,1)
+theme_override_colors/font_focus_color = Color(1,0.76,0.28,1)
+theme_override_font_sizes/font_size = 22
+theme_override_styles/normal = SubResource("ButtonNormal")
+theme_override_styles/hover = SubResource("ButtonHover")
+theme_override_styles/focus = SubResource("ButtonHover")
+text = "BEENDEN"
+
+[node name="Hint" type="Label" parent="."]
+layout_mode = 0
+offset_left = 230.0
+offset_top = 492.0
+offset_right = 730.0
+offset_bottom = 524.0
+theme_override_colors/font_color = Color(0.45,0.5,0.47,1)
+theme_override_font_sizes/font_size = 14
+text = "Pfeile / WASD   •   Z / Enter bestätigen   •   X / Esc zurück"
+horizontal_alignment = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {&"": SubResource("MenuLibrary")}
+autoplay = "menu_motion"
+
+[connection signal="pressed" from="MenuPanel/Margin/VBox/PlayButton" to="." method="_on_play_button_pressed"]
+[connection signal="pressed" from="MenuPanel/Margin/VBox/QuitButton" to="." method="_on_quit_button_pressed"]
