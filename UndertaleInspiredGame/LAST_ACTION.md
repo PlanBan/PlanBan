@@ -2,19 +2,18 @@
 
 Date: 2026-09-11
 
-Последнее завершённое действие: Stage 4 `Moosruinen` полностью создан, статически проверен и сохранён в `UndertaleInspiredGame/game/`. Добавлены Flüsterhain, Ritterpfad, Moossanktuarium и Wurzelausgang, route-sensitive NPC, MOOSTEE, StoryGate, настоящий первый босс MOOSRITTER с немецкими репликами/ACT/MERCY и новыми reusable pattern-типами `walls` и `cross`. Stage 4 manifest создан; ROADMAP и CURRENT_STATUS обновлены.
+Последнее завершённое действие: завершён и сохранён checkpoint хотфикса после Stage 4. Он включает обновлённый четырёхэкранный пролог по референсам пользователя, немецкий диалог с Einsiedler, автоматические переходы по путям, защиту RoomExit от мгновенного обратного телепорта после появления внутри триггера, исправление parser-проблемы `battle_scene.gd`, корректировку `load_steps` и Camera2D override indices. Новый ZIP статически проверен и прошёл `unzip -t`.
+
+Контрольный архив:
+`WURZELHERZ_Stage4_Prologue_HOTFIX_Godot_4.7.2.zip`
+SHA256: `43d417e9cc54f030ead1105554a6242a20d0391553caf8026fc8f5b8f0f2af5a`
+
+GitHub recovery files:
+- `checkpoints/PROLOGUE_HOTFIX_2026-09-11_NOTE.md`
+- `checkpoints/PROLOGUE_HOTFIX_2026-09-11_SHA256.txt`
+- `checkpoints/PROLOGUE_HOTFIX_2026-09-11_RECOVERY.md`
 
 ## Что делать следующим
-Следующий этап — Stage 5: `Glasgarten`. Не создавать отдельную копию BattleScene для Glasfalter; расширять общий battle framework только переиспользуемыми pattern-механиками.
+Если пользователь не сообщает новый баг, продолжать непосредственно с ROADMAP Stage 5 `Glasgarten`.
 
-Нужно создать:
-1. переход из `MossAftermath` в Glasgarten;
-2. несколько связанных комнат Glasgarten с визуально другой стеклянной/световой темой;
-3. минимум один новый NPC/событие с немецким текстом;
-4. минимум один новый полезный предмет;
-5. `Glasfalter` как новый BattleEnemyData Resource и отдельную editor-editable visual scene;
-6. немецкие реплики и свои ACT/MERCY условия Glasfalter;
-7. новые reusable bullet-pattern типы, отличающиеся от Moosritter;
-8. пост-боссовую область/переход к `Versunkenes Archiv`.
-
-После Stage 5 обязательно: статическая проверка, реальные файлы в GitHub, manifest/checkpoint, обновление CURRENT_STATUS/ROADMAP/LAST_ACTION. Только затем Stage 6.
+Не повторять Stage 0–4 и не переделывать заново пролог/hotfix. Перед Stage 5 сначала использовать этот checkpoint как текущую основу.
