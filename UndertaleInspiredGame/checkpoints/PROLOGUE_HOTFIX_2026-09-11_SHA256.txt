@@ -1,0 +1,4 @@
+WURZELHERZ_Stage4_Prologue_HOTFIX_Godot_4.7.2.zip
+SHA256: 43d417e9cc54f030ead1105554a6242a20d0391553caf8026fc8f5b8f0f2af5a
+
+The exact user-delivered hotfix archive was validated with `unzip -t` and contains the parser fix plus transition re-arm logic.
