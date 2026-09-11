@@ -4,7 +4,7 @@
 
 ## Этапы
 - [x] 0. Создать отдельную папку `UndertaleInspiredGame/` и правила восстановления.
-- [ ] 1. Создать `game/`: project.godot, MainMenu, GameState/прогресс, базовые input actions.
+- [x] 1. Создать `game/`: project.godot, MainMenu, GameState/прогресс, базовые input actions.
 - [ ] 2. Создать top-down игрока и систему исследования: движение, камера, столкновения, взаимодействие, переходы между комнатами.
 - [ ] 3. Создать универсальную BattleScene: KÄMPFEN / HANDELN / ITEM / VERSCHONEN, сердце, dodge-box, HP, немецкое окно диалога, тайминг удара.
 - [ ] 4. Глава 1 — `Moosruinen`: несколько комнат, NPC/события, предметы, первый босс `Moosritter` с немецкими репликами и уникальными паттернами.
