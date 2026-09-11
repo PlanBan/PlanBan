@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="BattleEnemyData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle_enemy_data.gd" id="1_data"]
+[ext_resource type="PackedScene" path="res://scenes/battle/enemies/MossKnightVisual.tscn" id="2_visual"]
+
+[resource]
+script = ExtResource("1_data")
+enemy_id = &"moss_knight"
+display_name = "MOOSRITTER"
+visual_scene = ExtResource("2_visual")
+max_hp = 74
+defense = 1
+attack_damage = 4
+fight_damage_min = 5
+fight_damage_max = 15
+intro_text = "Der Moosritter stellt seinen Schild in den Weg.\n\"Ich bewache diese Ruinen nicht vor Eindringlingen. Ich bewache ihre Erinnerung vor Eile.\""
+turn_text = "Der Moosritter rammt den Speer in den Boden. Die Wurzeln antworten."
+fight_hit_text = "Metall und altes Holz krachen gegeneinander."
+mercy_ready_text = "Der Moosritter lässt die Speerspitze sinken. Hinter dem Visier wartet kein Hass mehr."
+mercy_text = "Der Moosritter tritt zur Seite.\n\"Du hättest gewinnen können. Stattdessen hast du verstanden. Das ist seltener.\""
+defeat_text = "Der Schild des Moosritters bricht.\n\"So endet also die Erinnerung, wenn niemand zuhört...\""
+mercy_required = 3
+act_names = PackedStringArray("ERINNERUNG HÖREN", "WAFFE SENKEN")
+act_mercy_values = PackedInt32Array(1, 2)
+act_responses = PackedStringArray("Du fragst, wen er eigentlich beschützt. Der Ritter erzählt von einem Garten aus Glas, den die Wurzeln einst vor Licht versteckten.", "Du senkst sichtbar deine Waffe. Der Moosritter hält inne und nimmt den Speer aus der Angriffsstellung.")
+enemy_turn_duration = 6.2
+bullet_interval = 0.78
+bullet_speed = 178.0
+attack_patterns = PackedStringArray("walls", "cross", "aimed")
