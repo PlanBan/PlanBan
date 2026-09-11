@@ -10,21 +10,25 @@ const STARTING_CHAPTER: StringName = &"prologue"
 var max_hp: int = STARTING_HP
 var hp: int = STARTING_HP
 var current_chapter: StringName = STARTING_CHAPTER
-var current_room: StringName = &"prototype_room"
+var current_room: StringName = &"moss_entrance"
+var next_spawn_id: StringName = &""
 var mercy_points: int = 0
 var fight_points: int = 0
 var story_flags: Dictionary = {}
 var inventory: Array[StringName] = []
+var world_input_locked: bool = false
 
 func start_new_game() -> void:
 	max_hp = STARTING_HP
 	hp = max_hp
 	current_chapter = STARTING_CHAPTER
-	current_room = &"prototype_room"
+	current_room = &"moss_entrance"
+	next_spawn_id = &""
 	mercy_points = 0
 	fight_points = 0
 	story_flags.clear()
 	inventory.clear()
+	world_input_locked = false
 	new_game_started.emit()
 	route_changed.emit(mercy_points, fight_points)
 
