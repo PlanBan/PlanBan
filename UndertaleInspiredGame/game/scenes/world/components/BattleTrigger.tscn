@@ -1,0 +1,25 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle_trigger.gd" id="1_trigger"]
+
+[sub_resource type="CircleShape2D" id="TriggerShape"]
+radius = 42.0
+
+[node name="BattleTrigger" type="Area2D"]
+collision_layer = 4
+collision_mask = 0
+monitoring = false
+monitorable = true
+script = ExtResource("1_trigger")
+
+[node name="RuneRing" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0,-32,23,-23,32,0,23,23,0,32,-23,23,-32,0,-23,-23)
+color = Color(0.18,0.34,0.16,0.45)
+
+[node name="RuneCore" type="Polygon2D" parent="."]
+scale = Vector2(0.42,0.42)
+polygon = PackedVector2Array(0,-32,23,-23,32,0,23,23,0,32,-23,23,-32,0,-23,-23)
+color = Color(0.48,0.72,0.34,0.75)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("TriggerShape")
