@@ -1,0 +1,31 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/item_pickup.gd" id="1_item"]
+[sub_resource type="CircleShape2D" id="ItemShape"]
+radius = 30.0
+
+[node name="ItemPickup" type="Area2D"]
+collision_layer = 4
+collision_mask = 0
+monitoring = false
+monitorable = true
+script = ExtResource("1_item")
+
+[node name="Visuals" type="Node2D" parent="."]
+
+[node name="Cup" type="Polygon2D" parent="Visuals"]
+polygon = PackedVector2Array(-18,-12,15,-12,12,18,-12,18)
+color = Color(0.5,0.42,0.28,1)
+
+[node name="Tea" type="Polygon2D" parent="Visuals"]
+position = Vector2(0,-10)
+polygon = PackedVector2Array(-14,-3,12,-3,9,3,-11,3)
+color = Color(0.34,0.58,0.24,1)
+
+[node name="Steam" type="Line2D" parent="Visuals"]
+points = PackedVector2Array(-7,-16,-10,-25,-5,-33,0,-40)
+width = 3.0
+default_color = Color(0.72,0.82,0.67,0.7)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("ItemShape")
