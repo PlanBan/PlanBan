@@ -1,0 +1,103 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/world_room.gd" id="1_room"]
+[ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://scenes/ui/DialogueBox.tscn" id="3_dialogue"]
+[ext_resource type="PackedScene" path="res://scenes/world/components/RoomExit.tscn" id="4_exit"]
+[ext_resource type="PackedScene" path="res://scenes/world/components/Interactable.tscn" id="5_interact"]
+
+[sub_resource type="RectangleShape2D" id="HorizontalWall"]
+size = Vector2(1400,50)
+[sub_resource type="RectangleShape2D" id="DoorBlock"]
+size = Vector2(50,300)
+[sub_resource type="RectangleShape2D" id="StatueShape"]
+size = Vector2(120,180)
+
+[node name="KnightApproach" type="Node2D"]
+script = ExtResource("1_room")
+room_id = &"knight_approach"
+chapter_id = &"moosruinen"
+
+[node name="Floor" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0,0,1400,0,1400,900,0,900)
+color = Color(0.05,0.065,0.052,1)
+[node name="Causeway" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(70,300,1330,300,1330,620,70,620)
+color = Color(0.13,0.13,0.1,1)
+[node name="MossEdgeTop" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(80,286,350,270,560,290,820,268,1090,286,1320,260,1320,310,80,310)
+color = Color(0.2,0.32,0.14,1)
+
+[node name="Bounds" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 2
+[node name="Top" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(700,25)
+shape = SubResource("HorizontalWall")
+[node name="Bottom" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(700,875)
+shape = SubResource("HorizontalWall")
+[node name="LeftTop" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(25,170)
+shape = SubResource("DoorBlock")
+[node name="LeftBottom" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(25,730)
+shape = SubResource("DoorBlock")
+[node name="RightTop" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(1375,170)
+shape = SubResource("DoorBlock")
+[node name="RightBottom" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(1375,730)
+shape = SubResource("DoorBlock")
+
+[node name="BrokenStatue" type="StaticBody2D" parent="."]
+position = Vector2(700,180)
+collision_layer = 1
+collision_mask = 2
+[node name="Body" type="Polygon2D" parent="BrokenStatue"]
+polygon = PackedVector2Array(-55,-85,40,-88,58,70,20,92,-48,82,-62,30)
+color = Color(0.18,0.2,0.16,1)
+[node name="MissingHead" type="Polygon2D" parent="BrokenStatue"]
+position = Vector2(60,80)
+rotation = 0.48
+polygon = PackedVector2Array(-28,-22,24,-24,32,16,5,30,-26,20)
+color = Color(0.18,0.2,0.16,1)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BrokenStatue"]
+shape = SubResource("StatueShape")
+
+[node name="SpearMarks" type="Line2D" parent="."]
+points = PackedVector2Array(410,670,430,735,455,680,480,745,510,685)
+width = 5.0
+default_color = Color(0.27,0.16,0.07,0.8)
+
+[node name="SpawnPoints" type="Node2D" parent="."]
+[node name="FromGrove" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(145,455)
+[node name="FromSanctum" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(1245,455)
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(145,455)
+[node name="DialogueBox" parent="." instance=ExtResource("3_dialogue")]
+
+[node name="KnightInscription" parent="." instance=ExtResource("5_interact")]
+position = Vector2(760,455)
+dialogue_text = "Auf dem Sockel steht:|\"MOOSRITTER EDRAN — letzter Hüter des Flüsterbundes.\"|Darunter wurde später hinzugefügt: \"Er verliert nie. Er lässt nur manchmal jemanden recht haben.\""
+story_flag = &"read_knight_inscription"
+
+[node name="ExitBack" parent="." instance=ExtResource("4_exit")]
+position = Vector2(50,455)
+target_scene_path = "res://scenes/world/chapter1/WhisperGrove.tscn"
+target_room_id = &"whisper_grove"
+target_spawn_id = &"FromApproach"
+[node name="ExitForward" parent="." instance=ExtResource("4_exit")]
+position = Vector2(1350,455)
+target_scene_path = "res://scenes/world/chapter1/MossSanctum.tscn"
+target_room_id = &"moss_sanctum"
+target_spawn_id = &"FromApproach"
+
+[node name="RoomName" type="Label" parent="."]
+position = Vector2(50,52)
+theme_override_colors/font_color = Color(0.58,0.67,0.52,0.85)
+theme_override_font_sizes/font_size = 18
+text = "RITTERPFAD"
