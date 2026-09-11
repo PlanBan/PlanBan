@@ -1,0 +1,24 @@
+WURZELHERZ — Stage 1 checkpoint
+Date: 2026-09-11
+Target: Godot 4.7.2 stable
+Validation: PASS (static resource/signal/input validation)
+
+SHA256 files under UndertaleInspiredGame/game/:
+e071406c3b96d38a0db5850e060932c6fd73cab76eec6097783e464bfa150eea  README.md
+e8236cfccd37a2735339918576455a9fd7b0cbd1b2a93cb19b8bb9a69c17adb7  docs/STAGE_01.md
+26c39b44b14f2db3010ef3441decc786127629833b6dbde967d05620610c9143  project.godot
+60f35bacc2bf0089f1384220c7930c72089433d60342bbb90df8845b0d3c3340  scenes/menu/MainMenu.tscn
+ddb4ed94f6f44448849b7c75716fbedb73dd34209babc034962b3e2a29f60baa  scenes/world/PrototypeRoom.tscn
+bde26f1a0ad3bec18a8324ce3520d7562a7e2824620bc81763482e356d294d9e  scripts/game_state.gd
+64d76457e507ef0adb7997819f7277a3eff2e51f993113d8ce7012ec28a9861b  scripts/main_menu.gd
+79572370575d667c1d51bb499c4e3737b8a0d277b7c9d900d73c785a853538e8  scripts/prototype_room.gd
+
+Stage 1 definition satisfied:
+- actual game/project.godot exists;
+- MainMenu.tscn exists and is the main scene;
+- GameState is configured as an autoload;
+- base input actions exist;
+- Play has a valid scene destination;
+- menu visuals are editable Godot nodes/AnimationPlayer, not code-drawn level art.
+
+Godot executable was not available in the build container, so this checkpoint is statically validated but not engine-boot tested here.
