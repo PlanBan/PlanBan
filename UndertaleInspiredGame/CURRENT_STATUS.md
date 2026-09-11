@@ -2,39 +2,38 @@
 
 Last checkpoint: 2026-09-11
 Target engine: Godot 4.7.2 stable
-Active phase: **3 complete — universal battle framework saved**
+Active phase: **4 complete — Chapter 1 Moosruinen saved**
 
 ## Source/history
-Previous prototype/history remains in `AbandonedJungleGame/`. V3 boss work is a reference/recovery source only. All new active work is under `UndertaleInspiredGame/`.
+Previous prototype/history remains in `AbandonedJungleGame/`. All new active work is under `UndertaleInspiredGame/`.
 
 ## Completed
 - Stage 0 continuity/recovery system is in place.
-- Stage 1 actual Godot project skeleton is complete: project.godot, MainMenu, GameState/autoload, base inputs.
-- Stage 2 top-down exploration is complete: Player, camera, collisions, interactions, DialogueBox, two connected rooms and spawn-aware transitions.
-- Stage 3 reusable battle framework is complete and saved.
-- `scenes/battle/BattleScene.tscn` is an editor-editable battle UI/arena scene with normal Godot Control, Button, ProgressBar, Panel and Node2D nodes.
-- Battle commands exist: `KÄMPFEN / HANDELN / ITEM / VERSCHONEN`.
-- KÄMPFEN uses a timing meter; HANDELN uses enemy-specific ACT data; mercy progress unlocks VERSCHONEN.
-- `BattleSoul.tscn` provides the red-heart dodge phase with clamped movement and temporary invulnerability after hits.
-- `BattleProjectile.tscn` is reusable; the generic framework supports `rain`, `sides` and `aimed` projectile patterns.
-- `BattleEnemyData` Resource stores enemy HP, damage, German dialogue, ACT options, mercy values, attack timing/pattern data and an editable visual scene.
-- Test data/visual for `WURZEL-NOVIZE` exists and speaks German.
-- `BattleTrigger.tscn` starts encounters from the world and returns to a named spawn after victory/mercy.
-- `RootHall.tscn` now contains `TrainingEncounter`; after it is resolved the completion flag prevents replay and interaction gives post-battle dialogue.
-- GameState now records pending battle data, return scene/spawn, completion flags and route points for fight/mercy outcomes.
-- Stage 3 static validator passed with zero project errors after correcting the test enemy load_steps.
-- Exact Stage 3 file hashes are saved in `checkpoints/STAGE_03_2026-09-11_MANIFEST.txt`.
+- Stage 1 Godot project skeleton is complete.
+- Stage 2 top-down exploration is complete.
+- Stage 3 universal battle framework is complete.
+- Stage 4 first full chapter `Moosruinen` is complete and saved.
+- Chapter route: `RootHall → WhisperGrove → KnightApproach → MossSanctum → MossAftermath`.
+- `WhisperGrove` contains route-sensitive German NPC dialogue, lore and collectible `MOOSTEE`; ITEM consumes it in battle for +6 HP.
+- Reusable editor-editable `NpcTalker`, `ItemPickup` and `StoryGate` components were added.
+- `Moosritter` exists as separate `BattleEnemyData` resource plus a separate editable visual scene.
+- Moosritter speaks German and uses ACT choices `ERINNERUNG HÖREN` / `WAFFE SENKEN`, with a mercy threshold of 3.
+- Shared BattleScene was extended with reusable `walls` and `cross` patterns; the boss also uses `aimed`.
+- Fight/mercy outcomes continue to update GameState route counters and completion flags.
+- After resolving Moosritter, the player reaches `MossAftermath`; entering it records `chapter1_complete` and points toward Glasgarten.
+- Stage 4 static validation passed with zero errors.
+- Exact Stage 4 hashes are saved in `checkpoints/STAGE_04_2026-09-11_MANIFEST.txt`.
 
 ## Important limitation
-The build container does not contain a runnable Godot 4.7.2 editor binary. Stages 1–3 were statically validated but not engine-boot tested here.
+The build container does not contain a runnable Godot 4.7.2 editor binary. Stages 1–4 were statically validated but not engine-boot tested here.
 
 ## Next exact action
-Stage 4 — Chapter 1 `Moosruinen`:
-- expand the current moss/root area into several connected rooms;
-- add at least one NPC/event and one collectible/healing item;
-- create the first real boss `Moosritter` as `BattleEnemyData` + its own editable visual scene;
-- give Moosritter original German dialogue and ACT/MERCY conditions;
-- give the boss at least two distinctive projectile patterns using the Stage 3 framework;
-- add a boss approach/arena room and a post-boss exit or chapter transition;
-- keep fight/mercy outcomes recorded in GameState.
-Then statically validate, save all files, update ROADMAP/CURRENT_STATUS/LAST_ACTION, and create Stage 4 checkpoint before Chapter 2.
+Stage 5 — Chapter 2 `Glasgarten`:
+- connect the Chapter 1 aftermath to the new area;
+- create several editable glass-garden rooms with a distinct visual language/mechanic;
+- add German NPC/event content and at least one new useful item;
+- create boss `Glasfalter` as BattleEnemyData + editor-editable visual scene;
+- add original German boss dialogue and different ACT/MERCY conditions;
+- add new generic projectile patterns suited to glass/light attacks without duplicating BattleScene;
+- create post-boss transition toward Stage 6 `Versunkenes Archiv`.
+Then validate, save all files, create Stage 5 manifest and update ROADMAP/CURRENT_STATUS/LAST_ACTION before Stage 6.
