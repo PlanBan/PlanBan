@@ -1,0 +1,109 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/world_room.gd" id="1_room"]
+[ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://scenes/ui/DialogueBox.tscn" id="3_dialogue"]
+[ext_resource type="PackedScene" path="res://scenes/world/components/RoomExit.tscn" id="4_exit"]
+[ext_resource type="PackedScene" path="res://scenes/world/components/BattleTrigger.tscn" id="5_battle"]
+[ext_resource type="PackedScene" path="res://scenes/world/components/StoryGate.tscn" id="6_gate"]
+
+[sub_resource type="RectangleShape2D" id="HorizontalWall"]
+size = Vector2(1400,50)
+[sub_resource type="RectangleShape2D" id="DoorBlock"]
+size = Vector2(50,300)
+[sub_resource type="RectangleShape2D" id="DaisShape"]
+size = Vector2(260,100)
+
+[node name="MossSanctum" type="Node2D"]
+script = ExtResource("1_room")
+room_id = &"moss_sanctum"
+chapter_id = &"moosruinen"
+
+[node name="Floor" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0,0,1400,0,1400,900,0,900)
+color = Color(0.035,0.05,0.038,1)
+[node name="ArenaFloor" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(250,170,1150,170,1260,450,1150,730,250,730,140,450)
+color = Color(0.095,0.105,0.075,1)
+[node name="MossRing" type="Line2D" parent="."]
+points = PackedVector2Array(365,235,700,190,1035,235,1160,450,1035,665,700,710,365,665,240,450,365,235)
+width = 18.0
+default_color = Color(0.18,0.34,0.13,0.9)
+
+[node name="Bounds" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 2
+[node name="Top" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(700,25)
+shape = SubResource("HorizontalWall")
+[node name="Bottom" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(700,875)
+shape = SubResource("HorizontalWall")
+[node name="LeftTop" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(25,170)
+shape = SubResource("DoorBlock")
+[node name="LeftBottom" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(25,730)
+shape = SubResource("DoorBlock")
+[node name="RightTop" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(1375,170)
+shape = SubResource("DoorBlock")
+[node name="RightBottom" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(1375,730)
+shape = SubResource("DoorBlock")
+
+[node name="Dais" type="StaticBody2D" parent="."]
+position = Vector2(700,255)
+collision_layer = 1
+collision_mask = 2
+[node name="Visual" type="Polygon2D" parent="Dais"]
+polygon = PackedVector2Array(-130,-50,130,-50,112,50,-112,50)
+color = Color(0.17,0.18,0.14,1)
+[node name="Moss" type="Polygon2D" parent="Dais"]
+polygon = PackedVector2Array(-125,-50,98,-50,68,-36,-18,-42,-110,-28)
+color = Color(0.22,0.38,0.15,1)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Dais"]
+shape = SubResource("DaisShape")
+
+[node name="RootCrown" type="Line2D" parent="."]
+points = PackedVector2Array(430,95,520,170,610,92,700,165,800,88,900,170,1000,100)
+width = 30.0
+default_color = Color(0.13,0.07,0.03,1)
+
+[node name="SpawnPoints" type="Node2D" parent="."]
+[node name="FromApproach" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(150,455)
+[node name="AfterBoss" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(1050,455)
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(150,455)
+[node name="DialogueBox" parent="." instance=ExtResource("3_dialogue")]
+
+[node name="MoosritterEncounter" parent="." instance=ExtResource("5_battle")]
+position = Vector2(720,455)
+enemy_data_path = "res://scenes/battle/data/MossKnight.tres"
+return_scene_path = "res://scenes/world/chapter1/MossSanctum.tscn"
+return_spawn_id = &"AfterBoss"
+completion_flag = &"moosritter_resolved"
+cleared_dialogue = "Der Platz, an dem der Moosritter stand, ist leer.|Im Moos liegt nur eine einzelne helle Feder aus Flechte."
+
+[node name="GateToAftermath" parent="." instance=ExtResource("6_gate")]
+position = Vector2(1280,455)
+required_flag = &"moosritter_resolved"
+target_scene_path = "res://scenes/world/chapter1/MossAftermath.tscn"
+target_room_id = &"moss_aftermath"
+target_spawn_id = &"FromSanctum"
+locked_dialogue = "Eine dichte Wurzelwand hält den Ausgang geschlossen.|Der Moosritter bewegt sich noch nicht von seinem Platz."
+
+[node name="ExitBack" parent="." instance=ExtResource("4_exit")]
+position = Vector2(50,455)
+target_scene_path = "res://scenes/world/chapter1/KnightApproach.tscn"
+target_room_id = &"knight_approach"
+target_spawn_id = &"FromSanctum"
+
+[node name="RoomName" type="Label" parent="."]
+position = Vector2(50,52)
+theme_override_colors/font_color = Color(0.58,0.68,0.5,0.85)
+theme_override_font_sizes/font_size = 18
+text = "MOOSSANKTUARIUM"
