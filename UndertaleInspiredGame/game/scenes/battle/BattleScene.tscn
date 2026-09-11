@@ -1,0 +1,436 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle_scene.gd" id="1_battle"]
+[ext_resource type="PackedScene" path="res://scenes/battle/components/BattleSoul.tscn" id="2_soul"]
+[ext_resource type="PackedScene" path="res://scenes/battle/components/BattleProjectile.tscn" id="3_projectile"]
+
+[sub_resource type="StyleBoxFlat" id="DialogueStyle"]
+bg_color = Color(0.012,0.014,0.014,0.98)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.78,0.82,0.72,1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="ButtonNormal"]
+bg_color = Color(0.035,0.04,0.035,1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4,0.46,0.38,1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="ButtonFocus"]
+bg_color = Color(0.13,0.105,0.035,1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.94,0.68,0.18,1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="ArenaStyle"]
+bg_color = Color(0.008,0.01,0.009,1)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
+border_color = Color(0.88,0.9,0.84,1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="HPBackground"]
+bg_color = Color(0.16,0.045,0.04,1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="HPFill"]
+bg_color = Color(0.34,0.66,0.28,1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="OverlayStyle"]
+bg_color = Color(0.02,0.025,0.022,0.98)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.68,0.72,0.64,1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="MeterStyle"]
+bg_color = Color(0.06,0.07,0.06,1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.78,0.8,0.72,1)
+
+[node name="BattleScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_battle")
+projectile_scene = ExtResource("3_projectile")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.012,0.016,0.014,1)
+mouse_filter = 2
+
+[node name="RootSilhouette" type="Line2D" parent="."]
+points = PackedVector2Array(0,115,120,80,220,126,340,72,470,116,595,66,720,118,845,76,960,122)
+width = 26.0
+default_color = Color(0.055,0.04,0.025,1)
+z_index = 0
+
+[node name="EnemyAnchor" type="Node2D" parent="."]
+position = Vector2(480,112)
+z_index = 2
+
+[node name="EnemyHUD" type="Control" parent="."]
+layout_mode = 0
+offset_left = 270.0
+offset_top = 20.0
+offset_right = 690.0
+offset_bottom = 72.0
+
+[node name="EnemyName" type="Label" parent="EnemyHUD"]
+layout_mode = 0
+offset_right = 420.0
+offset_bottom = 26.0
+theme_override_colors/font_color = Color(0.83,0.88,0.78,1)
+theme_override_font_sizes/font_size = 20
+text = "GEGNER"
+horizontal_alignment = 1
+
+[node name="EnemyHP" type="ProgressBar" parent="EnemyHUD"]
+layout_mode = 0
+offset_left = 45.0
+offset_top = 31.0
+offset_right = 375.0
+offset_bottom = 45.0
+theme_override_styles/background = SubResource("HPBackground")
+theme_override_styles/fill = SubResource("HPFill")
+show_percentage = false
+value = 100.0
+
+[node name="DialoguePanel" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 165.0
+offset_top = 154.0
+offset_right = 795.0
+offset_bottom = 216.0
+theme_override_styles/panel = SubResource("DialogueStyle")
+
+[node name="Margin" type="MarginContainer" parent="DialoguePanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 9
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 9
+
+[node name="Text" type="Label" parent="DialoguePanel/Margin"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.92,0.93,0.88,1)
+theme_override_font_sizes/font_size = 17
+text = "..."
+autowrap_mode = 2
+vertical_alignment = 1
+
+[node name="ArenaFrame" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 270.0
+offset_top = 220.0
+offset_right = 690.0
+offset_bottom = 420.0
+theme_override_styles/panel = SubResource("ArenaStyle")
+mouse_filter = 2
+visible = false
+
+[node name="ArenaRuneA" type="Line2D" parent="."]
+points = PackedVector2Array(298,246,320,260,298,276)
+width = 2.0
+default_color = Color(0.25,0.4,0.2,0.45)
+visible = false
+
+[node name="ProjectileLayer" type="Node2D" parent="."]
+z_index = 8
+
+[node name="Soul" parent="." instance=ExtResource("2_soul")]
+z_index = 10
+
+[node name="FightMeter" type="Control" parent="."]
+layout_mode = 0
+offset_left = 244.0
+offset_top = 285.0
+offset_right = 716.0
+offset_bottom = 355.0
+visible = false
+z_index = 12
+
+[node name="Track" type="Panel" parent="FightMeter"]
+layout_mode = 0
+offset_right = 472.0
+offset_bottom = 70.0
+theme_override_styles/panel = SubResource("MeterStyle")
+
+[node name="CenterMark" type="ColorRect" parent="FightMeter/Track"]
+layout_mode = 0
+offset_left = 231.0
+offset_top = 4.0
+offset_right = 241.0
+offset_bottom = 66.0
+color = Color(0.92,0.7,0.18,0.8)
+mouse_filter = 2
+
+[node name="Marker" type="ColorRect" parent="FightMeter/Track"]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 2.0
+offset_right = 14.0
+offset_bottom = 68.0
+color = Color(0.92,0.92,0.88,1)
+mouse_filter = 2
+
+[node name="ActPanel" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 315.0
+offset_top = 244.0
+offset_right = 645.0
+offset_bottom = 392.0
+theme_override_styles/panel = SubResource("DialogueStyle")
+visible = false
+z_index = 15
+
+[node name="Margin" type="MarginContainer" parent="ActPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="ActPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ActButton1" type="Button" parent="ActPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0,46)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9,0.91,0.86,1)
+theme_override_colors/font_focus_color = Color(1,0.75,0.2,1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("ButtonNormal")
+theme_override_styles/focus = SubResource("ButtonFocus")
+theme_override_styles/hover = SubResource("ButtonFocus")
+text = "ACT 1"
+
+[node name="ActButton2" type="Button" parent="ActPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0,46)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9,0.91,0.86,1)
+theme_override_colors/font_focus_color = Color(1,0.75,0.2,1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("ButtonNormal")
+theme_override_styles/focus = SubResource("ButtonFocus")
+theme_override_styles/hover = SubResource("ButtonFocus")
+text = "ACT 2"
+
+[node name="PlayerHUD" type="Control" parent="."]
+layout_mode = 0
+offset_left = 120.0
+offset_top = 427.0
+offset_right = 840.0
+offset_bottom = 463.0
+
+[node name="NameLabel" type="Label" parent="PlayerHUD"]
+layout_mode = 0
+offset_right = 170.0
+offset_bottom = 32.0
+theme_override_colors/font_color = Color(0.86,0.88,0.82,1)
+theme_override_font_sizes/font_size = 18
+text = "WANDERER  LV 1"
+
+[node name="HPLabel" type="Label" parent="PlayerHUD"]
+layout_mode = 0
+offset_left = 520.0
+offset_right = 720.0
+offset_bottom = 32.0
+theme_override_colors/font_color = Color(0.9,0.76,0.28,1)
+theme_override_font_sizes/font_size = 18
+text = "HP 20 / 20"
+horizontal_alignment = 2
+
+[node name="CommandBar" type="HBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 105.0
+offset_top = 468.0
+offset_right = 855.0
+offset_bottom = 525.0
+theme_override_constants/separation = 12
+
+[node name="FightButton" type="Button" parent="CommandBar"]
+custom_minimum_size = Vector2(178,52)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88,0.9,0.84,1)
+theme_override_colors/font_focus_color = Color(1,0.72,0.18,1)
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = SubResource("ButtonNormal")
+theme_override_styles/focus = SubResource("ButtonFocus")
+theme_override_styles/hover = SubResource("ButtonFocus")
+text = "KÄMPFEN"
+
+[node name="ActButton" type="Button" parent="CommandBar"]
+custom_minimum_size = Vector2(178,52)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88,0.9,0.84,1)
+theme_override_colors/font_focus_color = Color(1,0.72,0.18,1)
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = SubResource("ButtonNormal")
+theme_override_styles/focus = SubResource("ButtonFocus")
+theme_override_styles/hover = SubResource("ButtonFocus")
+text = "HANDELN"
+
+[node name="ItemButton" type="Button" parent="CommandBar"]
+custom_minimum_size = Vector2(178,52)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88,0.9,0.84,1)
+theme_override_colors/font_focus_color = Color(1,0.72,0.18,1)
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = SubResource("ButtonNormal")
+theme_override_styles/focus = SubResource("ButtonFocus")
+theme_override_styles/hover = SubResource("ButtonFocus")
+text = "ITEM"
+
+[node name="MercyButton" type="Button" parent="CommandBar"]
+custom_minimum_size = Vector2(178,52)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88,0.9,0.84,1)
+theme_override_colors/font_focus_color = Color(1,0.72,0.18,1)
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = SubResource("ButtonNormal")
+theme_override_styles/focus = SubResource("ButtonFocus")
+theme_override_styles/hover = SubResource("ButtonFocus")
+text = "VERSCHONEN"
+
+[node name="ResultPanel" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 250.0
+offset_top = 245.0
+offset_right = 710.0
+offset_bottom = 405.0
+theme_override_styles/panel = SubResource("OverlayStyle")
+visible = false
+z_index = 30
+
+[node name="Margin" type="MarginContainer" parent="ResultPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="ResultPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="ResultText" type="Label" parent="ResultPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0,72)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.91,0.92,0.87,1)
+theme_override_font_sizes/font_size = 18
+text = "Der Kampf ist vorbei."
+autowrap_mode = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ContinueButton" type="Button" parent="ResultPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0,44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = SubResource("ButtonNormal")
+theme_override_styles/focus = SubResource("ButtonFocus")
+theme_override_styles/hover = SubResource("ButtonFocus")
+text = "WEITER"
+
+[node name="DefeatPanel" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 300.0
+offset_top = 235.0
+offset_right = 660.0
+offset_bottom = 410.0
+theme_override_styles/panel = SubResource("OverlayStyle")
+visible = false
+z_index = 30
+
+[node name="Margin" type="MarginContainer" parent="DefeatPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 18
+
+[node name="VBox" type="VBoxContainer" parent="DefeatPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="DefeatPanel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9,0.14,0.16,1)
+theme_override_font_sizes/font_size = 25
+text = "DEIN HERZ WIRD STILL"
+horizontal_alignment = 1
+
+[node name="RetryButton" type="Button" parent="DefeatPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0,44)
+layout_mode = 2
+theme_override_styles/normal = SubResource("ButtonNormal")
+theme_override_styles/focus = SubResource("ButtonFocus")
+theme_override_styles/hover = SubResource("ButtonFocus")
+text = "NOCHMAL"
+
+[node name="MenuButton" type="Button" parent="DefeatPanel/Margin/VBox"]
+custom_minimum_size = Vector2(0,44)
+layout_mode = 2
+theme_override_styles/normal = SubResource("ButtonNormal")
+theme_override_styles/focus = SubResource("ButtonFocus")
+theme_override_styles/hover = SubResource("ButtonFocus")
+text = "HAUPTMENÜ"
+
+[connection signal="pressed" from="CommandBar/FightButton" to="." method="_on_fight_pressed"]
+[connection signal="pressed" from="CommandBar/ActButton" to="." method="_on_act_pressed"]
+[connection signal="pressed" from="CommandBar/ItemButton" to="." method="_on_item_pressed"]
+[connection signal="pressed" from="CommandBar/MercyButton" to="." method="_on_mercy_pressed"]
+[connection signal="pressed" from="ActPanel/Margin/VBox/ActButton1" to="." method="_on_act_1_pressed"]
+[connection signal="pressed" from="ActPanel/Margin/VBox/ActButton2" to="." method="_on_act_2_pressed"]
+[connection signal="pressed" from="ResultPanel/Margin/VBox/ContinueButton" to="." method="_on_result_continue_pressed"]
+[connection signal="pressed" from="DefeatPanel/Margin/VBox/RetryButton" to="." method="_on_retry_pressed"]
+[connection signal="pressed" from="DefeatPanel/Margin/VBox/MenuButton" to="." method="_on_menu_pressed"]
