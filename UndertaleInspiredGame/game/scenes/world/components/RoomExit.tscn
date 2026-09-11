@@ -1,0 +1,20 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/room_exit.gd" id="1_exit"]
+
+[sub_resource type="RectangleShape2D" id="ExitShape"]
+size = Vector2(70,180)
+
+[node name="RoomExit" type="Area2D"]
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("1_exit")
+
+[node name="Glow" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(-34,-90,34,-90,34,90,-34,90)
+color = Color(0.37,0.52,0.32,0.09)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("ExitShape")
+
+[connection signal="body_entered" from="." to="." method="_on_body_entered"]
