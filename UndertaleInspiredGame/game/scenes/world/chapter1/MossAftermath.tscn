@@ -1,0 +1,77 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/world_room.gd" id="1_room"]
+[ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://scenes/ui/DialogueBox.tscn" id="3_dialogue"]
+[ext_resource type="PackedScene" path="res://scenes/world/components/RoomExit.tscn" id="4_exit"]
+[ext_resource type="PackedScene" path="res://scenes/world/components/Interactable.tscn" id="5_interact"]
+
+[sub_resource type="RectangleShape2D" id="HorizontalWall"]
+size = Vector2(1400,50)
+[sub_resource type="RectangleShape2D" id="DoorBlock"]
+size = Vector2(50,300)
+
+[node name="MossAftermath" type="Node2D"]
+script = ExtResource("1_room")
+room_id = &"moss_aftermath"
+chapter_id = &"moosruinen"
+enter_story_flag = &"chapter1_complete"
+
+[node name="Floor" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0,0,1400,0,1400,900,0,900)
+color = Color(0.055,0.075,0.058,1)
+[node name="OpenPath" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(60,330,1340,300,1340,610,60,600)
+color = Color(0.12,0.115,0.085,1)
+[node name="DistantGlow" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(1080,120,1340,190,1340,710,1080,780,1170,600,1140,450,1170,290)
+color = Color(0.19,0.3,0.28,0.45)
+[node name="GlassHint" type="Line2D" parent="."]
+points = PackedVector2Array(1180,190,1240,260,1200,350,1280,430,1215,520,1300,620)
+width = 6.0
+default_color = Color(0.42,0.72,0.7,0.55)
+
+[node name="Bounds" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 2
+[node name="Top" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(700,25)
+shape = SubResource("HorizontalWall")
+[node name="Bottom" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(700,875)
+shape = SubResource("HorizontalWall")
+[node name="LeftTop" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(25,170)
+shape = SubResource("DoorBlock")
+[node name="LeftBottom" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(25,730)
+shape = SubResource("DoorBlock")
+
+[node name="SpawnPoints" type="Node2D" parent="."]
+[node name="FromSanctum" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(150,455)
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(150,455)
+[node name="DialogueBox" parent="." instance=ExtResource("3_dialogue")]
+
+[node name="ChapterEcho" parent="." instance=ExtResource("5_interact")]
+position = Vector2(650,455)
+dialogue_text = "Der Wind erreicht diesen Ort zum ersten Mal seit langer Zeit.|Zwischen den Wurzeln glitzert etwas Helles.|Der Weg zum Glasgarten hat sich geöffnet."
+story_flag = &"saw_glassgarden_glow"
+
+[node name="NextChapterHint" parent="." instance=ExtResource("5_interact")]
+position = Vector2(1180,455)
+dialogue_text = "Jenseits des Tunnels schimmert ein Garten aus Glas.|Noch ist der Weg ruhig.|[Nächste Etappe: GLASGARTEN]"
+
+[node name="ExitBack" parent="." instance=ExtResource("4_exit")]
+position = Vector2(50,455)
+target_scene_path = "res://scenes/world/chapter1/MossSanctum.tscn"
+target_room_id = &"moss_sanctum"
+target_spawn_id = &"AfterBoss"
+
+[node name="RoomName" type="Label" parent="."]
+position = Vector2(50,52)
+theme_override_colors/font_color = Color(0.58,0.72,0.58,0.85)
+theme_override_font_sizes/font_size = 18
+text = "WURZELAUSGANG"
