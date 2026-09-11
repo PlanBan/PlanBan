@@ -1,0 +1,121 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/world_room.gd" id="1_room"]
+[ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://scenes/ui/DialogueBox.tscn" id="3_dialogue"]
+[ext_resource type="PackedScene" path="res://scenes/world/components/RoomExit.tscn" id="4_exit"]
+[ext_resource type="PackedScene" path="res://scenes/world/components/Interactable.tscn" id="5_interact"]
+[ext_resource type="PackedScene" path="res://scenes/world/components/NpcTalker.tscn" id="6_npc"]
+[ext_resource type="PackedScene" path="res://scenes/world/components/ItemPickup.tscn" id="7_item"]
+
+[sub_resource type="RectangleShape2D" id="HorizontalWall"]
+size = Vector2(1400,50)
+[sub_resource type="RectangleShape2D" id="DoorBlock"]
+size = Vector2(50,300)
+[sub_resource type="RectangleShape2D" id="RootStone"]
+size = Vector2(180,120)
+
+[node name="WhisperGrove" type="Node2D"]
+script = ExtResource("1_room")
+room_id = &"whisper_grove"
+chapter_id = &"moosruinen"
+
+[node name="Floor" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0,0,1400,0,1400,900,0,900)
+color = Color(0.045,0.075,0.05,1)
+
+[node name="MossLight" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(120,130,420,90,690,145,920,100,1260,165,1190,340,880,300,610,350,310,300,100,360)
+color = Color(0.075,0.13,0.07,1)
+
+[node name="Path" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(60,365,1340,330,1340,570,70,595)
+color = Color(0.11,0.105,0.075,1)
+
+[node name="AncientRoot" type="Line2D" parent="."]
+points = PackedVector2Array(180,120,260,220,390,170,520,240,680,160,850,230,1030,150,1190,230)
+width = 36.0
+default_color = Color(0.14,0.075,0.035,1)
+
+[node name="Bounds" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 2
+[node name="Top" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(700,25)
+shape = SubResource("HorizontalWall")
+[node name="Bottom" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(700,875)
+shape = SubResource("HorizontalWall")
+[node name="LeftTop" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(25,170)
+shape = SubResource("DoorBlock")
+[node name="LeftBottom" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(25,730)
+shape = SubResource("DoorBlock")
+[node name="RightTop" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(1375,170)
+shape = SubResource("DoorBlock")
+[node name="RightBottom" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(1375,730)
+shape = SubResource("DoorBlock")
+
+[node name="RootStone" type="StaticBody2D" parent="."]
+position = Vector2(710,670)
+collision_layer = 1
+collision_mask = 2
+[node name="Visual" type="Polygon2D" parent="RootStone"]
+polygon = PackedVector2Array(-90,-60,80,-58,95,35,60,60,-76,55,-98,24)
+color = Color(0.15,0.18,0.14,1)
+[node name="Moss" type="Polygon2D" parent="RootStone"]
+polygon = PackedVector2Array(-85,-60,70,-58,48,-42,-30,-45,-72,-34)
+color = Color(0.22,0.38,0.16,1)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="RootStone"]
+shape = SubResource("RootStone")
+
+[node name="SpawnPoints" type="Node2D" parent="."]
+[node name="FromRootHall" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(145,455)
+[node name="FromApproach" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(1245,455)
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(145,455)
+[node name="DialogueBox" parent="." instance=ExtResource("3_dialogue")]
+
+[node name="MossChild" parent="." instance=ExtResource("6_npc")]
+position = Vector2(500,455)
+neutral_dialogue = "Ein kleines Mooswesen zieht die Mütze tiefer.|\"Der Ritter tut gefährlich. Eigentlich sammelt er alte Geschichten.\"|\"Wenn er dich anschreit, frag ihn, woran er sich erinnert.\""
+mercy_dialogue = "Das Mooswesen lächelt.|\"Der Novize hat dich vorbeigelassen? Dann kannst du ja doch zuhören.\"|\"Der Moosritter merkt so etwas.\""
+fight_dialogue = "Das Mooswesen weicht einen Schritt zurück.|\"Der Novize ist still geworden... zu still.\"|\"Beim Ritter hilft Stärke vielleicht. Aber sie kostet immer etwas.\""
+first_talk_flag = &"met_moss_child"
+
+[node name="MossTea" parent="." instance=ExtResource("7_item")]
+position = Vector2(820,305)
+item_id = &"MOOSTEE"
+display_name = "Moostee"
+collected_flag = &"picked_mosstea_grove"
+collect_dialogue = "Unter einem Blatt steht eine warme Tasse Moostee.|Du steckst sie vorsichtig ein.|Im Kampf heilt MOOSTEE 6 HP."
+empty_dialogue = "Das Blatt ist leer. Es riecht noch nach Kräutern."
+
+[node name="ListeningStone" parent="." instance=ExtResource("5_interact")]
+position = Vector2(1020,500)
+dialogue_text = "Eine flache Steinplatte vibriert leise.|Jemand hat eingeritzt: \"Erinnerung ist kein Befehl. Erinnerung ist eine Frage.\""
+story_flag = &"read_memory_stone"
+
+[node name="ExitBack" parent="." instance=ExtResource("4_exit")]
+position = Vector2(50,455)
+target_scene_path = "res://scenes/world/RootHall.tscn"
+target_room_id = &"root_hall"
+target_spawn_id = &"FromWhisperGrove"
+
+[node name="ExitForward" parent="." instance=ExtResource("4_exit")]
+position = Vector2(1350,455)
+target_scene_path = "res://scenes/world/chapter1/KnightApproach.tscn"
+target_room_id = &"knight_approach"
+target_spawn_id = &"FromGrove"
+
+[node name="RoomName" type="Label" parent="."]
+position = Vector2(50,52)
+theme_override_colors/font_color = Color(0.58,0.72,0.5,0.85)
+theme_override_font_sizes/font_size = 18
+text = "FLÜSTERHAIN"
