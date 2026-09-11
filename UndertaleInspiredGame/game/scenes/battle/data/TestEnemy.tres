@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="BattleEnemyData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/battle_enemy_data.gd" id="1_data"]
+[ext_resource type="PackedScene" path="res://scenes/battle/enemies/TestEnemyVisual.tscn" id="2_visual"]
+
+[resource]
+script = ExtResource("1_data")
+enemy_id = &"root_novice"
+display_name = "WURZEL-NOVIZE"
+visual_scene = ExtResource("2_visual")
+max_hp = 36
+defense = 0
+attack_damage = 3
+fight_damage_min = 4
+fight_damage_max = 13
+intro_text = "Ein stiller Wächter löst sich aus der Wand aus Wurzeln.\n\"Halt. Bevor du weitergehst, muss ich wissen, wie dein Herz entscheidet.\""
+turn_text = "Der Novize zeichnet mit seiner Klinge ein grünes Zeichen in die Luft."
+fight_hit_text = "Der Schlag trifft die alte Rüstung."
+mercy_ready_text = "Der Novize senkt die Schultern. Seine Klinge zittert nicht mehr."
+mercy_text = "Der Novize steckt die Wurzelklinge weg.\n\"Gut. Stärke ohne Zuhören ist nur Lärm. Du darfst passieren.\""
+defeat_text = "Der Novize fällt auf ein Knie.\n\"Dann... ist das also deine Antwort.\""
+mercy_required = 2
+act_names = PackedStringArray("ZUHÖREN", "VERBEUGEN")
+act_mercy_values = PackedInt32Array(1, 1)
+act_responses = PackedStringArray("Du hörst ihm zu, ohne die Hand zur Waffe zu bewegen. Sein Atem wird ruhiger.", "Du verbeugst dich. Nach einem langen Moment erwidert der Novize die Geste.")
+enemy_turn_duration = 5.4
+bullet_interval = 0.46
+bullet_speed = 165.0
+attack_patterns = PackedStringArray("rain", "sides", "aimed")
