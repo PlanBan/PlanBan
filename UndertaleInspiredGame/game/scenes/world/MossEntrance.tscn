@@ -1,0 +1,135 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/world_room.gd" id="1_room"]
+[ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://scenes/ui/DialogueBox.tscn" id="3_dialogue"]
+[ext_resource type="PackedScene" path="res://scenes/world/components/Interactable.tscn" id="4_interact"]
+[ext_resource type="PackedScene" path="res://scenes/world/components/RoomExit.tscn" id="5_exit"]
+
+[sub_resource type="RectangleShape2D" id="HorizontalWall"]
+size = Vector2(1400,50)
+[sub_resource type="RectangleShape2D" id="VerticalWall"]
+size = Vector2(50,900)
+[sub_resource type="RectangleShape2D" id="StoneBlockA"]
+size = Vector2(180,120)
+[sub_resource type="RectangleShape2D" id="StoneBlockB"]
+size = Vector2(220,100)
+[sub_resource type="RectangleShape2D" id="RootBlock"]
+size = Vector2(120,260)
+[sub_resource type="RectangleShape2D" id="DoorGapBlock"]
+size = Vector2(70,250)
+
+[node name="MossEntrance" type="Node2D"]
+script = ExtResource("1_room")
+room_id = &"moss_entrance"
+
+[node name="Floor" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0,0,1400,0,1400,900,0,900)
+color = Color(0.055,0.08,0.062,1)
+
+[node name="MossPatches" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(80,130,320,95,460,145,390,250,170,270,70,220)
+color = Color(0.11,0.18,0.1,1)
+
+[node name="MossPatches2" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(760,610,1030,560,1230,650,1190,790,900,820,720,740)
+color = Color(0.1,0.17,0.09,1)
+
+[node name="CentralPath" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(80,355,1315,330,1320,570,95,590)
+color = Color(0.105,0.1,0.075,1)
+
+[node name="Bounds" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 2
+
+[node name="Top" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(700,25)
+shape = SubResource("HorizontalWall")
+[node name="Bottom" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(700,875)
+shape = SubResource("HorizontalWall")
+[node name="Left" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(25,450)
+shape = SubResource("VerticalWall")
+[node name="RightTop" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(1375,190)
+shape = SubResource("DoorGapBlock")
+[node name="RightBottom" type="CollisionShape2D" parent="Bounds"]
+position = Vector2(1375,710)
+shape = SubResource("DoorGapBlock")
+
+[node name="StoneA" type="StaticBody2D" parent="."]
+position = Vector2(480,250)
+collision_layer = 1
+collision_mask = 2
+[node name="Visual" type="Polygon2D" parent="StoneA"]
+polygon = PackedVector2Array(-90,-60,82,-58,92,42,70,60,-80,56,-96,28)
+color = Color(0.15,0.18,0.15,1)
+[node name="Moss" type="Polygon2D" parent="StoneA"]
+polygon = PackedVector2Array(-88,-59,80,-57,62,-39,-35,-42,-70,-30)
+color = Color(0.22,0.34,0.16,1)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StoneA"]
+shape = SubResource("StoneBlockA")
+
+[node name="StoneB" type="StaticBody2D" parent="."]
+position = Vector2(900,650)
+collision_layer = 1
+collision_mask = 2
+[node name="Visual" type="Polygon2D" parent="StoneB"]
+polygon = PackedVector2Array(-110,-48,100,-50,114,30,80,50,-100,48,-116,16)
+color = Color(0.14,0.17,0.145,1)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="StoneB"]
+shape = SubResource("StoneBlockB")
+
+[node name="OldRoot" type="StaticBody2D" parent="."]
+position = Vector2(720,300)
+rotation = 0.24
+collision_layer = 1
+collision_mask = 2
+[node name="Visual" type="Line2D" parent="OldRoot"]
+points = PackedVector2Array(0,-130,-18,-60,15,0,-10,70,8,130)
+width = 58.0
+default_color = Color(0.15,0.09,0.05,1)
+[node name="CollisionShape2D" type="CollisionShape2D" parent="OldRoot"]
+shape = SubResource("RootBlock")
+
+[node name="DoorArch" type="Node2D" parent="."]
+position = Vector2(1340,450)
+[node name="LeftPillar" type="Polygon2D" parent="DoorArch"]
+polygon = PackedVector2Array(-70,-120,-36,-120,-36,120,-70,120)
+color = Color(0.16,0.19,0.15,1)
+[node name="RightPillar" type="Polygon2D" parent="DoorArch"]
+polygon = PackedVector2Array(36,-120,70,-120,70,120,36,120)
+color = Color(0.16,0.19,0.15,1)
+[node name="Lintel" type="Polygon2D" parent="DoorArch"]
+polygon = PackedVector2Array(-70,-120,70,-120,55,-155,-55,-155)
+color = Color(0.14,0.17,0.14,1)
+
+[node name="SpawnPoints" type="Node2D" parent="."]
+[node name="Start" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(165,455)
+[node name="FromRootHall" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(1240,455)
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(165,455)
+
+[node name="DialogueBox" parent="." instance=ExtResource("3_dialogue")]
+
+[node name="WhisperStone" parent="." instance=ExtResource("4_interact")]
+position = Vector2(355,455)
+dialogue_text = "Die Rune ist warm.|\"Du bist spät, Wanderer.\"|\"Unter den Wurzeln wartet nicht nur ein Feind. Dort wartet eine Entscheidung.\""
+story_flag = &"read_first_rune"
+
+[node name="ExitToRootHall" parent="." instance=ExtResource("5_exit")]
+position = Vector2(1350,450)
+target_scene_path = "res://scenes/world/RootHall.tscn"
+target_room_id = &"root_hall"
+target_spawn_id = &"FromMossEntrance"
+
+[node name="RoomName" type="Label" parent="."]
+position = Vector2(52,55)
+theme_override_colors/font_color = Color(0.54,0.65,0.52,0.8)
+theme_override_font_sizes/font_size = 18
+text = "MOOSPFORTE"
