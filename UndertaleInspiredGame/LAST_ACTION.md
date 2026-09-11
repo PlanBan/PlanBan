@@ -2,15 +2,18 @@
 
 Date: 2026-09-11
 
-Последнее завершённое действие: создана отдельная папка `UndertaleInspiredGame/` в GitHub и записаны постоянные правила сохранения/восстановления проекта. Также создан полный ROADMAP от каркаса проекта до финальной сцены.
+Последнее завершённое действие: Stage 1 полностью создан и сохранён в `UndertaleInspiredGame/game/`. Реальный Godot-проект теперь существует: `project.godot`, MainMenu, GameState/autoload, базовые input actions и безопасная PrototypeRoom. Статическая проверка прошла, manifest Stage 1 записан.
 
 ## Что делать следующим
-НЕ начинать с боссов и НЕ возвращаться к старой папке `AbandonedJungleGame/` как к активной версии.
+Следующий этап — Stage 2, top-down исследование. Не переходить к BattleScene раньше его завершения.
 
-Следующий шаг — Stage 1: создать реальный Godot-проект в `UndertaleInspiredGame/game/` с MainMenu, project.godot, базовым GameState и input actions. После завершения Stage 1 обязательно:
-1. сохранить реальные файлы в GitHub;
-2. обновить CURRENT_STATUS.md;
-3. отметить Stage 1 в ROADMAP.md;
-4. заменить содержимое этого LAST_ACTION.md новым последним действием;
-5. создать запись в checkpoints/;
-и только затем переходить к top-down игроку.
+Нужно создать:
+1. `scenes/player/Player.tscn` с CharacterBody2D, CollisionShape2D, Camera2D и редактируемой визуальной частью;
+2. скрипт top-down движения без процедурного рисования уровня;
+3. систему взаимодействия через Area2D/InteractionDetector;
+4. минимум две реальные комнаты со StaticBody2D-коллизиями и обычными редактируемыми Godot-узлами;
+5. немецкие взаимодействия/реплики для проверки dialogue flow;
+6. переход между комнатами и корректную точку появления;
+7. заменить MainMenu Play destination с PrototypeRoom на первую комнату.
+
+После завершения Stage 2 обязательно сохранить реальные файлы, обновить CURRENT_STATUS/ROADMAP/LAST_ACTION и создать Stage 2 checkpoint/manifest. Только после этого начинать универсальный BattleScene.
