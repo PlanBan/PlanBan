@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/world_room.gd" id="1_room"]
 [ext_resource type="PackedScene" path="res://scenes/player/Player.tscn" id="2_player"]
@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://scenes/world/components/Interactable.tscn" id="4_interact"]
 [ext_resource type="PackedScene" path="res://scenes/world/components/RoomExit.tscn" id="5_exit"]
 [ext_resource type="PackedScene" path="res://scenes/world/components/BattleTrigger.tscn" id="6_battle"]
+[ext_resource type="PackedScene" path="res://scenes/world/components/StoryGate.tscn" id="7_gate"]
 
 [sub_resource type="RectangleShape2D" id="HorizontalWall"]
 size = Vector2(1400,50)
@@ -105,6 +106,8 @@ default_color = Color(0.12,0.07,0.04,1)
 position = Vector2(145,450)
 [node name="AfterTestBattle" type="Marker2D" parent="SpawnPoints"]
 position = Vector2(1050,450)
+[node name="FromWhisperGrove" type="Marker2D" parent="SpawnPoints"]
+position = Vector2(1230,455)
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector2(145,450)
@@ -123,6 +126,14 @@ return_scene_path = "res://scenes/world/RootHall.tscn"
 return_spawn_id = &"AfterTestBattle"
 completion_flag = &"root_novice_cleared"
 cleared_dialogue = "Der Wurzel-Novize ist fort.|Nur ein ruhiges grünes Zeichen bleibt auf dem Stein zurück."
+
+[node name="GateToWhisperGrove" parent="." instance=ExtResource("7_gate")]
+position = Vector2(1280,455)
+required_flag = &"root_novice_cleared"
+target_scene_path = "res://scenes/world/chapter1/WhisperGrove.tscn"
+target_room_id = &"whisper_grove"
+target_spawn_id = &"FromRootHall"
+locked_dialogue = "Die Wurzelpforte reagiert nicht.|Der Novize wartet noch auf deine Antwort."
 
 [node name="ExitToMossEntrance" parent="." instance=ExtResource("5_exit")]
 position = Vector2(50,450)
