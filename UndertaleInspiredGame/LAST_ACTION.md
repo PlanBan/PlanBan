@@ -2,20 +2,20 @@
 
 Date: 2026-09-11
 
-Последнее завершённое действие: Stage 2 полностью создан, проверен и сохранён в `UndertaleInspiredGame/game/`. Есть настоящий top-down Player, камера, столкновения, взаимодействия, DialogueBox, две связанные комнаты `MossEntrance` и `RootHall`, немецкие реплики и возврат через корректные spawn points. Stage 2 manifest записан, ROADMAP и CURRENT_STATUS обновлены.
+Последнее завершённое действие: Stage 3 полностью создан, статически проверен и сохранён в `UndertaleInspiredGame/game/`. Универсальная BattleScene теперь поддерживает KÄMPFEN / HANDELN / ITEM / VERSCHONEN, немецкие реплики, red-heart dodge-box, HP, тайминг удара, ACT/MERCY условия, reusable projectile patterns и возврат в мир. В `RootHall` сохранён тестовый encounter `WURZEL-NOVIZE`. Stage 3 manifest создан, ROADMAP и CURRENT_STATUS обновлены.
 
 ## Что делать следующим
-Следующий этап — Stage 3: универсальная BattleScene. Не начинать Moosritter как отдельную уникальную сцену до готовности общего боевого каркаса.
+Следующий этап — Stage 4: первая полноценная глава `Moosruinen`. Не переписывать BattleScene под одного босса; использовать уже сохранённый `BattleEnemyData` и компоненты Stage 3.
 
 Нужно создать:
-1. `scenes/battle/BattleScene.tscn` как переиспользуемую сцену;
-2. меню команд `KÄMPFEN / HANDELN / ITEM / VERSCHONEN`;
-3. немецкое окно battle dialogue;
-4. красное сердце внутри dodge-box с ограниченным движением;
-5. player HP и enemy HP;
-6. тайминг-метр атаки KÄMPFEN;
-7. базовый интерфейс/данные врага, чтобы разные боссы меняли тексты, HP, ACT и паттерны без копирования всей BattleScene;
-8. тестовый encounter из RootHall с возвратом обратно после победы/пощады;
-9. минимум один безопасный bullet-pattern для проверки dodge phase.
+1. несколько дополнительных связанных комнат Moosruinen;
+2. минимум одного NPC/событие с немецким текстом;
+3. хотя бы один подбираемый/лечащий предмет;
+4. отдельную комнату подхода к боссу;
+5. `Moosritter` как новый enemy data Resource и отдельную editor-editable visual scene;
+6. оригинальные немецкие реплики Moosritter;
+7. свои ACT/MERCY условия босса;
+8. минимум два различимых attack-pattern поведения на базе общего боевого фреймворка;
+9. пост-боссовую сцену/выход и фиксацию результата через GameState.
 
-После Stage 3 обязательно: статическая проверка, реальные файлы в GitHub, manifest/checkpoint, обновление CURRENT_STATUS/ROADMAP/LAST_ACTION. Только затем переходить к Chapter 1 / Moosritter.
+После Stage 4 обязательно: статическая проверка, реальные файлы в GitHub, manifest/checkpoint, обновление CURRENT_STATUS/ROADMAP/LAST_ACTION. Только затем переходить к Glasgarten / Stage 5.
