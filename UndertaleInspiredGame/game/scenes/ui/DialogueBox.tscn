@@ -1,0 +1,53 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/dialogue_box.gd" id="1_dialogue"]
+
+[sub_resource type="StyleBoxFlat" id="DialogueStyle"]
+bg_color = Color(0.01,0.01,0.015,0.98)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.9,0.9,0.86,1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[node name="DialogueBox" type="CanvasLayer" groups=["dialogue_ui"]]
+layer = 20
+script = ExtResource("1_dialogue")
+
+[node name="Panel" type="PanelContainer" parent="."]
+offset_left = 92.0
+offset_top = 372.0
+offset_right = 868.0
+offset_bottom = 516.0
+theme_override_styles/panel = SubResource("DialogueStyle")
+
+[node name="Margin" type="MarginContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Text" type="Label" parent="Panel/Margin/VBox"]
+custom_minimum_size = Vector2(0,74)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94,0.94,0.9,1)
+theme_override_font_sizes/font_size = 21
+text = "..."
+autowrap_mode = 2
+vertical_alignment = 1
+
+[node name="Continue" type="Label" parent="Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1,0.75,0.25,1)
+theme_override_font_sizes/font_size = 14
+text = "Z / E  ▶"
+horizontal_alignment = 2
