@@ -7,13 +7,13 @@
 - адаптивний sticky-header і мобільне меню;
 - hero, послуги, команда, відгуки, офіси та FAQ;
 - усі CTA ведуть до потрібних секцій або контактних дій;
-- три форми реально відправляють заявки на Supabase Edge Function;
+- три форми на головній і форма на сторінці послуг реально відправляють заявки на Supabase Edge Function;
 - серверна валідація, honeypot і rate limit;
 - заявки зберігаються в Postgres-таблиці `public.website_leads`;
 - RLS не дозволяє анонімним користувачам читати заявки;
 - `admin.html` підтримує вхід через Supabase Auth;
 - в адмінці є список заявок, пошук, фільтр, зміна статусу, оновлення та CSV-експорт;
-- `index.html` і `admin.html` можна відкривати напряму подвійним кліком.
+- `index.html`, `service.html` і `admin.html` можна відкривати напряму подвійним кліком.
 
 ## Backend
 
@@ -45,7 +45,7 @@ Supabase project:
 Потім:
 
     http://localhost:8080
-    http://localhost:8080/admin.html
+    http://localhost:8080/service.html\n    http://localhost:8080/admin.html
 
 Для адмінки потрібен існуючий Supabase Auth користувач, який є активним учасником організації у `public.organization_members`.
 
