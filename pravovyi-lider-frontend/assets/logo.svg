@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 92" role="img" aria-labelledby="title desc">
+  <title id="title">Правовий Лідер</title>
+  <desc id="desc">Демонстраційний логотип юридичної компанії</desc>
+  <g fill="none" fill-rule="evenodd">
+    <g transform="translate(4 10)">
+      <path d="M34 4v57M10 18h48M14 18 4 38h20L14 18Zm40 0L44 38h20L54 18ZM8 42c3 9 21 9 24 0M40 42c3 9 21 9 24 0M22 66h24" stroke="#C7A462" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <text x="88" y="40" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="26" font-weight="700" letter-spacing="1.4">ПРАВОВИЙ</text>
+    <text x="88" y="70" fill="#C7A462" font-family="Arial, sans-serif" font-size="25" font-weight="700" letter-spacing="4.5">ЛІДЕР</text>
+  </g>
+</svg>
