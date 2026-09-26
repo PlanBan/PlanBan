@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Адмін — Правовий Лідер</title>
+  <style>
+    :root{--navy:#111a2e;--navy2:#17233d;--gold:#c7a462;--paper:#fff;--soft:#f4f2ed;--ink:#182033;--muted:#687084;--line:rgba(24,32,51,.13);--danger:#9e3444}
+    *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--soft);color:var(--ink);min-height:100vh}
+    button,input,select{font:inherit}.shell{max-width:1280px;margin:auto;padding:28px}.topbar{display:flex;align-items:center;gap:16px;justify-content:space-between;margin-bottom:24px}
+    .brand{display:flex;align-items:center;gap:12px;font-weight:800}.mark{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--navy);color:var(--gold);font-family:Georgia,serif;font-size:22px}
+    .top-actions{display:flex;gap:10px;flex-wrap:wrap}.btn{border:0;border-radius:12px;min-height:42px;padding:0 16px;font-weight:750;cursor:pointer}.btn:disabled{opacity:.55;cursor:wait}
+    .btn-primary{background:var(--gold);color:var(--navy)}.btn-dark{background:var(--navy);color:#fff}.btn-ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+    .card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 18px 50px rgba(17,26,46,.08)}
+    .login{max-width:460px;margin:12vh auto 0;padding:30px}.login h1{font-family:Georgia,serif;font-size:38px;font-weight:500;margin:0 0 8px}.login p{color:var(--muted);margin:0 0 24px}
+    label{display:block;margin:14px 0 0;font-size:12px;font-weight:750;color:#4c5568}input,select{width:100%;height:46px;border:1px solid #dce1e8;border-radius:10px;padding:0 12px;outline:0;background:#fff}
+    input:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 4px rgba(199,164,98,.13)}.login .btn{width:100%;margin-top:18px}
+    .error{margin-top:14px;padding:12px;border-radius:10px;background:#fff0f2;color:var(--danger);font-size:13px}.hidden{display:none!important}
+    .dashboard h1{font-family:Georgia,serif;font-size:42px;font-weight:500;margin:0}.sub{color:var(--muted);font-size:13px}
+    .toolbar{display:grid;grid-template-columns:1.5fr 220px auto auto;gap:10px;padding:16px;margin-bottom:16px}.toolbar input,.toolbar select{margin:0}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}.stat{padding:18px}.stat strong{display:block;font-family:Georgia,serif;font-size:30px;font-weight:500}.stat span{color:var(--muted);font-size:12px}
+    .table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:980px}.table th,.table td{padding:14px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.table th{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);background:#fbfbfc;position:sticky;top:0}
+    .table td{font-size:13px}.lead-name{font-weight:800}.muted{color:var(--muted)}.message{max-width:360px;white-space:pre-wrap}.status{min-width:130px;height:36px;font-size:12px}.pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#f0ede5;color:#725a2d;font-size:11px;font-weight:800}
+    .empty{padding:56px;text-align:center;color:var(--muted)}.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,100px);opacity:0;transition:.25s;background:var(--navy);color:#fff;padding:12px 18px;border-radius:999px;font-size:13px;z-index:10}.toast.show{transform:translate(-50%,0);opacity:1}
+    @media(max-width:820px){.shell{padding:16px}.topbar{align-items:flex-start}.toolbar{grid-template-columns:1fr 1fr}.stats{grid-template-columns:1fr 1fr}}@media(max-width:520px){.toolbar{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.topbar{flex-direction:column}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section id="loginView" class="login card">
+      <div class="brand"><span class="mark">⚖</span><span>ПРАВОВИЙ ЛІДЕР</span></div>
+      <h1>Вхід адміністратора</h1>
+      <p>Увійдіть обліковим записом Supabase, який входить до команди організації.</p>
+      <form id="loginForm">
+        <label>Email<input id="email" type="email" autocomplete="username" required /></label>
+        <label>Пароль<input id="password" type="password" autocomplete="current-password" required /></label>
+        <button class="btn btn-primary" type="submit">Увійти</button>
+      </form>
+      <div id="loginError" class="error hidden"></div>
+      <p style="margin-top:18px"><a href="index.html">← Повернутися на сайт</a></p>
+    </section>
+
+    <section id="dashboardView" class="dashboard hidden">
+      <div class="topbar">
+        <div>
+          <div class="brand"><span class="mark">⚖</span><span>ПРАВОВИЙ ЛІДЕР · ADMIN</span></div>
+          <h1>Заявки з сайту</h1>
+          <div id="account" class="sub"></div>
+        </div>
+        <div class="top-actions">
+          <a class="btn btn-ghost" href="index.html" style="display:inline-flex;align-items:center;text-decoration:none">Сайт</a>
+          <button id="logoutBtn" class="btn btn-dark" type="button">Вийти</button>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat card"><strong id="statTotal">0</strong><span>Усього</span></div>
+        <div class="stat card"><strong id="statNew">0</strong><span>Нові</span></div>
+        <div class="stat card"><strong id="statContacted">0</strong><span>В роботі</span></div>
+        <div class="stat card"><strong id="statClosed">0</strong><span>Закриті</span></div>
+      </div>
+
+      <div class="toolbar card">
+        <input id="search" type="search" placeholder="Пошук: імʼя, телефон, місто…" />
+        <select id="statusFilter">
+          <option value="">Усі статуси</option>
+          <option value="new">Нові</option>
+          <option value="contacted">В роботі</option>
+          <option value="closed">Закриті</option>
+          <option value="spam">Спам</option>
+        </select>
+        <button id="refreshBtn" class="btn btn-ghost" type="button">Оновити</button>
+        <button id="exportBtn" class="btn btn-primary" type="button">CSV</button>
+      </div>
+
+      <div class="card table-wrap">
+        <table class="table">
+          <thead><tr><th>Дата</th><th>Клієнт</th><th>Контакти</th><th>Місто</th><th>Повідомлення</th><th>Джерело</th><th>Статус</th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div id="empty" class="empty hidden">Заявок не знайдено.</div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL='https://kfvseygjvzljfspgjmiv.supabase.co';
+    const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmdnNleWdqdnpsamZzcGdqbWl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5NzkzMzYsImV4cCI6MjEwNTU1NTMzNn0.JJpCL-o3_ytkJ2F6FMPQwNsZt-IpzhlFEiMncPS3W8I';
+    const client=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+    let leads=[];
+
+    const $=s=>document.querySelector(s);
+    const loginView=$('#loginView'), dashboardView=$('#dashboardView'), loginError=$('#loginError'), tbody=$('#tbody'), empty=$('#empty'), toast=$('#toast');
+
+    function showToast(message){toast.textContent=message;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),2600)}
+    function esc(value=''){return String(value).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]))}
+    function dateFmt(value){try{return new Intl.DateTimeFormat('uk-UA',{dateStyle:'short',timeStyle:'short'}).format(new Date(value))}catch{return value||''}}
+    function statusLabel(v){return ({new:'Нова',contacted:'В роботі',closed:'Закрита',spam:'Спам'})[v]||v}
+
+    function visibleLeads(){
+      const q=$('#search').value.trim().toLowerCase();
+      const status=$('#statusFilter').value;
+      return leads.filter(l=>{
+        const hay=[l.name,l.phone,l.email,l.city,l.message,l.source].filter(Boolean).join(' ').toLowerCase();
+        return (!q||hay.includes(q))&&(!status||l.status===status);
+      });
+    }
+
+    function render(){
+      const rows=visibleLeads();
+      tbody.innerHTML=rows.map(l=>`
+        <tr data-id="${l.id}">
+          <td><span class="muted">${esc(dateFmt(l.created_at))}</span></td>
+          <td><span class="lead-name">${esc(l.name)}</span></td>
+          <td><div>${esc(l.phone)}</div>${l.email?`<div class="muted">${esc(l.email)}</div>`:''}</td>
+          <td>${esc(l.city||'—')}</td>
+          <td class="message">${esc(l.message||'—')}</td>
+          <td><span class="pill">${esc(l.source||'website')}</span></td>
+          <td>
+            <select class="status" data-status-id="${l.id}">
+              ${['new','contacted','closed','spam'].map(s=>`<option value="${s}" ${s===l.status?'selected':''}>${statusLabel(s)}</option>`).join('')}
+            </select>
+          </td>
+        </tr>`).join('');
+      empty.classList.toggle('hidden',rows.length!==0);
+      $('#statTotal').textContent=leads.length;
+      $('#statNew').textContent=leads.filter(l=>l.status==='new').length;
+      $('#statContacted').textContent=leads.filter(l=>l.status==='contacted').length;
+      $('#statClosed').textContent=leads.filter(l=>l.status==='closed').length;
+      document.querySelectorAll('[data-status-id]').forEach(select=>select.addEventListener('change',()=>updateStatus(select.dataset.statusId,select.value,select)));
+    }
+
+    async function loadLeads(){
+      $('#refreshBtn').disabled=true;
+      const {data,error}=await client.from('website_leads').select('id,name,phone,email,city,message,source,status,created_at,updated_at').order('created_at',{ascending:false}).limit(500);
+      $('#refreshBtn').disabled=false;
+      if(error){showToast('Не вдалося завантажити заявки');console.error(error);return}
+      leads=data||[];render();
+    }
+
+    async function updateStatus(id,status,select){
+      select.disabled=true;
+      const {error}=await client.from('website_leads').update({status,updated_at:new Date().toISOString()}).eq('id',id);
+      select.disabled=false;
+      if(error){showToast('Статус не збережено');console.error(error);await loadLeads();return}
+      const lead=leads.find(l=>l.id===id);if(lead)lead.status=status;render();showToast('Статус оновлено');
+    }
+
+    function exportCsv(){
+      const rows=visibleLeads();
+      const header=['created_at','name','phone','email','city','message','source','status'];
+      const quote=v=>'"'+String(v??'').replaceAll('"','""')+'"';
+      const csv='\uFEFF'+[header.join(','),...rows.map(l=>header.map(k=>quote(l[k])).join(','))].join('\n');
+      const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+      const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='website-leads-'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    }
+
+    async function showSession(session){
+      if(session){
+        loginView.classList.add('hidden');dashboardView.classList.remove('hidden');$('#account').textContent=session.user.email||session.user.id;await loadLeads();
+      }else{
+        dashboardView.classList.add('hidden');loginView.classList.remove('hidden');tbody.innerHTML='';leads=[];
+      }
+    }
+
+    $('#loginForm').addEventListener('submit',async e=>{
+      e.preventDefault();loginError.classList.add('hidden');
+      const button=e.currentTarget.querySelector('button');button.disabled=true;button.textContent='Входимо…';
+      const {data,error}=await client.auth.signInWithPassword({email:$('#email').value.trim(),password:$('#password').value});
+      button.disabled=false;button.textContent='Увійти';
+      if(error){loginError.textContent=error.message;loginError.classList.remove('hidden');return}
+      await showSession(data.session);
+    });
+    $('#logoutBtn').addEventListener('click',async()=>{await client.auth.signOut();await showSession(null)});
+    $('#refreshBtn').addEventListener('click',loadLeads);
+    $('#exportBtn').addEventListener('click',exportCsv);
+    $('#search').addEventListener('input',render);
+    $('#statusFilter').addEventListener('change',render);
+
+    client.auth.onAuthStateChange((_event,session)=>{if(_event==='SIGNED_OUT')showSession(null)});
+    client.auth.getSession().then(({data})=>showSession(data.session));
+  </script>
+</body>
+</html>
