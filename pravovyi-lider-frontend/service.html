@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Юридичні послуги — Правовий Лідер" />
+  <title>Послуги — Правовий Лідер</title>
+  <style>
+    :root{--navy:#111a2e;--navy2:#17233d;--ink:#182033;--muted:#687084;--paper:#fff;--soft:#f4f2ed;--gold:#c7a462;--line:rgba(24,32,51,.13);--container:min(1120px,calc(100% - 36px))}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);background:#fff;line-height:1.55}a{color:inherit;text-decoration:none}button,input,textarea{font:inherit}.container{width:var(--container);margin:auto}
+    header{position:sticky;top:0;z-index:10;background:rgba(17,26,46,.96);border-bottom:1px solid rgba(255,255,255,.14);backdrop-filter:blur(12px)}.head{height:76px;display:flex;align-items:center;gap:20px}.brand{font-weight:900;color:#fff;letter-spacing:.06em}.brand span{color:var(--gold)}nav{margin-left:auto;display:flex;gap:22px;color:rgba(255,255,255,.76);font-size:14px}
+    .btn{border:0;border-radius:999px;min-height:50px;padding:0 22px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;cursor:pointer}.btn-primary{background:var(--gold);color:var(--navy)}.btn-outline{border:1px solid rgba(255,255,255,.35);color:#fff;background:transparent}
+    .hero{background:linear-gradient(125deg,#0d1527,#17233d);color:#fff;padding:92px 0 84px}.crumbs{font-size:12px;color:rgba(255,255,255,.48);margin-bottom:24px}.eyebrow{color:#e1c98f;text-transform:uppercase;letter-spacing:.16em;font-size:12px;font-weight:900}.hero h1{max-width:860px;font-family:Georgia,serif;font-size:clamp(50px,7vw,82px);line-height:1;font-weight:500;letter-spacing:-.04em;margin:14px 0 22px}.hero p{max-width:760px;color:rgba(255,255,255,.68);font-size:18px}.hero-actions{display:flex;gap:14px;margin-top:30px;flex-wrap:wrap}
+    .section{padding:86px 0}.soft{background:var(--soft)}.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:72px}.content h2,.chooser h2,.form-card h2{font-family:Georgia,serif;font-size:42px;font-weight:500;line-height:1.08;margin:0 0 18px}.content p{color:var(--muted)}.check{list-style:none;padding:0;margin:28px 0}.check li{padding:14px 0 14px 30px;border-top:1px solid var(--line);position:relative}.check li:last-child{border-bottom:1px solid var(--line)}.check li:before{content:"✓";position:absolute;left:0;color:#8b6a2e;font-weight:900}
+    .form-card{padding:28px;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 20px 60px rgba(17,26,46,.08)}label{display:block;margin:12px 0;font-size:12px;font-weight:800;color:#4e5667}input,textarea{width:100%;border:1px solid #dce1e8;border-radius:11px;padding:12px 13px;outline:0}input{height:48px}textarea{resize:vertical}input:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 0 4px rgba(199,164,98,.12)}.hp{position:absolute;left:-9999px;opacity:0}
+    .service-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:30px}.service{padding:24px;background:#fff;border:1px solid var(--line);min-height:210px;display:flex;flex-direction:column}.service strong{font-family:Georgia,serif;font-size:26px;font-weight:500}.service p{color:var(--muted);font-size:13px}.service span{margin-top:auto;font-weight:800;font-size:13px;color:#795f2e}
+    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.step{padding:26px;border:1px solid var(--line);background:#fff}.step b{display:block;color:#9a7635;font-size:12px;margin-bottom:26px}.step h3{font-family:Georgia,serif;font-size:25px;font-weight:500;margin:0 0 10px}.step p{color:var(--muted);font-size:13px;margin:0}
+    footer{background:var(--navy);color:#fff;padding:38px 0}.foot{display:flex;justify-content:space-between;gap:20px;align-items:center}.foot small{color:rgba(255,255,255,.5)}
+    .toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,100px);opacity:0;background:#10271f;color:#fff;padding:13px 18px;border-radius:999px;transition:.25s;z-index:30;font-size:13px}.toast.show{transform:translate(-50%,0);opacity:1}.toast.error{background:#4b1720}
+    button:disabled{opacity:.6;cursor:wait}
+    @media(max-width:850px){nav{display:none}.grid{grid-template-columns:1fr}.service-grid,.steps{grid-template-columns:1fr 1fr}}@media(max-width:560px){.service-grid,.steps{grid-template-columns:1fr}.hero{padding:66px 0}.section{padding:64px 0}.foot{flex-direction:column;align-items:flex-start}}
+  </style>
+</head>
+<body>
+  <header><div class="container head"><a class="brand" href="index.html">⚖ <span>ПРАВОВИЙ</span> ЛІДЕР</a><nav><a href="index.html#about">Про нас</a><a href="service.html">Послуги</a><a href="index.html#team">Команда</a><a href="index.html#offices">Контакти</a></nav><a class="btn btn-outline" href="#request">Консультація</a></div></header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <div class="crumbs"><a href="index.html">Головна</a> / <span id="crumb">Послуги</span></div>
+        <span class="eyebrow">Юридичні послуги</span>
+        <h1 id="title">Професійна правова допомога</h1>
+        <p id="lead">Оберіть напрям, щоб побачити детальніше, як ми можемо допомогти.</p>
+        <div class="hero-actions"><a class="btn btn-primary" href="#request">Залишити заявку</a><a class="btn btn-outline" href="#all-services">Усі послуги</a></div>
+      </div>
+    </section>
+
+    <section class="section" id="detailSection">
+      <div class="container grid">
+        <article class="content">
+          <span class="eyebrow" style="color:#8b6a2e">Як ми працюємо</span>
+          <h2 id="detailTitle">Юридичний супровід</h2>
+          <p id="description"></p>
+          <ul class="check" id="benefits"></ul>
+        </article>
+        <form class="form-card" id="request">
+          <span class="eyebrow" style="color:#8b6a2e">Консультація</span>
+          <h2>Опишіть питання</h2>
+          <label>Імʼя<input name="name" type="text" required autocomplete="name" /></label>
+          <label>Телефон<input name="phone" type="tel" required autocomplete="tel" placeholder="+38 ___ ___ __ __" /></label>
+          <label>Email<input name="email" type="email" autocomplete="email" placeholder="Необовʼязково" /></label>
+          <label>Повідомлення<textarea name="message" rows="5" placeholder="Коротко опишіть ситуацію"></textarea></label>
+          <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />
+          <button class="btn btn-primary" style="width:100%" type="submit">Надіслати заявку</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="section soft" id="all-services">
+      <div class="container chooser">
+        <span class="eyebrow" style="color:#8b6a2e">Напрями практики</span>
+        <h2>Оберіть послугу</h2>
+        <div class="service-grid" id="serviceGrid"></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container chooser">
+        <span class="eyebrow" style="color:#8b6a2e">Процес</span>
+        <h2>Три кроки до роботи над питанням</h2>
+        <div class="steps">
+          <article class="step"><b>01</b><h3>Заявка</h3><p>Ви залишаєте контакти та коротко описуєте ситуацію.</p></article>
+          <article class="step"><b>02</b><h3>Первинна оцінка</h3><p>Юрист уточнює деталі та визначає можливі наступні дії.</p></article>
+          <article class="step"><b>03</b><h3>Супровід</h3><p>Після погодження умов команда переходить до документів і представництва.</p></article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer><div class="container foot"><strong>⚖ ПРАВОВИЙ ЛІДЕР</strong><small>© <span id="year"></span> · <a href="index.html">Головна</a> · <a href="admin.html">Адмін</a></small></div></footer>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    const BACKEND_URL='https://kfvseygjvzljfspgjmiv.supabase.co/functions/v1/submit-lead';
+    const ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmdnNleWdqdnpsamZzcGdqbWl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5NzkzMzYsImV4cCI6MjEwNTU1NTMzNn0.JJpCL-o3_ytkJ2F6FMPQwNsZt-IpzhlFEiMncPS3W8I';
+    const services={
+      pension:{title:'Пенсійний адвокат',lead:'Допомога з перерахунком пенсій, підтвердженням стажу та оскарженням рішень органів пенсійного забезпечення.',description:'Пенсійні спори часто залежать від документів, стажу, довідок та правильного порядку звернення. На первинній консультації ми визначаємо, яких даних бракує та який порядок дій доцільний у вашій ситуації.',benefits:['Аналіз пенсійних документів і стажу','Підготовка звернень, заяв і скарг','Супровід спорів та представництво']},
+      military:{title:'Військовий адвокат',lead:'Правова допомога військовослужбовцям, військовозобовʼязаним та членам їхніх сімей.',description:'Ми допомагаємо структурувати питання, повʼязані зі службою, ВЛК, відстрочками, виплатами та оскарженням рішень. Конкретна стратегія визначається після аналізу документів та обставин.',benefits:['Питання ВЛК та оскарження рішень','Відстрочка, статуси та соціальні гарантії','Звернення, рапорти, скарги та судовий супровід']},
+      criminal:{title:'Адвокат у кримінальних справах',lead:'Захист прав на досудовому етапі, у суді та під час оскарження процесуальних рішень.',description:'Кримінальне провадження потребує швидкої оцінки процесуальної ситуації. Ми допомагаємо визначити статус особи, ризики, необхідні процесуальні кроки та порядок захисту.',benefits:['Участь у слідчих і процесуальних діях','Підготовка клопотань, скарг та заперечень','Представництво та захист у суді']},
+      credit:{title:'Адвокат по кредитах',lead:'Супровід кредитних спорів, виконавчого провадження та комунікації з кредиторами.',description:'Кредитні питання можуть включати судові рішення, виконавчі документи, арешти рахунків і переговори з кредиторами. Спочатку ми перевіряємо документи та актуальний стан проваджень.',benefits:['Аналіз договорів і вимог кредитора','Виконавче провадження та арешти','Судові документи й переговорна стратегія']},
+      accident:{title:'Адвокат по ДТП',lead:'Правова допомога після дорожньо-транспортних пригод і в страхових спорах.',description:'Після ДТП важливо зберегти документи, докази та правильно оцінити процесуальні строки. Ми допомагаємо з адміністративними матеріалами, страховими питаннями та відшкодуванням.',benefits:['Аналіз матеріалів ДТП','Страхові спори та відшкодування','Представництво у відповідних провадженнях']}
+    };
+    const params=new URLSearchParams(location.search);
+    const slug=params.get('service');
+    const current=services[slug]||null;
+    const toast=document.querySelector('#toast');
+
+    function showToast(message,error=false){toast.textContent=message;toast.classList.toggle('error',error);toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),3400)}
+    function render(){
+      if(current){
+        document.title=current.title+' — Правовий Лідер';
+        document.querySelector('#crumb').textContent=current.title;
+        document.querySelector('#title').textContent=current.title;
+        document.querySelector('#lead').textContent=current.lead;
+        document.querySelector('#detailTitle').textContent=current.title;
+        document.querySelector('#description').textContent=current.description;
+        document.querySelector('#benefits').innerHTML=current.benefits.map(x=>'<li>'+x+'</li>').join('');
+      }else{
+        document.querySelector('#detailTitle').textContent='Комплексний юридичний супровід';
+        document.querySelector('#description').textContent='Оберіть потрібний напрям нижче або залиште заявку — під час первинного контакту ми допоможемо визначити, до якої практики належить ваше питання.';
+        document.querySelector('#benefits').innerHTML=['Первинна оцінка ситуації','Зрозумілий список наступних кроків','Можливість подальшого юридичного супроводу'].map(x=>'<li>'+x+'</li>').join('');
+      }
+      document.querySelector('#serviceGrid').innerHTML=Object.entries(services).map(([key,s])=>`<a class="service" href="service.html?service=${key}"><strong>${s.title}</strong><p>${s.lead}</p><span>Дізнатись більше ↗</span></a>`).join('');
+      document.querySelector('#year').textContent=new Date().getFullYear();
+    }
+
+    document.querySelector('#request').addEventListener('submit',async e=>{
+      e.preventDefault();
+      if(!e.currentTarget.checkValidity()){e.currentTarget.reportValidity();return}
+      const button=e.currentTarget.querySelector('button');const old=button.textContent;button.disabled=true;button.textContent='Надсилаємо…';
+      const fd=new FormData(e.currentTarget);
+      const payload={name:String(fd.get('name')||'').trim(),phone:String(fd.get('phone')||'').trim(),email:String(fd.get('email')||'').trim(),message:String(fd.get('message')||'').trim(),website:String(fd.get('website')||'').trim(),source:current?'service:'+slug:'services-overview',page_url:location.href};
+      try{
+        const res=await fetch(BACKEND_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+ANON,'apikey':ANON},body:JSON.stringify(payload)});
+        const out=await res.json().catch(()=>({}));
+        if(!res.ok||!out.ok)throw new Error(out.message||'Не вдалося надіслати заявку.');
+        e.currentTarget.reset();showToast('Дякуємо! Заявку прийнято.');
+      }catch(err){console.error(err);showToast(err.message||'Помилка надсилання.',true)}
+      finally{button.disabled=false;button.textContent=old}
+    });
+
+    render();
+  </script>
+</body>
+</html>
