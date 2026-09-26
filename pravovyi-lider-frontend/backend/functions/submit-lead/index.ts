@@ -80,8 +80,15 @@ Deno.serve(async (req: Request) => {
     }
 
     const forwarded = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-    const ip = forwarded || req.headers.get("cf-connecting-ip") || "unknown";
-    const ipHash = await sha256(ip);
+    const directIp =
+      forwarded ||
+      req.headers.get("cf-connecting-ip") ||
+      req.headers.get("x-real-ip") ||
+      "";
+    const userAgent = (req.headers.get("user-agent") || "").slice(0, 400);
+    const referer = (req.headers.get("referer") || "").slice(0, 1000);
+    const rateLimitIdentity = directIp || `fallback|${userAgent}|${referer}`;
+    const ipHash = await sha256(rateLimitIdentity);
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -113,8 +120,9 @@ Deno.serve(async (req: Request) => {
 
     const metadata = {
       page_url: pageUrl || null,
-      user_agent: (req.headers.get("user-agent") || "").slice(0, 400),
-      referer: (req.headers.get("referer") || "").slice(0, 1000),
+      user_agent: userAgent,
+      referer,
+      ip_available: Boolean(directIp),
     };
 
     const { data, error } = await supabase
