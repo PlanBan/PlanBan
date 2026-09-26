@@ -24,7 +24,7 @@ This file is a recovery checkpoint so work can resume from GitHub without relyin
 - [x] Lead status changes
 - [x] CSV export
 - [x] Standalone admin implementation (no JS CDN dependency)
-- [x] README updated for backend workflow
+- [x] README updated for backend workflow\n- [x] Functional `service.html` with five service detail modes\n- [x] Service-page form connected to the same backend\n- [x] Obsolete demo-only copy removed from the live forms
 
 ## Supabase
 
@@ -70,11 +70,11 @@ Admin:
 
 - Supabase migration 001 applied successfully.
 - Supabase migration 002 applied successfully.
-- Edge Function deployment is ACTIVE, version 1.
+- Edge Function deployment is ACTIVE, version 2.
 - Database insert constraint smoke test passed and test row was deleted.
 - RLS policies for `website_leads` are present for authenticated SELECT/UPDATE.
 - The rate-limit RPC exists as SECURITY DEFINER.
-- Container-side HTTP E2E test could not run because the execution container had no external DNS; this is an environment limitation, not an application response.
+- Container-side HTTP E2E test could not run because the execution container had no external DNS; this is an environment limitation, not an application response.\n- Supabase database did not have `pg_net`/`http` extensions enabled, so an internal HTTP smoke-test could not be substituted.
 
 ## Optional future enhancements
 
