@@ -256,6 +256,25 @@ input:focus, textarea:focus, select:focus { border-color: var(--gold); box-shado
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .001ms !important; transition-duration: .001ms !important; }
 }
+.hp-field {
+  position: absolute !important;
+  left: -9999px !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+button:disabled,
+.btn:disabled {
+  cursor: wait;
+  opacity: .68;
+  transform: none !important;
+}
+
+.toast.is-success { background: #10271f; }
+.toast.is-error { background: #4b1720; }
+
 </style>
 </head>
 <body>
@@ -303,7 +322,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--gold); box-shado
           </div>
         </div>
 
-        <form class="hero-form demo-form" aria-label="Форма консультації">
+        <form class="hero-form demo-form" data-source="hero" aria-label="Форма консультації">
           <div class="form-heading">
             <span class="eyebrow eyebrow-dark">Безкоштовна консультація</span>
             <h2>Опишіть ваше питання</h2>
@@ -332,7 +351,7 @@ input:focus, textarea:focus, select:focus { border-color: var(--gold); box-shado
             <span>Запитання</span>
             <textarea name="question" rows="4" placeholder="Коротко опишіть ситуацію"></textarea>
           </label>
-          <button class="btn btn-primary btn-full" type="submit">Надіслати</button>
+          <input class="hp-field" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />\n          <button class="btn btn-primary btn-full" type="submit">Надіслати</button>
         </form>
       </div>
     </section>
@@ -421,10 +440,10 @@ input:focus, textarea:focus, select:focus { border-color: var(--gold); box-shado
           <h2>Замовити безкоштовну консультацію</h2>
           <p>Залиште номер телефону — ця демо-форма працює тільки на фронтенді.</p>
         </div>
-        <form class="inline-form demo-form">
-          <input type="text" placeholder="Ваше імʼя" aria-label="Ваше імʼя" required />
-          <input type="tel" placeholder="+38 ___ ___ __ __" aria-label="Номер телефону" required />
-          <button class="btn btn-primary" type="submit">Надіслати</button>
+        <form class="inline-form demo-form" data-source="consult-banner">
+          <input name="name" type="text" placeholder="Ваше імʼя" aria-label="Ваше імʼя" required />
+          <input name="phone" type="tel" placeholder="+38 ___ ___ __ __" aria-label="Номер телефону" required />
+          <input class="hp-field" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />\n          <button class="btn btn-primary" type="submit">Надіслати</button>
         </form>
       </div>
     </section>
@@ -504,10 +523,10 @@ input:focus, textarea:focus, select:focus { border-color: var(--gold); box-shado
             <a href="mailto:info@pravovyilider.com.ua">info@pravovyilider.com.ua</a>
           </div>
         </div>
-        <form class="contact-form demo-form">
-          <input type="text" placeholder="Імʼя" required />
-          <input type="tel" placeholder="Номер телефону" required />
-          <button class="btn btn-light" type="submit">Залишити заявку</button>
+        <form class="contact-form demo-form" data-source="contact-block">
+          <input name="name" type="text" placeholder="Імʼя" required />
+          <input name="phone" type="tel" placeholder="Номер телефону" required />
+          <input class="hp-field" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" />\n          <button class="btn btn-light" type="submit">Залишити заявку</button>
         </form>
       </div>
     </section>
@@ -573,6 +592,9 @@ input:focus, textarea:focus, select:focus { border-color: var(--gold); box-shado
 
   <div class="toast" role="status" aria-live="polite">Демо-режим: дані не надсилаються</div>
   <script>
+const BACKEND_URL = 'https://kfvseygjvzljfspgjmiv.supabase.co/functions/v1/submit-lead';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmdnNleWdqdnpsamZzcGdqbWl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5NzkzMzYsImV4cCI6MjEwNTU1NTMzNn0.JJpCL-o3_ytkJ2F6FMPQwNsZt-IpzhlFEiMncPS3W8I';
+
 const menuButton = document.querySelector('.menu-toggle');
 const nav = document.querySelector('.main-nav');
 
@@ -590,23 +612,76 @@ document.querySelectorAll('.main-nav a').forEach(link => {
 
 const toast = document.querySelector('.toast');
 let toastTimer;
-function showToast(message = 'Демо-режим: дані не надсилаються') {
+function showToast(message, type = 'success') {
   if (!toast) return;
   toast.textContent = message;
-  toast.classList.add('is-visible');
+  toast.classList.remove('is-success', 'is-error');
+  toast.classList.add(type === 'error' ? 'is-error' : 'is-success', 'is-visible');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 2800);
+  toastTimer = setTimeout(() => toast.classList.remove('is-visible'), 3600);
+}
+
+function formPayload(form) {
+  const data = new FormData(form);
+  return {
+    name: String(data.get('name') || '').trim(),
+    phone: String(data.get('phone') || '').trim(),
+    email: String(data.get('email') || '').trim(),
+    city: String(data.get('city') || '').trim(),
+    message: String(data.get('message') || data.get('question') || '').trim(),
+    website: String(data.get('website') || '').trim(),
+    source: form.dataset.source || 'website',
+    page_url: location.href,
+  };
+}
+
+async function submitLead(form) {
+  const button = form.querySelector('button[type="submit"]');
+  const originalText = button?.textContent || 'Надіслати';
+
+  if (button) {
+    button.disabled = true;
+    button.textContent = 'Надсилаємо…';
+  }
+
+  try {
+    const response = await fetch(BACKEND_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'apikey': SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify(formPayload(form)),
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok || !result.ok) {
+      throw new Error(result.message || 'Не вдалося надіслати заявку. Спробуйте ще раз.');
+    }
+
+    form.reset();
+    showToast('Дякуємо! Заявку прийнято. Ми звʼяжемося з вами.', 'success');
+  } catch (error) {
+    console.error('Lead submit failed', error);
+    showToast(error?.message || 'Помилка надсилання. Спробуйте ще раз.', 'error');
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = originalText;
+    }
+  }
 }
 
 document.querySelectorAll('.demo-form').forEach(form => {
-  form.addEventListener('submit', event => {
+  form.addEventListener('submit', async event => {
     event.preventDefault();
     if (!form.checkValidity()) {
       form.reportValidity();
       return;
     }
-    showToast();
-    form.reset();
+    await submitLead(form);
   });
 });
 
@@ -652,6 +727,7 @@ if ('IntersectionObserver' in window) {
 document.querySelectorAll('[data-year]').forEach(node => {
   node.textContent = new Date().getFullYear();
 });
+
 </script>
 </body>
 </html>
