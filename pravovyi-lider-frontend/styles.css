@@ -247,3 +247,21 @@ input:focus, textarea:focus, select:focus { border-color: var(--gold); box-shado
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .001ms !important; transition-duration: .001ms !important; }
 }
+.hp-field {
+  position: absolute !important;
+  left: -9999px !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+button:disabled,
+.btn:disabled {
+  cursor: wait;
+  opacity: .68;
+  transform: none !important;
+}
+
+.toast.is-success { background: #10271f; }
+.toast.is-error { background: #4b1720; }
