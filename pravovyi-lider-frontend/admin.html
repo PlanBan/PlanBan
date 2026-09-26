@@ -86,12 +86,12 @@
 
   <div id="toast" class="toast" role="status"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const SUPABASE_URL='https://kfvseygjvzljfspgjmiv.supabase.co';
     const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtmdnNleWdqdnpsamZzcGdqbWl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk5NzkzMzYsImV4cCI6MjEwNTU1NTMzNn0.JJpCL-o3_ytkJ2F6FMPQwNsZt-IpzhlFEiMncPS3W8I';
-    const client=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+    const AUTH_KEY='pl_admin_session_v1';
     let leads=[];
+    let session=null;
 
     const $=s=>document.querySelector(s);
     const loginView=$('#loginView'), dashboardView=$('#dashboardView'), loginError=$('#loginError'), tbody=$('#tbody'), empty=$('#empty'), toast=$('#toast');
@@ -100,6 +100,41 @@
     function esc(value=''){return String(value).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]))}
     function dateFmt(value){try{return new Intl.DateTimeFormat('uk-UA',{dateStyle:'short',timeStyle:'short'}).format(new Date(value))}catch{return value||''}}
     function statusLabel(v){return ({new:'Нова',contacted:'В роботі',closed:'Закрита',spam:'Спам'})[v]||v}
+
+    function saveSession(value){
+      session=value;
+      if(value) sessionStorage.setItem(AUTH_KEY,JSON.stringify(value));
+      else sessionStorage.removeItem(AUTH_KEY);
+    }
+
+    function restoreSession(){
+      try{return JSON.parse(sessionStorage.getItem(AUTH_KEY)||'null')}catch{return null}
+    }
+
+    async function authFetch(path, options={}){
+      const headers={...(options.headers||{}),'apikey':SUPABASE_ANON_KEY};
+      if(session?.access_token) headers.Authorization='Bearer '+session.access_token;
+      return fetch(SUPABASE_URL+path,{...options,headers});
+    }
+
+    async function refreshSession(){
+      if(!session?.refresh_token) return false;
+      const response=await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=refresh_token',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY},
+        body:JSON.stringify({refresh_token:session.refresh_token})
+      });
+      if(!response.ok){saveSession(null);return false}
+      const data=await response.json();saveSession(data);return true;
+    }
+
+    async function api(path, options={}, retry=true){
+      let response=await authFetch(path,options);
+      if(response.status===401 && retry && await refreshSession()){
+        response=await authFetch(path,options);
+      }
+      return response;
+    }
 
     function visibleLeads(){
       const q=$('#search').value.trim().toLowerCase();
@@ -136,17 +171,31 @@
 
     async function loadLeads(){
       $('#refreshBtn').disabled=true;
-      const {data,error}=await client.from('website_leads').select('id,name,phone,email,city,message,source,status,created_at,updated_at').order('created_at',{ascending:false}).limit(500);
+      const query='/rest/v1/website_leads?select=id,name,phone,email,city,message,source,status,created_at,updated_at&order=created_at.desc&limit=500';
+      const response=await api(query,{headers:{Accept:'application/json'}});
       $('#refreshBtn').disabled=false;
-      if(error){showToast('Не вдалося завантажити заявки');console.error(error);return}
-      leads=data||[];render();
+      if(!response.ok){
+        const detail=await response.text();
+        console.error('Lead load failed',response.status,detail);
+        if(response.status===401){await showSession(null);return}
+        showToast(response.status===403?'Немає доступу до заявок':'Не вдалося завантажити заявки');
+        return;
+      }
+      leads=await response.json();render();
     }
 
     async function updateStatus(id,status,select){
       select.disabled=true;
-      const {error}=await client.from('website_leads').update({status,updated_at:new Date().toISOString()}).eq('id',id);
+      const response=await api('/rest/v1/website_leads?id=eq.'+encodeURIComponent(id),{
+        method:'PATCH',
+        headers:{'Content-Type':'application/json','Prefer':'return=minimal'},
+        body:JSON.stringify({status,updated_at:new Date().toISOString()})
+      });
       select.disabled=false;
-      if(error){showToast('Статус не збережено');console.error(error);await loadLeads();return}
+      if(!response.ok){
+        console.error('Status update failed',response.status,await response.text());
+        showToast('Статус не збережено');await loadLeads();return;
+      }
       const lead=leads.find(l=>l.id===id);if(lead)lead.status=status;render();showToast('Статус оновлено');
     }
 
@@ -159,9 +208,12 @@
       const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='website-leads-'+new Date().toISOString().slice(0,10)+'.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
     }
 
-    async function showSession(session){
-      if(session){
-        loginView.classList.add('hidden');dashboardView.classList.remove('hidden');$('#account').textContent=session.user.email||session.user.id;await loadLeads();
+    async function showSession(value){
+      saveSession(value);
+      if(value){
+        loginView.classList.add('hidden');dashboardView.classList.remove('hidden');
+        $('#account').textContent=value.user?.email||value.user?.id||'Авторизовано';
+        await loadLeads();
       }else{
         dashboardView.classList.add('hidden');loginView.classList.remove('hidden');tbody.innerHTML='';leads=[];
       }
@@ -170,19 +222,35 @@
     $('#loginForm').addEventListener('submit',async e=>{
       e.preventDefault();loginError.classList.add('hidden');
       const button=e.currentTarget.querySelector('button');button.disabled=true;button.textContent='Входимо…';
-      const {data,error}=await client.auth.signInWithPassword({email:$('#email').value.trim(),password:$('#password').value});
-      button.disabled=false;button.textContent='Увійти';
-      if(error){loginError.textContent=error.message;loginError.classList.remove('hidden');return}
-      await showSession(data.session);
+      try{
+        const response=await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=password',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY},
+          body:JSON.stringify({email:$('#email').value.trim(),password:$('#password').value})
+        });
+        const data=await response.json().catch(()=>({}));
+        if(!response.ok) throw new Error(data.msg||data.error_description||data.message||'Помилка входу');
+        await showSession(data);
+      }catch(error){
+        loginError.textContent=error.message;loginError.classList.remove('hidden');
+      }finally{
+        button.disabled=false;button.textContent='Увійти';
+      }
     });
-    $('#logoutBtn').addEventListener('click',async()=>{await client.auth.signOut();await showSession(null)});
+
+    $('#logoutBtn').addEventListener('click',async()=>{
+      if(session?.access_token){
+        try{await authFetch('/auth/v1/logout',{method:'POST'})}catch{}
+      }
+      await showSession(null);
+    });
     $('#refreshBtn').addEventListener('click',loadLeads);
     $('#exportBtn').addEventListener('click',exportCsv);
     $('#search').addEventListener('input',render);
     $('#statusFilter').addEventListener('change',render);
 
-    client.auth.onAuthStateChange((_event,session)=>{if(_event==='SIGNED_OUT')showSession(null)});
-    client.auth.getSession().then(({data})=>showSession(data.session));
+    const restored=restoreSession();
+    if(restored) showSession(restored); else showSession(null);
   </script>
 </body>
 </html>
