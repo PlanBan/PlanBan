@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Демонстраційна фронтенд-оболонка юридичної компанії у стилі pravovyilider.com.ua. Без бекенду." />
+  <title>Правовий Лідер — фронтенд демо</title>
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header" id="top">
+    <div class="container header-inner">
+      <a class="brand" href="#top" aria-label="На головну">
+        <img src="assets/logo.svg" alt="Правовий Лідер" />
+      </a>
+
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav">
+        <span></span><span></span><span></span>
+        <span class="sr-only">Відкрити меню</span>
+      </button>
+
+      <nav class="main-nav" id="main-nav" aria-label="Основна навігація">
+        <a href="#about">Про нас</a>
+        <a href="#services">Послуги</a>
+        <a href="#team">Команда</a>
+        <a href="#reviews">Відгуки</a>
+        <a href="#offices">Контакти</a>
+      </nav>
+
+      <div class="header-actions">
+        <a class="phone-link" href="tel:+380681700007">+38 (068) 170-00-07</a>
+        <a class="btn btn-sm btn-outline" href="#consultation">Консультація</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero section-dark">
+      <div class="hero-grid"></div>
+      <div class="container hero-layout">
+        <div class="hero-copy reveal">
+          <span class="eyebrow">Юридична компанія</span>
+          <h1>Правова допомога, коли вона справді потрібна</h1>
+          <p class="hero-lead">Професійна первинна консультація, зрозумілий план дій і супровід у ключових галузях права.</p>
+          <div class="hero-buttons">
+            <a class="btn btn-primary" href="#consultation">Отримати консультацію</a>
+            <a class="text-link" href="#services">Переглянути послуги <span>↗</span></a>
+          </div>
+          <div class="hero-trust">
+            <span class="trust-mark">✓</span>
+            <span>Фронтенд-демо: форми не надсилають дані на сервер</span>
+          </div>
+        </div>
+
+        <form class="hero-form demo-form" aria-label="Форма консультації">
+          <div class="form-heading">
+            <span class="eyebrow eyebrow-dark">Безкоштовна консультація</span>
+            <h2>Опишіть ваше питання</h2>
+            <p>Залиште контактні дані — у демо-версії ми лише показуємо поведінку інтерфейсу.</p>
+          </div>
+          <label>
+            <span>Імʼя</span>
+            <input name="name" type="text" placeholder="Ваше імʼя" required />
+          </label>
+          <div class="form-row">
+            <label>
+              <span>Телефон</span>
+              <input name="phone" type="tel" placeholder="+38 ___ ___ __ __" required />
+            </label>
+            <label>
+              <span>Місто</span>
+              <select name="city">
+                <option>Київ</option>
+                <option>Львів</option>
+                <option>Вінниця</option>
+                <option>Одеса</option>
+              </select>
+            </label>
+          </div>
+          <label>
+            <span>Запитання</span>
+            <textarea name="question" rows="4" placeholder="Коротко опишіть ситуацію"></textarea>
+          </label>
+          <button class="btn btn-primary btn-full" type="submit">Надіслати</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="stats-strip" aria-label="Статистика компанії">
+      <div class="container stats-grid">
+        <article><strong>4300+</strong><span>Проведених консультацій</span></article>
+        <article><strong>1250+</strong><span>Виграних справ</span></article>
+        <article><strong>3000+</strong><span>Задоволених клієнтів</span></article>
+        <article><strong>36</strong><span>Професіоналів у команді</span></article>
+      </div>
+    </section>
+
+    <section class="section about" id="about">
+      <div class="container split-layout">
+        <div class="about-media reveal">
+          <img src="https://pravovyilider.com.ua/system/page_contents/page_secondary_images/000/000/007/original/about_home_background.webp?1770500086=" alt="Ділова зустріч у юридичному офісі" />
+          <div class="floating-card">
+            <span>Досвід</span>
+            <strong>Комплексний підхід</strong>
+          </div>
+        </div>
+        <div class="section-copy reveal">
+          <span class="eyebrow eyebrow-dark">Про нас</span>
+          <h2>Чому клієнти обирають юридичну команду</h2>
+          <p>Ми зосереджені на чіткому поясненні правової ситуації, підготовці документів і супроводі клієнта на кожному етапі. Дизайн блоку повторює ритм та композицію референсного сайту, але текст тут скорочений і адаптований для демонстрації.</p>
+          <ul class="check-list">
+            <li>Первинна оцінка ситуації простою мовою</li>
+            <li>Індивідуальна стратегія під конкретне звернення</li>
+            <li>Зрозуміла комунікація та контроль етапів</li>
+          </ul>
+          <a class="text-link text-link-dark" href="#team">Познайомитися з командою <span>↗</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section services section-soft" id="services">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <span class="eyebrow eyebrow-dark">Що ми пропонуємо</span>
+            <h2>Наші послуги</h2>
+          </div>
+          <a class="btn btn-outline-dark" href="#consultation">Більше послуг</a>
+        </div>
+
+        <div class="service-grid">
+          <article class="service-card reveal">
+            <span class="service-no">01</span>
+            <h3>Пенсійний адвокат</h3>
+            <p>Перерахунок, підтвердження стажу, спори з органами пенсійного забезпечення.</p>
+            <a href="#consultation">Дізнатись більше ↗</a>
+          </article>
+          <article class="service-card reveal">
+            <span class="service-no">02</span>
+            <h3>Військовий адвокат</h3>
+            <p>Питання проходження служби, ВЛК, відстрочки, статусів та соціальних гарантій.</p>
+            <a href="#consultation">Дізнатись більше ↗</a>
+          </article>
+          <article class="service-card reveal">
+            <span class="service-no">03</span>
+            <h3>Кримінальні справи</h3>
+            <p>Захист прав на досудовому етапі, у суді та під час оскарження процесуальних рішень.</p>
+            <a href="#consultation">Дізнатись більше ↗</a>
+          </article>
+          <article class="service-card reveal">
+            <span class="service-no">04</span>
+            <h3>Кредитні спори</h3>
+            <p>Комунікація з кредиторами, виконавче провадження, арешти рахунків і стягнення.</p>
+            <a href="#consultation">Дізнатись більше ↗</a>
+          </article>
+          <article class="service-card service-card-accent reveal">
+            <span class="service-no">05</span>
+            <h3>Адвокат по ДТП</h3>
+            <p>Правова допомога після дорожньо-транспортних пригод і страхових спорів.</p>
+            <a href="#consultation">Дізнатись більше ↗</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="consult-banner section-dark" id="consultation">
+      <div class="container consult-layout">
+        <div>
+          <span class="eyebrow">Швидкий старт</span>
+          <h2>Замовити безкоштовну консультацію</h2>
+          <p>Залиште номер телефону — ця демо-форма працює тільки на фронтенді.</p>
+        </div>
+        <form class="inline-form demo-form">
+          <input type="text" placeholder="Ваше імʼя" aria-label="Ваше імʼя" required />
+          <input type="tel" placeholder="+38 ___ ___ __ __" aria-label="Номер телефону" required />
+          <button class="btn btn-primary" type="submit">Надіслати</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="section team" id="team">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <span class="eyebrow eyebrow-dark">Знайомтесь з нами</span>
+            <h2>Наша команда</h2>
+          </div>
+          <p class="section-note">Картки зроблені як візуальна оболонка. Фото та персональні дані не копіюються з оригіналу.</p>
+        </div>
+
+        <div class="team-grid">
+          <article class="team-card reveal">
+            <div class="avatar"><span>АМ</span></div>
+            <div class="team-meta"><small>Пенсійне / сімейне право</small><h3>Ангеліна М.</h3><p>Юрист із практикою супроводу цивільних і соціальних справ.</p></div>
+          </article>
+          <article class="team-card reveal">
+            <div class="avatar avatar-2"><span>КБ</span></div>
+            <div class="team-meta"><small>Військове право</small><h3>Катерина Б.</h3><p>Спеціалізація на адміністративних і військово-правових питаннях.</p></div>
+          </article>
+          <article class="team-card reveal">
+            <div class="avatar avatar-3"><span>ЮА</span></div>
+            <div class="team-meta"><small>Кримінальне / ДТП</small><h3>Юлія А.</h3><p>Супровід складних процесуальних справ та переговорів.</p></div>
+          </article>
+          <article class="team-card reveal">
+            <div class="avatar avatar-4"><span>СБ</span></div>
+            <div class="team-meta"><small>Цивільне право</small><h3>Сергій Б.</h3><p>Практика у цивільному, сімейному та трудовому праві.</p></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section reviews section-soft" id="reviews">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <span class="eyebrow eyebrow-dark">Відгуки</span>
+            <h2>Що про нас говорять</h2>
+          </div>
+          <div class="review-controls" aria-label="Керування відгуками">
+            <button class="round-btn" type="button" data-review-prev aria-label="Попередній відгук">←</button>
+            <button class="round-btn" type="button" data-review-next aria-label="Наступний відгук">→</button>
+          </div>
+        </div>
+
+        <div class="review-stage reveal">
+          <article class="review-card is-active">
+            <div class="stars">★★★★★</div>
+            <blockquote>“Швидко пояснили варіанти дій, допомогли структурувати документи та зрозуміти наступні кроки.”</blockquote>
+            <footer><strong>Тетяна</strong><span>Київ</span></footer>
+          </article>
+          <article class="review-card">
+            <div class="stars">★★★★★</div>
+            <blockquote>“Комунікація була спокійною і по суті. Особливо сподобався зрозумілий план роботи по справі.”</blockquote>
+            <footer><strong>Сергій</strong><span>Львів</span></footer>
+          </article>
+          <article class="review-card">
+            <div class="stars">★★★★★</div>
+            <blockquote>“Отримала первинну консультацію та список документів. Інтерфейс і структура сайту дуже зручні.”</blockquote>
+            <footer><strong>Ірина</strong><span>Одеса</span></footer>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section contact-block">
+      <div class="container contact-card reveal">
+        <div class="contact-copy">
+          <span class="eyebrow">Готові отримати консультацію?</span>
+          <h2>Звʼяжіться з нами зручним способом</h2>
+          <p>Телефон, email або коротка форма — у цьому прототипі контактні дії залишаються лише на рівні інтерфейсу.</p>
+          <div class="contact-links">
+            <a href="tel:+380681700007">+38 (068) 170-00-07</a>
+            <a href="mailto:info@pravovyilider.com.ua">info@pravovyilider.com.ua</a>
+          </div>
+        </div>
+        <form class="contact-form demo-form">
+          <input type="text" placeholder="Імʼя" required />
+          <input type="tel" placeholder="Номер телефону" required />
+          <button class="btn btn-light" type="submit">Залишити заявку</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="section offices" id="offices">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <span class="eyebrow eyebrow-dark">Наші офіси</span>
+            <h2>У різних містах України</h2>
+          </div>
+          <p class="section-note">Дані адрес наведені як частина фронтенд-референсу.</p>
+        </div>
+        <div class="office-grid">
+          <article class="office-card reveal"><span>01</span><h3>Київ</h3><p>вул. Саксаганського, 119</p><a href="#consultation">Записатися ↗</a></article>
+          <article class="office-card reveal"><span>02</span><h3>Вінниця</h3><p>вул. Миколи Оводова, 63А</p><a href="#consultation">Записатися ↗</a></article>
+          <article class="office-card reveal"><span>03</span><h3>Львів</h3><p>вул. Братів Рогатинців, 18</p><a href="#consultation">Записатися ↗</a></article>
+          <article class="office-card reveal"><span>04</span><h3>Одеса</h3><p>вул. Святослава Караванського, 33</p><a href="#consultation">Записатися ↗</a></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section faq section-soft">
+      <div class="container faq-layout">
+        <div class="faq-copy reveal">
+          <span class="eyebrow eyebrow-dark">Інформація</span>
+          <h2>Поширені запитання</h2>
+          <p>Компактна заміна довгого інформаційного блоку оригінального сайту. Вміст адаптовано спеціально для демо.</p>
+        </div>
+        <div class="faq-list reveal">
+          <article class="faq-item is-open">
+            <button type="button" aria-expanded="true"><span>Чи є первинна консультація безкоштовною?</span><b>−</b></button>
+            <div class="faq-answer"><p>У цьому демонстраційному макеті ми відтворюємо відповідний CTA та форму, але фактична послуга залежить від власника сайту.</p></div>
+          </article>
+          <article class="faq-item">
+            <button type="button" aria-expanded="false"><span>Чи працюють форми?</span><b>+</b></button>
+            <div class="faq-answer"><p>Так, на рівні інтерфейсу: перевіряються обовʼязкові поля та показується повідомлення. Дані нікуди не надсилаються.</p></div>
+          </article>
+          <article class="faq-item">
+            <button type="button" aria-expanded="false"><span>Чи адаптований сайт під мобільні?</span><b>+</b></button>
+            <div class="faq-answer"><p>Так. Сітки, меню, форми та карточки перебудовуються під планшет і телефон.</p></div>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer section-dark">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <img src="assets/logo.svg" alt="Правовий Лідер" />
+        <p>Ваш надійний партнер у світі права.</p>
+      </div>
+      <div><h3>Послуги</h3><a href="#services">Військове право</a><a href="#services">Кредитні спори</a><a href="#services">Пенсійні питання</a><a href="#services">ДТП</a></div>
+      <div><h3>Про нас</h3><a href="#about">Компанія</a><a href="#team">Команда</a><a href="#reviews">Відгуки</a><a href="#offices">Контакти</a></div>
+      <div><h3>Контакти</h3><a href="tel:+380681700007">+38 (068) 170-00-07</a><a href="mailto:info@pravovyilider.com.ua">info@pravovyilider.com.ua</a><p>Київ · Львів · Вінниця · Одеса</p></div>
+    </div>
+    <div class="container footer-bottom">
+      <span>© <span data-year></span> Frontend demo</span>
+      <span>Без бекенду · Навчальний прототип</span>
+    </div>
+  </footer>
+
+  <div class="toast" role="status" aria-live="polite">Демо-режим: дані не надсилаються</div>
+  <script src="script.js"></script>
+</body>
+</html>
