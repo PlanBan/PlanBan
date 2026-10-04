@@ -53,11 +53,14 @@ var story_clock = 0.0
 var scene_clock = 0.0
 var travel_target = 1
 var slider_key = ""
+var quitting = false
 
 func l(value: String) -> String:
 	return OrbitLocale.translate(value, store.data.language)
 
 func _ready() -> void:
+	get_tree().auto_accept_quit = false
+	get_tree().root.close_requested.connect(quit_game)
 	for robot in catalogue: robots[robot.id] = robot
 	store.load_progress()
 	for key in OrbitContent.TYPES + ["drone", "runner", "tank", "disruptor", "medic", "boss", "ship"]:
@@ -76,7 +79,7 @@ func _ready() -> void:
 	music.stream = load("res://audio/orbit_loop.wav")
 	add_child(music)
 	music.finished.connect(func():
-		music.play()
+		if not quitting: music.play()
 	)
 	apply_settings()
 	music.play()
@@ -167,6 +170,19 @@ func _exit_tree() -> void:
 	for key in sound_players:
 		sound_players[key].stop()
 		sound_players[key].stream = null
+
+func quit_game() -> void:
+	if quitting: return
+	quitting = true
+	set_process(false)
+	music.stop()
+	music.stream = null
+	for player in sound_players.values():
+		player.stop()
+		player.stream = null
+	# Let the audio thread release queued WAV playback before engine shutdown.
+	await get_tree().create_timer(0.2).timeout
+	get_tree().quit()
 
 func notify(message: String, duration: float = 3.0) -> void:
 	toast = message
@@ -516,6 +532,7 @@ func toggle_card(id: String) -> void:
 	store.save_progress()
 
 func _unhandled_input(event: InputEvent) -> void:
+	if quitting: return
 	if event is InputEventMouseMotion and slider_key != "":
 		update_slider(get_local_mouse_position())
 		return
@@ -584,7 +601,7 @@ func action(command: String, value: Variant = "") -> void:
 		"slider":
 			slider_key = str(value)
 			update_slider(get_local_mouse_position())
-		"quit": get_tree().quit()
+		"quit": quit_game()
 		"menu": state = "menu"
 		"map":
 			level_page = int((store.next_level() - 1) / 10)
