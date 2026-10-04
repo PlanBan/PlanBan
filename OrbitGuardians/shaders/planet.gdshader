@@ -28,5 +28,5 @@ void fragment() {
   surface+=tint.rgb*pow(1.0-n.z,3.5)*0.42;
   alpha=1.0;
  } else surface=tint.rgb;
- COLOR=vec4(surface,alpha*smoothstep(1.15,1.03,r));
+ COLOR=vec4(surface,alpha*(1.0-smoothstep(1.03,1.15,r)));
 }
