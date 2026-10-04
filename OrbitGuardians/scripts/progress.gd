@@ -13,7 +13,7 @@ func read_json(file_path: String) -> Variant:
 	return parser.data
 
 static func defaults() -> Dictionary:
-	return {"version": 1, "completed": {}, "deck": ["core_pulse", "core_reactor", "core_shield"], "sound": true}
+	return {"version": 2, "completed": {}, "deck": ["core_pulse", "core_reactor", "core_shield"], "sound": true, "language": "ru", "music_volume": 0.65, "effects_volume": 0.8, "master_volume": 0.85, "fullscreen": false, "prologue_seen": false, "core_recovered": false}
 
 func load_progress() -> void:
 	data = defaults()
@@ -35,6 +35,13 @@ func load_progress() -> void:
 		if number >= 1 and number <= 50:
 			data.completed[str(number)] = clampi(int(completed[key]), 1, 3)
 	data.sound = parsed.get("sound", true) == true
+	data.language = parsed.get("language", "ru") if parsed.get("language", "ru") in ["ru", "en", "de"] else "ru"
+	for key in ["music_volume", "effects_volume", "master_volume"]:
+		var value: Variant = parsed.get(key, data[key])
+		if value is float or value is int: data[key] = clampf(float(value), 0.0, 1.0)
+	data.fullscreen = parsed.get("fullscreen", false) == true
+	data.prologue_seen = parsed.get("prologue_seen", false) == true
+	data.core_recovered = parsed.get("core_recovered", data.completed.has("50")) == true
 	var unlocked_ids = unlocked()
 	var cards: Array = parsed.get("deck", [])
 	var safe_deck: Array = []
@@ -44,7 +51,10 @@ func load_progress() -> void:
 
 func valid(value: Variant) -> bool:
 	if not value is Dictionary: return false
-	if value.get("version", 0) != 1 or not value.get("completed") is Dictionary: return false
+	var version: Variant = value.get("version", 0)
+	if not (version is float or version is int): return false
+	if version != 1 and version != 2: return false
+	if not value.get("completed") is Dictionary: return false
 	if not value.get("deck", []) is Array: return false
 	for key in value.completed:
 		if not str(key).is_valid_int(): return false

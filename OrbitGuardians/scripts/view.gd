@@ -9,22 +9,22 @@ const LINE = Color("29465b")
 var game: OrbitGame
 var font: Font
 var buttons: Array[Dictionary] = []
-var stars: Array[Vector3] = []
+var hover_values: Dictionary = {}
 
 func _ready() -> void:
 	font = ThemeDB.fallback_font
-	var random = RandomNumberGenerator.new()
-	random.seed = 4371
-	for i in range(145): stars.append(Vector3(random.randf_range(0, 1440), random.randf_range(0, 900), random.randf_range(0.6, 1.8)))
 
 func text(value: String, point: Vector2, size: int = 20, color: Color = INK) -> void:
+	value = game.l(value)
 	draw_string(font, point, value, HORIZONTAL_ALIGNMENT_LEFT, -1, size, color)
 
 func centered(value: String, rect: Rect2, size: int = 20, color: Color = INK) -> void:
+	value = game.l(value)
 	var width = font.get_string_size(value, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
 	text(value, Vector2(rect.get_center().x - width / 2, rect.get_center().y + size * 0.35), size, color)
 
 func paragraph(value: String, point: Vector2, width: float, size: int = 18, color: Color = MUTED, spacing: float = 27.0) -> void:
+	value = game.l(value)
 	var line = ""
 	var y: float = point.y
 	for word in value.split(" "):
@@ -45,12 +45,18 @@ func panel(rect: Rect2, color: Color = PANEL, radius: int = 16, border: Color = 
 	draw_style_box(style, rect)
 
 func button(title: String, rect: Rect2, command: String, value: Variant = "", primary: bool = false, disabled: bool = false, size: int = 19) -> void:
-	var hover = rect.has_point(get_global_mouse_position()) and not disabled
-	var color = Color("397b83") if primary else Color("1a3547")
-	if hover: color = color.lightened(0.16)
-	if disabled: color = Color("132431")
-	panel(rect, color, 12, CYAN if primary else LINE, 1)
-	centered(title, rect, size, MUTED if disabled else INK)
+	var hover = rect.has_point(get_local_mouse_position()) and not disabled
+	var identity = command + str(rect.position)
+	var blend: float = lerpf(hover_values.get(identity, 0.0), 1.0 if hover else 0.0, 0.16)
+	hover_values[identity] = blend
+	var color = Color("83ede0") if primary else Color("172a40")
+	color = color.lerp(Color("aafdf0") if primary else Color("29435c"), blend)
+	if disabled: color = Color("101d2c")
+	panel(rect, color, 8, CYAN if primary or hover else LINE, 1)
+	var translated = game.l(title)
+	while font.get_string_size(translated, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > rect.size.x - 22 and size > 11: size -= 1
+	centered(translated, rect, size, MUTED if disabled else (Color("092d35") if primary else INK))
+	if blend > 0.03: draw_line(rect.position + Vector2(12, rect.size.y - 3), rect.position + Vector2(12 + (rect.size.x - 24) * blend, rect.size.y - 3), CYAN, 2)
 	buttons.append({"rect": rect, "action": command, "value": value, "disabled": disabled})
 
 func icon(kind: String, point: Vector2, size: Vector2, color: Color = Color.WHITE) -> void:
@@ -69,46 +75,22 @@ func energy_icon(point: Vector2, radius: float, alpha: float = 1.0) -> void:
 	var bolt = PackedVector2Array([point + Vector2(4, -radius * 0.65), point + Vector2(-radius * 0.5, 2), point + Vector2(0, 2), point + Vector2(-3, radius * 0.65), point + Vector2(radius * 0.5, -3), point + Vector2(2, -3)])
 	draw_colored_polygon(bolt, Color(0.85, 1.0, 1.0, alpha))
 
-func background() -> void:
-	draw_rect(Rect2(0, 0, 1440, 900), Color("081321"))
-	for i in range(12):
-		draw_circle(Vector2(1120, 160), 560 - i * 33, Color(0.08, 0.18, 0.29, 0.045))
-	for point in stars:
-		var alpha = 0.35 + 0.25 * sin(game.ui_time * 0.45 + point.x)
-		draw_circle(Vector2(point.x, point.y), point.z, Color(0.74, 0.89, 1, alpha))
-	var sector: int = game.level_page if game.state == "map" else game.mission.sector
-	var color = Color(OrbitContent.COLORS[sector])
-	var pos = Vector2(1114, 352)
-	var radius = 230.0
-	draw_circle(pos, radius + 13, Color(color.r, color.g, color.b, 0.055))
-	draw_circle(pos, radius + 5, Color(color.r, color.g, color.b, 0.12))
-	draw_set_transform(pos, -0.28, Vector2(1, 0.30))
-	draw_arc(Vector2.ZERO, radius * 1.48, 0, TAU, 120, Color(color.r, color.g, color.b, 0.18), 19)
-	draw_set_transform(Vector2.ZERO)
-	draw_circle(pos, radius, color.darkened(0.63))
-	for i in range(19):
-		var t = float(i) / 19
-		draw_circle(pos + Vector2(-i * 2.6, -i * 2.0), radius - i * 8, color.darkened(0.56 - t * 0.35))
-	draw_arc(pos + Vector2(-36, -36), 136, 3.5, 5.2, 60, Color(color.r, color.g, color.b, 0.15), 28)
-	draw_arc(pos + Vector2(-16, -20), 182, 0.35, 1.5, 60, Color(0.1, 0.17, 0.24, 0.2), 17)
-	draw_set_transform(pos, -0.28, Vector2(1, 0.30))
-	draw_arc(Vector2.ZERO, radius * 1.48, 0.03, PI - 0.03, 90, Color(color.r, color.g, color.b, 0.35), 13)
-	draw_set_transform(Vector2.ZERO)
-
 func _draw() -> void:
 	if font == null: return
 	buttons.clear()
-	background()
 	match game.state:
 		"menu": menu()
 		"map": campaign()
 		"hangar": hangar()
 		"briefing": briefing()
 		"settings": settings()
+		"dialogue": dialogue()
+		"cinematic": cinematic()
+		"travel": travel()
 		"battle": battle()
 		"pause", "victory", "defeat":
 			battle()
-			draw_rect(Rect2(0, 0, 1440, 900), Color(0.01, 0.04, 0.08, 0.83))
+			draw_rect(Rect2(-80, 0, 1600, 900), Color(0.01, 0.04, 0.08, 0.83))
 			buttons.clear()
 			outcome()
 	if game.toast_time > 0:
@@ -121,64 +103,104 @@ func heading(title: String, subtitle: String) -> void:
 	text(subtitle, Vector2(65, 130), 17, MUTED)
 	button("В меню", Rect2(1248, 49, 128, 43), "menu", "", false, false, 17)
 
-func menu() -> void:
-	text("ORBITAL FRONT  /  САДОВАЯ ОБОРОНА В КОСМОСЕ", Vector2(100, 73), 16, CYAN)
-	panel(Rect2(99, 155, 212, 30), Color("14363e"), 15, Color("2b575d"))
-	centered("КАМПАНИЯ · 50 МИССИЙ", Rect2(99, 155, 212, 30), 13, CYAN)
-	text("ОРБИТАЛЬНЫЙ", Vector2(94, 260), 61)
-	text("РУБЕЖ", Vector2(94, 327), 65, CYAN)
-	paragraph("Выращивайте роботов из семян. Собирайте энергию. Защитите станцию от киборгов.", Vector2(100, 371), 620, 20)
-	var count: int = game.store.data.completed.size()
-	button("НАЧАТЬ КАМПАНИЮ" if count == 0 else ("ПОВТОРИТЬ ФИНАЛ" if count == 50 else "ПРОДОЛЖИТЬ · МИССИЯ %02d" % game.store.next_level()), Rect2(100, 444, 472, 60), "continue", "", true, false, 22)
-	button("Карта 50 уровней", Rect2(100, 522, 228, 52), "map")
-	button("Ангар роботов", Rect2(344, 522, 228, 52), "hangar")
-	button("Настройки и помощь", Rect2(100, 591, 472, 48), "settings", "", false, false, 18)
-	text("Семена: %d / 53   •   Завершено: %d / 50" % [game.store.unlocked().size(), count], Vector2(100, 685), 18, MUTED)
-	panel(Rect2(900, 535, 360, 112), Color("122b3d"), 25, Color("376174"), 2)
-	icon("reactor", Vector2(934, 521), Vector2(135, 151))
-	icon("pulse", Vector2(1090, 524), Vector2(166, 166))
-	icon("drone", Vector2(1242, 571), Vector2(106, 120))
-	text("ВАША СТАНЦИЯ. ВАШ НАБОР.", Vector2(895, 705), 18, CYAN)
-	paragraph("9 классов роботов, 53 семени, боссы, ЭМИ и планеты. Каждая победа открывает новый чертёж.", Vector2(895, 739), 400, 17)
+func language_buttons(point: Vector2) -> void:
 	for i in range(3):
-		var rect = Rect2(100 + i * 242, 739, 223, 76)
-		panel(rect, Color("102330"), 13)
-		text(["50 УРОВНЕЙ", "НОВОЕ СЕМЯ", "ПРОГРЕСС"][i], rect.position + Vector2(17, 29), 17, CYAN)
-		text(["Пять секторов космоса", "За каждую первую победу", "Сохраняется на диске"][i], rect.position + Vector2(17, 55), 13, MUTED)
+		var code: String = ["ru", "en", "de"][i]
+		button(["RU", "EN", "DE"][i], Rect2(point + Vector2(i * 60, 0), Vector2(52, 34)), "language", code, game.store.data.language == code, false, 14)
+
+func ship(point: Vector2, scale_factor: float = 1.0, angle: float = -0.12) -> void:
+	draw_set_transform(point, angle, Vector2.ONE * scale_factor)
+	var pulse = 0.82 + 0.18 * sin(game.ui_time * 24)
+	draw_colored_polygon(PackedVector2Array([Vector2(-50, -14), Vector2(-122 * pulse, 0), Vector2(-50, 14)]), Color(0.23, 0.87, 1.0, 0.15))
+	draw_colored_polygon(PackedVector2Array([Vector2(-48, -7), Vector2(-91 * pulse, 0), Vector2(-48, 7)]), Color(0.5, 0.93, 1.0, 0.75))
+	icon("ship", Vector2.ZERO, Vector2(168, 168))
+	draw_set_transform(Vector2.ZERO)
+
+func core(point: Vector2, radius: float = 45.0, stolen: bool = false) -> void:
+	var color = Color("ff786d") if stolen else CYAN
+	for i in range(4): draw_circle(point, radius * (1.1 + i * 0.2), Color(color.r, color.g, color.b, 0.035))
+	draw_arc(point, radius * 1.1, game.ui_time * 0.4, game.ui_time * 0.4 + TAU * 0.78, 80, color, 2)
+	draw_arc(point, radius * 0.82, -game.ui_time * 0.7, -game.ui_time * 0.7 + TAU * 0.62, 64, color, 1)
+	var shape = PackedVector2Array()
+	for i in range(6): shape.append(point + Vector2.from_angle(i * TAU / 6 + game.ui_time * 0.12) * radius * 0.64)
+	draw_colored_polygon(shape, color.darkened(0.15))
+	draw_circle(point, radius * 0.25, Color("efffff"))
+
+func menu() -> void:
+	text("ORBITAL FRONT", Vector2(60, 63), 20, CYAN)
+	text("02 / ASTRA", Vector2(280, 63), 12, MUTED)
+	language_buttons(Vector2(1170, 36))
+	var count: int = game.store.data.completed.size()
+	text("ИСТОРИЯ О ПОГОНЕ СКВОЗЬ ПЯТЬ МИРОВ", Vector2(60, 206), 13, CYAN)
+	text("ЯДРО" if not game.store.data.core_recovered else "ЯДРО", Vector2(54, 292), 78)
+	text("ПОХИЩЕНО." if not game.store.data.core_recovered else "ВОЗВРАЩЕНО.", Vector2(54, 375), 69, CYAN)
+	paragraph("Наш дом погас. Их флот уходит к Нексусу. Соберите защитников, поднимите корабль и верните сердце Астра.", Vector2(62, 423), 575, 20, MUTED, 30)
+	var title = "НАЧАТЬ ИСТОРИЮ" if not game.store.data.prologue_seen else ("ПОВТОРИТЬ ФИНАЛ" if count == 50 else "ПРОДОЛЖИТЬ · МИССИЯ %02d" % game.store.next_level())
+	button(title, Rect2(60, 533, 488, 62), "continue", "", true, false, 21)
+	button("Путешествие", Rect2(60, 613, 236, 47), "map", "", false, false, 18)
+	button("Ангар роботов", Rect2(312, 613, 236, 47), "hangar", "", false, false, 18)
+	button("Настройки", Rect2(60, 675, 236, 43), "settings", "", false, false, 17)
+	button("Выход", Rect2(312, 675, 236, 43), "quit", "", false, false, 17)
+	text("%02d / 50 МИССИЙ   ·   %d / 53 СЕМЯН" % [count, game.store.unlocked().size()], Vector2(62, 761), 13, MUTED)
+	ship(Vector2(1045 + sin(game.ui_time * 0.3) * 9, 460 + sin(game.ui_time * 0.9) * 12), 2.55, -0.16 + sin(game.ui_time * 0.5) * 0.025)
+	draw_line(Vector2(936, 622), Vector2(1219, 622), Color("365267"), 1)
+	text("КОРАБЛЬ «ИСКРА»", Vector2(953, 653), 14, CYAN)
+	text("Резервный реактор онлайн", Vector2(953, 679), 13, MUTED)
+	if game.store.data.prologue_seen: button("Сюжет с начала", Rect2(953, 704, 246, 38), "story", "", false, false, 14)
+	draw_line(Vector2(60, 809), Vector2(1380, 809), Color("233b52"), 1)
+	for i in range(5):
+		var pos = Vector2(92 + i * 274, 849)
+		draw_circle(pos, 5, Color(OrbitContent.COLORS[i]))
+		text(OrbitContent.PLANET_NAMES[i], pos + Vector2(16, 5), 13, MUTED)
+
+func route_point(index: int) -> Vector2:
+	var points = [Vector2(154, 350), Vector2(424, 308), Vector2(694, 350), Vector2(964, 308), Vector2(1234, 350), Vector2(1234, 570), Vector2(964, 625), Vector2(694, 570), Vector2(424, 625), Vector2(154, 570)]
+	return points[index]
 
 func campaign() -> void:
-	heading("КАРТА КАМПАНИИ", "Пройдите миссию, чтобы открыть следующую. Завершённые можно переигрывать.")
-	text("СЕКТОР %d / 5 · %s" % [game.level_page + 1, OrbitContent.SECTORS[game.level_page]], Vector2(149, 202), 23, Color(OrbitContent.COLORS[game.level_page]))
+	heading("ПУТЕШЕСТВИЕ", "Следуйте за флотом машин. Каждая победа приближает ядро.")
+	var accent = Color(OrbitContent.COLORS[game.level_page])
+	text("ПЛАНЕТА %d / 5 · %s" % [game.level_page + 1, OrbitContent.SECTORS[game.level_page]], Vector2(72, 200), 25, accent)
+	paragraph(OrbitContent.BIOME_INFO[game.level_page], Vector2(73, 235), 1250, 16)
+	var curve = Curve2D.new()
+	for i in range(10):
+		var tangent = (route_point(mini(i + 1, 9)) - route_point(maxi(i - 1, 0))).normalized() * 55
+		curve.add_point(route_point(i), -tangent, tangent)
+	draw_polyline(curve.get_baked_points(), Color(0.3, 0.52, 0.62, 0.38), 3, true)
 	for i in range(10):
 		var number = game.level_page * 10 + i + 1
-		var mission = OrbitContent.level(number)
-		var rect = Rect2(148 + (i % 5) * 230, 239 + int(i / 5) * 211, 212, 187)
+		var point = route_point(i)
 		var unlocked: bool = game.store.accessible(number)
 		var completed: bool = game.store.data.completed.has(str(number))
-		panel(rect, Color("163344") if unlocked else Color("101f2d"), 15, CYAN if completed else LINE, 2 if completed else 1)
-		text("%02d" % number, rect.position + Vector2(17, 49), 35, INK if unlocked else Color("466071"))
-		if mission.boss:
-			panel(Rect2(rect.position + Vector2(127, 17), Vector2(67, 23)), Color("502f3c"), 7, Color("a36276"))
-			centered("БОСС", Rect2(rect.position + Vector2(127, 17), Vector2(67, 23)), 12, Color("ffb9ab"))
-		paragraph(mission.name, rect.position + Vector2(17, 82), 182, 16, INK if unlocked else MUTED, 22)
-		text(mission.mode_name, rect.position + Vector2(17, 135), 12, MUTED)
+		var current = number == game.store.next_level()
+		if current:
+			draw_circle(point, 40 + sin(game.ui_time * 2) * 4, Color(accent.r, accent.g, accent.b, 0.08))
+			draw_arc(point, 34, game.ui_time * 0.6, game.ui_time * 0.6 + TAU * 0.8, 64, accent, 2)
+		draw_circle(point, 27, accent if completed else Color("132a3e"))
+		draw_arc(point, 27, 0, TAU, 64, accent if unlocked else LINE, 2)
+		centered("%02d" % number, Rect2(point - Vector2(27, 27), Vector2(54, 54)), 19, Color("10343c") if completed else (INK if unlocked else MUTED))
+		var mission = OrbitContent.level(number)
+		var label = game.l(mission.name)
+		var size = 15
+		while font.get_string_size(label, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > 220 and size > 11: size -= 1
+		panel(Rect2(point + Vector2(-114, 38), Vector2(228, 32)), Color(0.025, 0.06, 0.11, 0.90), 6, Color.TRANSPARENT, 0)
+		centered(label, Rect2(point + Vector2(-114, 40), Vector2(228, 24)), size, INK if unlocked else MUTED)
 		if completed:
-			var rating: int = game.store.data.completed[str(number)]
-			for s in range(3): star(rect.position + Vector2(27 + s * 28, 161), 9, Color("f6ca7d") if s < rating else LINE)
-		else:
-			text("НАЧАТЬ" if unlocked else "ЗАКРЫТО", rect.position + Vector2(17, 166), 13, CYAN if unlocked else MUTED)
-		buttons.append({"rect": rect, "action": "level", "value": number, "disabled": not unlocked})
-	button("← Предыдущий сектор", Rect2(148, 716, 252, 49), "map_page", -1, false, game.level_page == 0, 17)
-	button("Следующий сектор →", Rect2(1038, 716, 260, 49), "map_page", 1, false, game.level_page == 4, 17)
-	centered("%d / 50 завершено   ·   %d семян в коллекции" % [game.store.data.completed.size(), game.store.unlocked().size()], Rect2(445, 714, 552, 51), 18, MUTED)
+			for n in range(3): star(point + Vector2(-19 + n * 19, 83), 6, Color("f6ca7d") if n < game.store.data.completed[str(number)] else LINE)
+		elif mission.boss: centered("БОСС", Rect2(point + Vector2(-85, 68), Vector2(170, 24)), 11, Color("ffa891"))
+		buttons.append({"rect": Rect2(point - Vector2(45, 40), Vector2(90, 105)), "action": "level", "value": number, "disabled": not unlocked})
+	button("← Предыдущая планета", Rect2(72, 755, 269, 48), "map_page", -1, false, game.level_page == 0, 16)
+	button("Следующая планета →", Rect2(1094, 755, 274, 48), "map_page", 1, false, game.level_page == 4, 16)
+	button("К следующей миссии", Rect2(487, 755, 470, 48), "continue", "", true, false, 18)
+	centered("%d / 50 завершено   ·   %d семян в коллекции" % [game.store.data.completed.size(), game.store.unlocked().size()], Rect2(440, 824, 560, 30), 14, MUTED)
 
 func seed_card(id: String, rect: Rect2, command: String, equipped: bool = false, locked: bool = false, key: String = "") -> void:
 	var robot: Dictionary = game.robots[id]
-	var hover = rect.has_point(get_global_mouse_position())
+	var hover = rect.has_point(get_local_mouse_position())
 	panel(rect, Color("204256") if hover and not locked else Color("132b3b"), 13, CYAN if equipped else LINE, 2 if equipped else 1)
 	if key != "": text(key, rect.position + Vector2(10, 19), 12, MUTED)
 	icon(robot.kind, rect.position + Vector2(44, rect.size.y * 0.51), Vector2(67, 72), Color(0.35, 0.44, 0.53) if locked else Color.WHITE)
-	var name: String = robot.name
+	var name: String = game.l(robot.name)
 	var size = 15
 	while font.get_string_size(name, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > rect.size.x - 88 and size > 11: size -= 1
 	text(name, rect.position + Vector2(82, 30), size, MUTED if locked else INK)
@@ -226,7 +248,7 @@ func briefing() -> void:
 	text(game.mission.mode_name.to_upper(), Vector2(112, 246), 26, CYAN)
 	paragraph(game.mission.description, Vector2(112, 291), 644, 21, INK, 31)
 	text("Дорожек: %d     Волн: %d     Начальная энергия: %d" % [game.mission.lanes.size(), game.mission.waves.size(), game.mission.start_energy], Vector2(112, 390), 19, MUTED)
-	text("БОСС В ФИНАЛЬНОЙ ВОЛНЕ" if game.mission.boss else "Собирайте энергию и берегите аварийные дроны.", Vector2(112, 434), 16, Color("f6bf72"))
+	text("БОСС В ФИНАЛЬНОЙ ВОЛНЕ" if game.mission.boss else "Собирайте энергию и берегите аварийные барьеры.", Vector2(112, 434), 16, Color("f6bf72"))
 	panel(Rect2(879, 201, 461, 268), Color("142d3e"), 22)
 	var reward: Dictionary = game.robots[game.mission.reward]
 	text("НАГРАДА ЗА ПЕРВУЮ ПОБЕДУ", Vector2(910, 244), 16, CYAN)
@@ -240,18 +262,158 @@ func briefing() -> void:
 	button("Изменить набор", Rect2(494, 707, 262, 64), "hangar", "", false, false, 20)
 	button("Карта кампании", Rect2(779, 707, 263, 64), "map", "", false, false, 20)
 
+func slider(title: String, key: String, y: float) -> void:
+	text(title, Vector2(136, y), 18)
+	text("%d %%" % int(round(game.store.data[key] * 100)), Vector2(624, y), 15, CYAN)
+	var line_y = y + 27
+	draw_line(Vector2(136, line_y), Vector2(671, line_y), Color("2a4055"), 6, true)
+	draw_line(Vector2(136, line_y), Vector2(136 + game.store.data[key] * 535, line_y), CYAN, 6, true)
+	draw_circle(Vector2(136 + game.store.data[key] * 535, line_y), 9, INK)
+	buttons.append({"rect": Rect2(126, line_y - 17, 556, 34), "action": "slider", "value": key})
+
 func settings() -> void:
-	heading("НАСТРОЙКИ И ПОМОЩЬ", "Игра работает без интернета. Прогресс автоматически сохраняется на этом компьютере.")
-	panel(Rect2(91, 200, 789, 595), Color("132c3c"), 22)
-	text("КАК ЗАЩИЩАТЬ СТАНЦИЮ", Vector2(123, 252), 26, CYAN)
-	paragraph("Выберите семя и нажмите на свободную клетку. Реакторы производят энергию: собирайте светящиеся капсулы кликом. Стрелки атакуют по своей дорожке, а щиты держат удар. Аварийный дрон спасёт дорожку один раз; второй прорыв означает поражение.", Vector2(123, 296), 718, 20, INK, 30)
-	text("УПРАВЛЕНИЕ", Vector2(123, 494), 22, CYAN)
-	paragraph("1–6: семена из набора. 7 или правая кнопка мыши: разбор робота с возвратом 25% энергии. Пробел / Esc: пауза. Enter: начать или продолжить. M: включить или выключить звук.", Vector2(123, 536), 718, 19, MUTED, 29)
-	paragraph("За первую победу выдаётся новое семя. Три звезды — без потерь аварийных дронов, две — потеря не более двух, одна — остальные победы. В ангаре можно менять набор и изучать способности.", Vector2(123, 659), 718, 18, MUTED, 28)
-	panel(Rect2(935, 200, 405, 292), Color("132c3c"), 22)
-	text("ЗВУК", Vector2(970, 252), 25, CYAN)
-	button("Музыка и эффекты: %s" % ("включены" if game.store.data.sound else "выключены"), Rect2(968, 278, 337, 57), "sound", "", true, false, 17)
-	paragraph("Сохранение: user://orbit_progress.json. Godot хранит его в папке данных приложения «Орбитальный рубеж».", Vector2(970, 389), 334, 17, MUTED, 25)
+	heading("НАСТРОЙКИ", "Ваш язык, ваш звук, ваш полёт.")
+	panel(Rect2(92, 187, 643, 611), Color(0.06, 0.12, 0.2, 0.94), 14)
+	text("АУДИО", Vector2(136, 237), 21, CYAN)
+	slider("Общая громкость", "master_volume", 292)
+	slider("Музыка", "music_volume", 379)
+	slider("Звуковые эффекты", "effects_volume", 466)
+	button("Звук: %s" % ("вкл" if game.store.data.sound else "выкл"), Rect2(136, 535, 535, 43), "sound", "", false, false, 17)
+	text("ЭКРАН", Vector2(136, 633), 21, CYAN)
+	button("Полноэкранный режим" if not game.store.data.fullscreen else "Оконный режим", Rect2(136, 662, 535, 47), "fullscreen", "", false, false, 17)
+	text("Настройки сохраняются автоматически.", Vector2(136, 759), 14, MUTED)
+	panel(Rect2(773, 187, 575, 611), Color(0.06, 0.12, 0.2, 0.94), 14)
+	text("ЯЗЫК / LANGUAGE", Vector2(813, 237), 21, CYAN)
+	for i in range(3):
+		var code: String = ["ru", "en", "de"][i]
+		button(["Русский", "English", "Deutsch"][i], Rect2(813 + i * 159, 265, 147, 44), "language", code, game.store.data.language == code, false, 16)
+	text("УПРАВЛЕНИЕ", Vector2(813, 382), 21, CYAN)
+	paragraph("1–6: выбор семени. 7 / ПКМ: разбор. Пробел / Esc: пауза. Enter: продолжить. M: звук.", Vector2(813, 424), 494, 18, INK, 29)
+	text("ТАКТИКА", Vector2(813, 546), 21, CYAN)
+	paragraph("Реакторы дают энергию. Собирайте капсулы кликом. Стрелки бьют по дорожке, щиты держат удар, механики ремонтируют соседей. Аварийный барьер спасает дорожку один раз.", Vector2(813, 588), 494, 17, MUTED, 27)
+	button("← Назад", Rect2(92, 816, 237, 45), "settings_back", "", true, false, 17)
+
+func story_stage(scene: String) -> void:
+	var ruined = scene == "ruins"
+	if scene in ["home", "raid", "ruins", "core"]:
+		draw_arc(Vector2(720, 552), 240, PI, TAU, 100, Color("395e74"), 28)
+		draw_line(Vector2(463, 552), Vector2(977, 552), Color("7c9bb1"), 7)
+		for i in range(6):
+			var x = 485 + i * 85
+			draw_rect(Rect2(x, 483 - (i % 2) * 48, 46, 67 + (i % 2) * 48), Color("233e55"))
+			draw_rect(Rect2(x + 7, 498 - (i % 2) * 48, 8, 11), Color("fa8578") if ruined else CYAN)
+		if not ruined: core(Vector2(720, 422), 63, scene == "raid")
+		else:
+			for i in range(18):
+				var p = Vector2(458 + i * 31, 520 - fmod(game.ui_time * 16 + i * 29, 135))
+				draw_circle(p, 3, Color(1.0, 0.4, 0.22, 0.4))
+	if scene == "raid":
+		for i in range(4):
+			ship(Vector2(310 + i * 278, 226 + sin(game.ui_time + i) * 10), 0.8, PI)
+			draw_line(Vector2(310 + i * 278, 257), Vector2(545 + i * 95, 516), Color(1.0, 0.26, 0.22, 0.16 + sin(game.ui_time * 4 + i) * 0.08), 2)
+	if scene == "ship": ship(Vector2(720, 385 + sin(game.ui_time) * 7), 2.3, -0.08)
+
+func dialogue() -> void:
+	var line = game.story_line()
+	text("ASTRA / STORY", Vector2(64, 60), 15, CYAN)
+	text("%02d / %02d" % [game.story_index + 1, OrbitStory.lines(game.story_context).size()], Vector2(1282, 60), 14, MUTED)
+	story_stage(line.scene)
+	panel(Rect2(90, 625, 1260, 213), Color(0.055, 0.11, 0.19, 0.97), 15, Color("42657b"))
+	draw_circle(Vector2(165, 717), 42, Color("21384c"))
+	text("R" if line.speaker == "КАПИТАН РЕЯ" else ("O" if line.speaker == "ОРИОН · БОРТОВОЙ ИИ" else "Ø"), Vector2(148, 732), 38, CYAN if line.speaker != "ВОЕНАЧАЛЬНИК НУЛЬ" else Color("ff9487"))
+	text(line.speaker, Vector2(234, 665), 16, CYAN)
+	var full = game.l(line.text)
+	var visible = full.left(int(game.story_clock * 42))
+	paragraph(visible, Vector2(234, 708), 1060, 22, INK, 33)
+	button("Далее →", Rect2(1122, 848, 226, 35), "dialogue_next", "", true, false, 15)
+	text("Enter / клик: продолжить", Vector2(91, 871), 13, MUTED)
+
+func cinematic() -> void:
+	var t = game.scene_clock
+	text("ПАДЕНИЕ АСТРА", Vector2(64, 64), 22, Color("ff9487"))
+	story_stage("ruins")
+	if t < 4.6:
+		var progress = clampf(t / 4.0, 0, 1)
+		core(Vector2(720, 420).lerp(Vector2(1100, 186), progress), 44, true)
+		ship(Vector2(1100 + maxf(0, t - 3) * 120, 170), 1.5, 0)
+		centered("ОНИ ЗАБРАЛИ НАШЕ СЕРДЦЕ", Rect2(200, 719, 1040, 70), 28, Color("ffa89b"))
+	else:
+		ship(Vector2(500 + (t - 4.6) * 210, 430 - (t - 4.6) * 28), 1.9, -0.16)
+		centered("НО ПОГОНЯ ТОЛЬКО НАЧИНАЕТСЯ", Rect2(200, 719, 1040, 70), 28, CYAN)
+
+func travel() -> void:
+	var sector = int((game.travel_target - 1) / 10)
+	text("ПРЫЖОК К СЛЕДУЮЩЕЙ МИССИИ", Vector2(64, 67), 17, CYAN)
+	for i in range(50):
+		var x = wrapf(i * 131 - game.scene_clock * (260 + (i % 7) * 100), -80, 1520)
+		var y = 137 + (i * 197) % 530
+		draw_line(Vector2(x, y), Vector2(x + 80 + (i % 5) * 40, y), Color(0.4, 0.8, 1.0, 0.05 + (i % 4) * 0.025), 1)
+	ship(Vector2(720 + sin(game.scene_clock * 2) * 5, 408), 2.6, -0.02)
+	centered(OrbitContent.PLANET_NAMES[sector].to_upper(), Rect2(220, 620, 1000, 68), 47, Color(OrbitContent.COLORS[sector]))
+	centered("МИССИЯ %02d · %s" % [game.travel_target, OrbitContent.level(game.travel_target).name], Rect2(220, 700, 1000, 40), 20, MUTED)
+	button("Высадиться →", Rect2(534, 786, 373, 51), "travel_skip", "", true, false, 18)
+
+func terrain() -> void:
+	if game.prologue:
+		panel(OrbitGame.BOARD.grow(12), Color("1b2d3d"), 12, Color("486477"), 2)
+		for i in range(12):
+			var x = 258 + i * 86
+			draw_line(Vector2(x, 311), Vector2(x, 759), Color(0.28, 0.40, 0.49, 0.17), 2)
+		return
+	var biome: int = game.mission.sector
+	var base = [Color("183b30"), Color("243e58"), Color("382524"), Color("463729"), Color("211c3f")][biome]
+	draw_rect(Rect2(24, 286, 1392, 505), Color(base.r, base.g, base.b, 0.30))
+	for side in [92.0, 1347.0]:
+		match biome:
+			0:
+				for i in range(3):
+					var p = Vector2(side + (i % 2) * 20 - 10, 391 + i * 139)
+					draw_line(p + Vector2(0, 22), p + Vector2(0, 91), Color("2b5140"), 8)
+					draw_colored_polygon(PackedVector2Array([p + Vector2(-41, 30), p + Vector2(0, -62), p + Vector2(41, 30)]), Color("245640"))
+					draw_colored_polygon(PackedVector2Array([p + Vector2(-31, 0), p + Vector2(0, -67), p + Vector2(31, 0)]), Color("2d6950"))
+			1:
+				for i in range(3):
+					var p = Vector2(side, 378 + i * 148)
+					draw_colored_polygon(PackedVector2Array([p + Vector2(-48, 70), p + Vector2(-19, -39), p + Vector2(7, 12), p + Vector2(29, -14), p + Vector2(47, 70)]), Color("507d97"))
+					draw_line(p + Vector2(-19, -39), p + Vector2(7, 12), Color("b1e0ef"), 3)
+			2:
+				var pts = PackedVector2Array()
+				for i in range(15): pts.append(Vector2(side + sin(i * 1.6 + game.ui_time * 0.2) * 31, 301 + i * 33))
+				draw_polyline(pts, Color("5e2c27"), 26, true)
+				draw_polyline(pts, Color(1.0, 0.35, 0.07, 0.45 + sin(game.ui_time) * 0.07), 11, true)
+			3:
+				for i in range(5): draw_arc(Vector2(side, 361 + i * 89), 66, 3.5, 5.9, 25, Color("806a43"), 11, true)
+			4:
+				for i in range(4):
+					var p = Vector2(side - 37, 360 + i * 104)
+					draw_rect(Rect2(p, Vector2(67, 67)), Color("2d284b"))
+					draw_line(p + Vector2(7, 16), p + Vector2(54, 16), Color("7864ba"), 2)
+					draw_circle(p + Vector2(31, 40), 8, Color("8770c2"))
+	panel(OrbitGame.BOARD.grow(12), base, 12, Color(OrbitContent.COLORS[biome]).darkened(0.55), 2)
+	for i in range(27):
+		var x = 252 + (i * 157) % 1020
+		var y = 305 + (i * 89) % 453
+		match biome:
+			0:
+				draw_circle(Vector2(x, y), 18 + (i % 3) * 7, Color(0.2, 0.45, 0.27, 0.18))
+				for j in range(3): draw_line(Vector2(x + j * 7, y), Vector2(x + j * 7 - 4, y - 16), Color("42774c"), 1)
+			1:
+				draw_polyline(PackedVector2Array([Vector2(x, y), Vector2(x + 18, y - 9), Vector2(x + 33, y + 7), Vector2(x + 47, y + 3)]), Color(0.54, 0.8, 0.93, 0.28), 2, true)
+			2:
+				var offset = sin(game.ui_time + i) * 5
+				draw_polyline(PackedVector2Array([Vector2(x, y), Vector2(x + 16, y + 13 + offset), Vector2(x + 44, y - 5), Vector2(x + 65, y + 8)]), Color(1.0, 0.28, 0.07, 0.20), 8, true)
+			3: draw_arc(Vector2(x, y), 48, 3.7, 5.2, 15, Color(0.82, 0.65, 0.36, 0.2), 4, true)
+			4:
+				draw_polyline(PackedVector2Array([Vector2(x, y), Vector2(x + 40, y), Vector2(x + 40, y + 24), Vector2(x + 68, y + 24)]), Color(0.55, 0.36, 0.91, 0.28), 1.5, true)
+				draw_circle(Vector2(x + 68, y + 24), 3, Color("7b62b4"))
+
+func weather() -> void:
+	var biome: int = game.mission.sector
+	if biome == 0 or biome == 4: return
+	for i in range(48):
+		var x = wrapf(250 + i * 127 + game.ui_time * (8 if biome == 1 else 19), 240, 1284)
+		var y = wrapf(300 + i * 71 + game.ui_time * (22 if biome == 1 else -17), 292, 772)
+		draw_circle(Vector2(x, y), 1.2 + (i % 3) * 0.3, Color(0.8, 0.95, 1.0, 0.45) if biome == 1 else (Color(1.0, 0.53, 0.2, 0.4) if biome == 2 else Color(0.96, 0.77, 0.41, 0.25)))
 
 func battle() -> void:
 	panel(Rect2(24, 18, 1392, 85), Color(0.055, 0.11, 0.17, 0.94), 18)
@@ -272,24 +434,26 @@ func battle() -> void:
 		else:
 			panel(rect, Color("0d202e"), 12)
 			centered("Нет семени", rect, 14, Color("466073"))
-	text("ВОЛНА %d / %d" % [game.wave_index, game.mission.waves.size()], Vector2(1148, 151), 20, CYAN)
+	panel(Rect2(1136, 127, 259, 102), Color(0.035, 0.09, 0.15, 0.92), 10)
+	text("ЭВАКУАЦИЯ" if game.prologue else "ВОЛНА %d / %d" % [game.wave_index, game.mission.waves.size()], Vector2(1148, 151), 20, CYAN)
 	var status = "%d киборгов в пути" % (game.pending.size() + game.enemies.size())
 	if game.pending.is_empty() and game.enemies.is_empty(): status = "Подготовка: %d с" % int(ceil(game.wave_wait))
+	if game.prologue: status = "До эвакуации: %d с" % maxi(0, 32 - int(game.time))
 	text(status, Vector2(1148, 178), 14, MUTED)
 	button("Пауза", Rect2(1148, 193, 94, 35), "pause", "", false, false, 15)
 	button("Звук: %s" % ("вкл" if game.store.data.sound else "выкл"), Rect2(1250, 193, 132, 35), "sound", "", false, false, 14)
 	text("ПЛАТФОРМА ОБОРОНЫ", Vector2(242, 272), 16, CYAN)
 	button("[7] Разбор", Rect2(48, 247, 151, 34), "select", "recycle", game.selected == "recycle", false, 15)
 	text("Роботы действуют по своей дорожке", Vector2(1001, 272), 14, MUTED)
-	panel(OrbitGame.BOARD.grow(10), Color("0f2738"), 20, Color("31566c"), 2)
+	terrain()
 	for row in range(5):
 		var active = row in game.mission.lanes
 		for col in range(9):
 			var cell = Vector2i(col, row)
 			var rect = Rect2(OrbitGame.BOARD.position + Vector2(cell) * OrbitGame.CELL, OrbitGame.CELL).grow(-3)
-			var color = Color("193747") if (col + row) % 2 == 0 else Color("173142")
+			var color = Color(0.04, 0.10, 0.16, 0.22 if (col + row) % 2 == 0 else 0.34)
 			if not active: color = Color("101f2b")
-			panel(rect, color, 10, Color("254756") if active else Color("192d3c"))
+			panel(rect, color, 7, Color(0.57, 0.77, 0.83, 0.20) if active else Color("192d3c"))
 			draw_line(rect.position + Vector2(12, 12), rect.position + Vector2(25, 12), Color("3c6371"), 2)
 			draw_line(rect.end - Vector2(12, 12), rect.end - Vector2(25, 12), Color("3c6371"), 2)
 			if cell in game.mission.blocked:
@@ -297,8 +461,11 @@ func battle() -> void:
 				text("ОБЛОМКИ", rect.position + Vector2(23, 77), 11, MUTED)
 		text("0%d" % (row + 1), Vector2(64, game.center(Vector2i(0, row)).y + 7), 17, MUTED)
 		if active:
-			icon("guard", Vector2(172, game.center(Vector2i(0, row)).y), Vector2(69, 75), Color.WHITE if game.guards[row] else Color(0.22, 0.28, 0.32))
-	var hovered: Vector2i = game.cell_at(get_global_mouse_position())
+			var p = Vector2(179, game.center(Vector2i(0, row)).y)
+			draw_line(p - Vector2(0, 30), p + Vector2(0, 30), CYAN if game.guards[row] else LINE, 3)
+			draw_arc(p, 17, -PI / 2, PI / 2, 32, Color(0.4, 0.9, 0.85, 0.3) if game.guards[row] else Color("1a2d3f"), 2)
+			draw_circle(p, 4, CYAN if game.guards[row] else LINE)
+	var hovered: Vector2i = game.cell_at(get_local_mouse_position())
 	if game.state == "battle" and game.can_use_cell(hovered):
 		panel(Rect2(OrbitGame.BOARD.position + Vector2(hovered) * OrbitGame.CELL, OrbitGame.CELL).grow(-4), Color(0.3, 0.8, 0.8, 0.08), 10, CYAN, 2)
 		if not game.plants.has(hovered) and game.selected != "recycle":
@@ -317,7 +484,7 @@ func battle() -> void:
 	for enemy in game.enemies:
 		var point = Vector2(enemy.x, game.center(Vector2i(0, enemy.row)).y)
 		var big = enemy.kind == "boss"
-		icon(enemy.kind, point + Vector2(sin(game.ui_time * 7 + enemy.id) * 1.5, 0), Vector2(104, 107) if big else Vector2(80, 90), Color(1.5, 1.0, 0.9) if enemy.flash > 0 else (Color(0.58, 0.85, 1.25) if enemy.slow > 0 else Color.WHITE))
+		icon(game.enemy_art(enemy.kind), point + Vector2(sin(game.ui_time * 7 + enemy.id) * 1.5, 0), Vector2(104, 107) if big else Vector2(80, 90), Color(1.5, 1.0, 0.9) if enemy.flash > 0 else (Color(0.58, 0.85, 1.25) if enemy.slow > 0 else Color.WHITE))
 		if big or enemy.hp < enemy.max_hp: health(point + Vector2(-30, -43), 60, enemy.hp / enemy.max_hp, Color("f7a888"))
 	for bullet in game.bullets:
 		var color = Color("92d9fd") if bullet.kind == "cryo" else (Color("f6ba7c") if bullet.kind == "mortar" else CYAN)
@@ -333,6 +500,7 @@ func battle() -> void:
 		if fx.get("beam", false): draw_line(fx.pos - Vector2(600, 0), fx.pos + Vector2(600, 0), color, fx.life * 27)
 		else: draw_arc(fx.pos, fx.radius * (1.0 - fx.life), 0, TAU, 64, color, 3)
 	for orb in game.orbs: energy_icon(orb.pos + Vector2(0, sin(game.ui_time * 2 + orb.age) * 3), 22, clampf(15 - orb.age, 0, 1))
+	weather()
 	panel(Rect2(48, 801, 1340, 36), Color("142d3e"), 10)
 	centered("1–6: семена   ·   7 / ПКМ: разбор   ·   Пробел: пауза   ·   M: звук   ·   Собирайте энергокапсулы кликом", Rect2(48, 801, 1340, 36), 16, MUTED)
 
@@ -347,11 +515,12 @@ func outcome() -> void:
 		centered("Роботы ждут ваших команд.", Rect2(380, 320, 680, 43), 20, MUTED)
 		button("ПРОДОЛЖИТЬ", Rect2(463, 405, 514, 60), "resume", "", true, false, 24)
 		button("Начать миссию заново", Rect2(463, 490, 514, 55), "retry")
-		button("В главное меню", Rect2(463, 570, 514, 55), "menu")
+		button("Настройки", Rect2(463, 570, 250, 55), "settings")
+		button("В главное меню", Rect2(727, 570, 250, 55), "menu")
 		centered("Выход в меню прервёт текущую миссию.", Rect2(380, 686, 680, 42), 16, MUTED)
 	elif game.state == "defeat":
 		centered("РУБЕЖ ПРОРВАН", Rect2(380, 217, 680, 76), 36, Color("f7a888"))
-		icon("boss", Vector2(720, 395), Vector2(134, 150))
+		icon(game.enemy_art("boss"), Vector2(720, 395), Vector2(134, 150))
 		centered("Семя не потеряно. Попробуйте другую расстановку.", Rect2(371, 516, 698, 45), 20)
 		centered("Реакторы в тылу, стрелки за щитами, ремонт рядом.", Rect2(371, 558, 698, 36), 17, MUTED)
 		button("ПОВТОРИТЬ МИССИЮ", Rect2(428, 623, 584, 58), "retry", "", true, false, 22)
@@ -368,6 +537,6 @@ func outcome() -> void:
 		paragraph(reward.description, Vector2(583, 477), 422, 18, MUTED)
 		text("Найдите его в ангаре и добавьте в набор.", Vector2(582, 541), 15, MUTED)
 		centered("Прогресс сохранён   ·   Очки: %d" % game.score if game.store.last_save_ok else "Ошибка сохранения — не закрывайте игру", Rect2(405, 586, 630, 34), 17, MUTED)
-		button("В ГЛАВНОЕ МЕНЮ" if game.mission.number == 50 else "СЛЕДУЮЩАЯ МИССИЯ", Rect2(428, 640, 584, 55), "next", "", true, false, 22)
+		button("ВЕРНУТЬ ЯДРО" if game.mission.number == 50 else "СЛЕДУЮЩАЯ МИССИЯ", Rect2(428, 640, 584, 55), "next", "", true, false, 22)
 		button("Ангар роботов", Rect2(428, 716, 283, 40), "hangar", "", false, false, 17)
 		button("Карта кампании", Rect2(729, 716, 283, 40), "map", "", false, false, 17)

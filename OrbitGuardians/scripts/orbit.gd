@@ -45,12 +45,27 @@ var earned_stars = 0
 var rng = RandomNumberGenerator.new()
 var sound_players: Dictionary = {}
 var music: AudioStreamPlayer
+var backdrop: OrbitBackdrop
+var prologue = false
+var story_context = "intro"
+var story_index = 0
+var story_clock = 0.0
+var scene_clock = 0.0
+var travel_target = 1
+var slider_key = ""
+
+func l(value: String) -> String:
+	return OrbitLocale.translate(value, store.data.language)
 
 func _ready() -> void:
 	for robot in catalogue: robots[robot.id] = robot
 	store.load_progress()
-	for key in OrbitContent.TYPES + ["drone", "runner", "tank", "disruptor", "medic", "boss", "guard"]:
+	for key in OrbitContent.TYPES + ["drone", "runner", "tank", "disruptor", "medic", "boss", "ship"]:
 		art[key] = load("res://assets/%s.svg" % key)
+	for sector in range(5):
+		for kind in ["drone", "runner", "tank", "disruptor", "medic", "boss"]:
+			var key = "p%d_%s" % [sector, kind]
+			art[key] = load("res://assets/%s.svg" % key)
 	for key in ["deploy", "energy", "hit", "alarm", "unlock"]:
 		var player = AudioStreamPlayer.new()
 		player.stream = load("res://audio/%s.wav" % key)
@@ -59,12 +74,15 @@ func _ready() -> void:
 		sound_players[key] = player
 	music = AudioStreamPlayer.new()
 	music.stream = load("res://audio/orbit_loop.wav")
-	music.volume_db = -23.0
 	add_child(music)
 	music.finished.connect(func():
-		if store.data.sound: music.play()
+		music.play()
 	)
-	if store.data.sound: music.play()
+	apply_settings()
+	music.play()
+	backdrop = OrbitBackdrop.new()
+	backdrop.game = self
+	add_child(backdrop)
 	view = OrbitView.new()
 	view.game = self
 	add_child(view)
@@ -72,6 +90,75 @@ func _ready() -> void:
 
 func fx(key: String) -> void:
 	if store.data.sound and sound_players.has(key): sound_players[key].play()
+
+func apply_settings() -> void:
+	var master: float = store.data.master_volume if store.data.sound else 0.0
+	if music != null: music.volume_db = linear_to_db(maxf(0.00001, master * store.data.music_volume)) - 9.0
+	for player in sound_players.values(): player.volume_db = linear_to_db(maxf(0.00001, master * store.data.effects_volume)) - 7.0
+	if DisplayServer.get_name() != "headless":
+		DisplayServer.window_set_title(l("Орбитальный рубеж"))
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if store.data.fullscreen else DisplayServer.WINDOW_MODE_WINDOWED)
+
+func begin_story(context: String) -> void:
+	story_context = context
+	story_index = 0
+	story_clock = 0.0
+	state = "dialogue"
+
+func story_line() -> Dictionary:
+	return OrbitStory.lines(story_context)[story_index]
+
+func advance_story() -> void:
+	var message = l(story_line().text)
+	if story_clock * 42.0 < message.length():
+		story_clock = message.length() / 42.0 + 0.1
+		return
+	story_index += 1
+	story_clock = 0.0
+	if story_index < OrbitStory.lines(story_context).size(): return
+	match story_context:
+		"intro": start_prologue()
+		"theft":
+			store.data.prologue_seen = true
+			store.save_progress()
+			begin_travel(store.next_level())
+		"ending":
+			store.data.core_recovered = true
+			store.save_progress()
+			state = "menu"
+
+func start_prologue() -> void:
+	start_level(1)
+	prologue = true
+	mission = OrbitContent.level(1).duplicate(true)
+	mission.number = 0
+	mission.name = "Падение станции"
+	mission.lanes = [0, 1, 2, 3, 4]
+	mission.mode_name = "Эвакуация колонии"
+	mission.sector_name = "Станция Астра"
+	guards = [false, false, false, false, false]
+	energy = 160
+	for cell in [Vector2i(2, 1), Vector2i(2, 3)]:
+		plants[cell] = {"id": "core_pulse", "hp": 140.0, "timer": 0.2, "flash": 0.0, "disabled": 0.0}
+	plants[Vector2i(0, 2)] = {"id": "core_reactor", "hp": 110.0, "timer": 1.0, "flash": 0.0, "disabled": 0.0}
+	wave_index = 1
+	spawn_clock = 1.0
+	notify("Удерживайте шлюз! Гражданские эвакуируются на корабль.", 9.0)
+
+func begin_travel(number: int) -> void:
+	travel_target = number
+	scene_clock = 0.0
+	state = "travel"
+
+func enemy_art(kind: String) -> String:
+	if prologue: return kind
+	return "p%d_%s" % [mission.sector, kind]
+
+func damage_enemy(enemy: Dictionary, damage: float) -> void:
+	var absorbed = minf(enemy.get("shield", 0.0), damage)
+	enemy.shield = enemy.get("shield", 0.0) - absorbed
+	enemy.hp -= (damage - absorbed) * (0.92 if mission.terrain == "desert" else 1.0)
+	enemy.flash = 0.15
 
 func _exit_tree() -> void:
 	if music != null:
@@ -96,11 +183,15 @@ func choose_level(number: int) -> void:
 	if not store.accessible(number):
 		notify("Сначала завершите предыдущую миссию.")
 		return
+	if not store.data.prologue_seen:
+		begin_story("intro")
+		return
 	mission = OrbitContent.level(number)
 	state = "briefing"
 
 func start_level(number: int) -> bool:
 	if not store.accessible(number): return false
+	prologue = false
 	mission = OrbitContent.level(number)
 	deck = store.data.deck.duplicate()
 	selected = deck[0]
@@ -176,7 +267,7 @@ func collect(point: Vector2) -> bool:
 func spawn_enemy(row: int, kind: String = "drone", x: float = 1365.0) -> void:
 	var stats = OrbitContent.enemy(kind, mission.number)
 	serial += 1
-	enemies.append({"id": serial, "row": row, "kind": kind, "x": x, "hp": stats.hp, "max_hp": stats.hp, "speed": stats.speed, "bite": stats.bite, "slow": 0.0, "flash": 0.0, "special": 4.0, "biting": false})
+	enemies.append({"id": serial, "row": row, "kind": kind, "x": x, "hp": stats.hp, "max_hp": stats.hp, "speed": stats.speed, "bite": stats.bite, "slow": 0.0, "flash": 0.0, "special": 4.0, "biome_clock": 6.0, "shield": stats.hp * 0.12 if mission.terrain == "ice" else 0.0, "biting": false})
 
 func burst(point: Vector2, color: Color, count: int = 7) -> void:
 	for i in range(count):
@@ -189,14 +280,18 @@ func blast(point: Vector2, damage: float, radius: float) -> void:
 	for enemy in enemies:
 		var ep = Vector2(enemy.x, center(Vector2i(0, enemy.row)).y)
 		if ep.distance_to(point) < radius:
-			enemy.hp -= damage
-			enemy.flash = 0.15
+			damage_enemy(enemy, damage)
 	effect(point, Color("f4b779"), radius)
 	fx("hit")
 
 func _process(delta: float) -> void:
 	ui_time += delta
 	toast_time = maxf(0.0, toast_time - delta)
+	if state == "dialogue": story_clock += delta
+	if state in ["cinematic", "travel"]:
+		scene_clock += delta
+		if state == "cinematic" and scene_clock >= 9.0: begin_story("theft")
+		elif state == "travel" and scene_clock >= 4.5: choose_level(travel_target)
 	if state == "battle": advance(minf(delta, 0.05))
 	view.queue_redraw()
 
@@ -234,6 +329,18 @@ func advance(delta: float) -> void:
 	_update_enemies(delta)
 
 func _update_waves(delta: float) -> void:
+	if prologue:
+		if time >= 32.0:
+			finish(false)
+			return
+		spawn_clock -= delta
+		if spawn_clock <= 0.0:
+			spawn_clock = 1.5
+			spawn_enemy(int(time / 1.5) % 5, "boss" if time > 13.0 else "tank", 1210.0)
+			enemies.back().hp *= 5.0
+			enemies.back().max_hp = enemies.back().hp
+			enemies.back().speed = 45.0
+		return
 	if not pending.is_empty():
 		spawn_clock -= delta
 		if spawn_clock <= 0.0:
@@ -305,8 +412,7 @@ func _update_bullets(delta: float) -> void:
 			if bullet.kind == "mortar":
 				blast(Vector2(target.x, center(Vector2i(0, target.row)).y), bullet.damage, 145.0)
 			else:
-				target.hp -= bullet.damage
-				target.flash = 0.12
+				damage_enemy(target, bullet.damage)
 				if bullet.kind == "cryo": target.slow = 3.0
 				burst(Vector2(target.x, bullet.pos.y), Color("6de6dc"), 3)
 				fx("hit")
@@ -326,6 +432,13 @@ func _update_enemies(delta: float) -> void:
 		enemy.flash = maxf(0.0, enemy.flash - delta)
 		enemy.slow = maxf(0.0, enemy.slow - delta)
 		enemy.special -= delta
+		enemy.biome_clock -= delta
+		if enemy.biome_clock <= 0:
+			enemy.biome_clock = 6.0
+			if mission.terrain == "forest": enemy.hp = minf(enemy.max_hp, enemy.hp + enemy.max_hp * 0.025)
+			elif mission.terrain == "void" and enemy.kind == "runner":
+				enemy.row = (enemy.row + 1) % 5
+				effect(Vector2(enemy.x, center(Vector2i(0, enemy.row)).y), Color("c89bf1"), 42)
 		if enemy.special <= 0:
 			enemy.special = 8.0 if enemy.kind == "disruptor" else 4.0
 			if enemy.kind == "disruptor":
@@ -352,7 +465,7 @@ func _update_enemies(delta: float) -> void:
 				burst(center(target), Color("6f8ba1"))
 				plants.erase(target)
 		else:
-			enemy.x -= enemy.speed * (0.45 if enemy.slow > 0 else 1.0) * delta
+			enemy.x -= enemy.speed * (0.45 if enemy.slow > 0 else 1.0) * (1.15 if mission.terrain == "lava" and enemy.hp < enemy.max_hp * 0.5 else 1.0) * delta
 		if enemy.x < BOARD.position.x - 37:
 			if guards[enemy.row]:
 				guards[enemy.row] = false
@@ -360,13 +473,20 @@ func _update_enemies(delta: float) -> void:
 					if other.row == enemy.row: other.hp = 0.0
 				effects.append({"pos": Vector2(720, center(Vector2i(0, enemy.row)).y), "radius": 610.0, "life": 0.4, "color": Color("6de6dc"), "beam": true})
 				fx("alarm")
-				notify("Аварийный дрон очистил дорожку %d. Второй прорыв опасен!" % (enemy.row + 1))
+				notify("Аварийный барьер очистил дорожку %d. Второй прорыв опасен!" % (enemy.row + 1))
 			else:
 				finish(false)
 				return
 
 func finish(won: bool) -> void:
 	if state != "battle": return
+	if prologue:
+		prologue = false
+		state = "cinematic"
+		scene_clock = 0.0
+		toast_time = 0.0
+		fx("alarm")
+		return
 	state = "victory" if won else "defeat"
 	if won:
 		var used = 0
@@ -396,7 +516,21 @@ func toggle_card(id: String) -> void:
 	store.save_progress()
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion and slider_key != "":
+		update_slider(get_local_mouse_position())
+		return
+	if event is InputEventMouseButton and not event.pressed and event.button_index == MOUSE_BUTTON_LEFT and slider_key != "":
+		slider_key = ""
+		store.save_progress()
+		fx("deploy")
+		return
 	if event is InputEventKey and event.pressed and not event.echo:
+		if state == "dialogue" and event.keycode in [KEY_ENTER, KEY_SPACE]:
+			advance_story()
+			return
+		if state == "travel" and event.keycode in [KEY_ENTER, KEY_SPACE]:
+			choose_level(travel_target)
+			return
 		if state == "battle":
 			if event.keycode >= KEY_1 and event.keycode <= KEY_6:
 				var index = event.keycode - KEY_1
@@ -405,28 +539,52 @@ func _unhandled_input(event: InputEvent) -> void:
 			elif event.keycode in [KEY_ESCAPE, KEY_SPACE]: state = "pause"
 		elif state == "pause" and event.keycode in [KEY_ESCAPE, KEY_SPACE, KEY_ENTER]: state = "battle"
 		elif event.keycode == KEY_ESCAPE:
-			state = "menu"
+			if state == "settings": state = previous_screen
+			elif state not in ["dialogue", "cinematic", "travel"]: state = "menu"
 		elif event.keycode == KEY_ENTER:
-			if state == "menu": choose_level(store.next_level())
+			if state == "menu": action("continue")
 			elif state == "briefing": action("launch")
 			elif state == "victory": action("next")
-			elif state == "defeat": start_level(mission.number)
+			elif state == "defeat": action("retry")
 		if event.keycode == KEY_M: action("sound")
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_RIGHT and state == "battle":
 			selected = "recycle"
 			return
 		if event.button_index != MOUSE_BUTTON_LEFT: return
-		var point = get_global_mouse_position()
+		var point = get_local_mouse_position()
 		for button in view.buttons:
 			if button.rect.has_point(point):
 				if not button.get("disabled", false): action(button.action, button.get("value", ""))
 				return
-		if state == "battle" and not collect(point): deploy(cell_at(point))
+		if state == "dialogue": advance_story()
+		elif state == "battle" and not collect(point): deploy(cell_at(point))
+
+func update_slider(point: Vector2) -> void:
+	store.data[slider_key] = clampf((point.x - 136.0) / 535.0, 0.0, 1.0)
+	apply_settings()
 
 func action(command: String, value: Variant = "") -> void:
 	match command:
-		"continue": choose_level(store.next_level())
+		"continue":
+			if not store.data.prologue_seen: begin_story("intro")
+			else: begin_travel(store.next_level())
+		"story": begin_story("intro")
+		"dialogue_next": advance_story()
+		"travel_skip": choose_level(travel_target)
+		"language":
+			if str(value) in ["ru", "en", "de"]:
+				store.data.language = str(value)
+				store.save_progress()
+				apply_settings()
+		"fullscreen":
+			store.data.fullscreen = not store.data.fullscreen
+			store.save_progress()
+			apply_settings()
+		"slider":
+			slider_key = str(value)
+			update_slider(get_local_mouse_position())
+		"quit": get_tree().quit()
 		"menu": state = "menu"
 		"map":
 			level_page = int((store.next_level() - 1) / 10)
@@ -451,13 +609,17 @@ func action(command: String, value: Variant = "") -> void:
 		"select": selected = str(value)
 		"pause": state = "pause"
 		"resume": state = "battle"
-		"retry": start_level(mission.number)
+		"retry":
+			if prologue: start_prologue()
+			else: start_level(mission.number)
 		"next":
-			if mission.number >= 50: state = "menu"
-			else: choose_level(mission.number + 1)
-		"settings": state = "settings"
+			if mission.number >= 50: begin_story("ending")
+			else: begin_travel(mission.number + 1)
+		"settings":
+			previous_screen = "pause" if state == "battle" else state
+			state = "settings"
+		"settings_back": state = previous_screen
 		"sound":
 			store.data.sound = not store.data.sound
 			store.save_progress()
-			if store.data.sound: music.play()
-			else: music.stop()
+			apply_settings()
