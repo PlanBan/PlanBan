@@ -543,8 +543,8 @@ const STRINGS = {
 		"de": "DEINE ROBOTER WARTEN AUF BEFEHLE."
 	},
 	"ПРОДОЛЖИТЬ": {
-		"en": "RESUME",
-		"de": "WEITER"
+		"en": "CONTINUE",
+		"de": "FORTSETZEN"
 	},
 	"Начать миссию заново": {
 		"en": "Restart mission",
@@ -1629,6 +1629,190 @@ const STRINGS = {
 	"ПОСЛЕДНИЙ СИГНАЛ": {
 		"en": "THE LAST SIGNAL",
 		"de": "DAS LETZTE SIGNAL"
+	},
+	"НОВАЯ ИГРА": {
+		"en": "NEW GAME",
+		"de": "NEUES SPIEL"
+	},
+	"Загрузить": {
+		"en": "Load game",
+		"de": "Laden"
+	},
+	"Сохранить": {
+		"en": "Save game",
+		"de": "Speichern"
+	},
+	"Маршрут": {
+		"en": "Journey",
+		"de": "Reiseroute"
+	},
+	"ТАКТИЧЕСКАЯ ОБОРОНА · ПЯТЬ МИРОВ": {
+		"en": "TACTICAL DEFENCE · FIVE WORLDS",
+		"de": "TAKTISCHE VERTEIDIGUNG · FÜNF WELTEN"
+	},
+	"ВЕРНИ": {
+		"en": "BRING",
+		"de": "HOL"
+	},
+	"НАШЕ ЯДРО.": {
+		"en": "IT HOME.",
+		"de": "UNSEREN KERN."
+	},
+	"Построй отряд. Пройди пять планет. Верни сердце Астра.": {
+		"en": "Build your squad. Cross five planets. Recover the heart of Astra.",
+		"de": "Baue deinen Trupp auf. Reise durch fünf Welten. Hole Astras Herz zurück."
+	},
+	"СОХРАНЯЕТЕ ВЫ. КОМАНДУЕТЕ ВЫ.": {
+		"en": "YOUR SAVES. YOUR COMMAND.",
+		"de": "DEINE SPIELSTÄNDE. DEIN KOMMANDO."
+	},
+	"3 ручных слота · F5: сохранить · F9: загрузить": {
+		"en": "3 manual slots · F5: save · F9: load",
+		"de": "3 manuelle Plätze · F5: speichern · F9: laden"
+	},
+	"50 МИССИЙ / 53 ЧЕРТЕЖА": {
+		"en": "50 MISSIONS / 53 BLUEPRINTS",
+		"de": "50 MISSIONEN / 53 BAUPLÄNE"
+	},
+	"Есть несохранённый прогресс": {
+		"en": "You have unsaved progress",
+		"de": "Ungespeicherter Fortschritt"
+	},
+	"ВЫ ЗДЕСЬ": {
+		"en": "YOU ARE HERE",
+		"de": "DU BIST HIER"
+	},
+	"ЯДРО / ЦЕЛЬ": {
+		"en": "CORE / DESTINATION",
+		"de": "KERN / ZIEL"
+	},
+	"СЛЕДУЮЩАЯ ЦЕЛЬ": {
+		"en": "NEXT DESTINATION",
+		"de": "NÄCHSTES ZIEL"
+	},
+	"СОХРАНИТЬ ИГРУ": {
+		"en": "SAVE GAME",
+		"de": "SPIEL SPEICHERN"
+	},
+	"ЗАГРУЗИТЬ ИГРУ": {
+		"en": "LOAD GAME",
+		"de": "SPIEL LADEN"
+	},
+	"Три ручных слота. Сохраняются маршрут, отряд и текущий бой.": {
+		"en": "Three manual slots. Save your journey, squad and ongoing battle.",
+		"de": "Drei manuelle Plätze. Speichere Route, Trupp und laufenden Kampf."
+	},
+	"СЛОТ %d": {
+		"en": "SLOT %d",
+		"de": "PLATZ %d"
+	},
+	"%d / 50 завершено": {
+		"en": "%d / 50 completed",
+		"de": "%d / 50 abgeschlossen"
+	},
+	"Пустой слот": {
+		"en": "Empty slot",
+		"de": "Leerer Platz"
+	},
+	"Начните новую историю и сохраните её здесь.": {
+		"en": "Start a new story and save it here.",
+		"de": "Beginne eine neue Geschichte und speichere sie hier."
+	},
+	"Текущий бой": {
+		"en": "Ongoing battle",
+		"de": "Laufender Kampf"
+	},
+	"Кампания": {
+		"en": "Campaign",
+		"de": "Kampagne"
+	},
+	"Сохранить сюда": {
+		"en": "Save here",
+		"de": "Hier speichern"
+	},
+	"Импортировать кампанию версии 2.0": {
+		"en": "Import a version 2.0 campaign",
+		"de": "Kampagne aus Version 2.0 importieren"
+	},
+	"Кампания не сохраняется автоматически.": {
+		"en": "Campaign progress is saved manually.",
+		"de": "Kampagnenfortschritt wird manuell gespeichert."
+	},
+	"Перезаписать этот слот?": {
+		"en": "Overwrite this slot?",
+		"de": "Diesen Platz überschreiben?"
+	},
+	"Другие слоты и старая кампания останутся на диске.": {
+		"en": "Other slots and your legacy campaign stay on disk.",
+		"de": "Andere Plätze und die alte Kampagne bleiben auf der Festplatte."
+	},
+	"Перезаписать": {
+		"en": "Overwrite",
+		"de": "Überschreiben"
+	},
+	"Отмена": {
+		"en": "Cancel",
+		"de": "Abbrechen"
+	},
+	"Назад": {
+		"en": "Back",
+		"de": "Zurück"
+	},
+	"Начать историю с нападения на Астра? Текущий несохранённый бой будет завершён. Все записанные слоты останутся на диске.": {
+		"en": "Restart with the attack on Astra? Your current unsaved battle will end. All saved slots stay on disk.",
+		"de": "Mit dem Angriff auf Astra neu beginnen? Dein ungespeicherter Kampf endet. Alle gespeicherten Plätze bleiben erhalten."
+	},
+	"Начать с начала": {
+		"en": "Start over",
+		"de": "Neu beginnen"
+	},
+	"Сохранить победу": {
+		"en": "Save victory",
+		"de": "Sieg speichern"
+	},
+	"Сохраняйте вручную. F5 открывает слоты.": {
+		"en": "Save manually. F5 opens the save slots.",
+		"de": "Speichere manuell. F5 öffnet die Speicherplätze."
+	},
+	"1–6: семена · 7 / ПКМ: разбор · Пробел: пауза · F5: сохранить · F9: загрузить": {
+		"en": "1–6: seeds · 7 / RMB: recycle · Space: pause · F5: save · F9: load",
+		"de": "1–6: Samen · 7 / RMB: zerlegen · Leertaste: Pause · F5: speichern · F9: laden"
+	},
+	"1–6: выбор семени. 7 / ПКМ: разбор. Пробел / Esc: пауза. Enter: продолжить. F5: сохранить. F9: загрузить. M: звук.": {
+		"en": "1–6: select seed. 7 / RMB: recycle. Space / Esc: pause. Enter: continue. F5: save. F9: load. M: sound.",
+		"de": "1–6: Samen wählen. 7 / RMB: zerlegen. Leertaste / Esc: Pause. Enter: weiter. F5: speichern. F9: laden. M: Ton."
+	},
+	"Вырабатывает энергию каждые 14 с": {
+		"en": "Generates energy every 14 s",
+		"de": "Erzeugt alle 14 s Energie"
+	},
+	"Сохранение записано. Бой и маршрут сохранены.": {
+		"en": "Game saved. Your battle and journey are on disk.",
+		"de": "Spiel gespeichert. Kampf und Route sind gesichert."
+	},
+	"Сохранение загружено. Нажмите «Продолжить», когда будете готовы.": {
+		"en": "Game loaded. Press Continue when you are ready.",
+		"de": "Spiel geladen. Drücke Fortsetzen, sobald du bereit bist."
+	},
+	"Не удалось загрузить сохранение. Файл сохранён без изменений.": {
+		"en": "Cannot load this save. The file was kept unchanged.",
+		"de": "Spielstand kann nicht geladen werden. Die Datei bleibt unverändert."
+	},
+	"Старая кампания импортирована. Сохраните её в новый слот.": {
+		"en": "Legacy campaign imported. Save it in a new slot.",
+		"de": "Alte Kampagne importiert. Speichere sie auf einem neuen Platz."
+	},
+	"Сохранение повреждено. Старый файл сохранён.": {
+		"en": "The save is damaged. The old file was preserved.",
+		"de": "Der Spielstand ist beschädigt. Die alte Datei bleibt erhalten."
+	},
+	"Сохраните игру перед выходом, чтобы продолжить этот бой.": {
+		"en": "Save before quitting to resume this battle later.",
+		"de": "Speichere vor dem Beenden, um diesen Kampf später fortzusetzen."
+	},
+	"Выйти": {
+		"en": "Quit",
+		"de": "Beenden"
 	}
 }
 const PATTERNS = [
@@ -1825,6 +2009,27 @@ const PATTERNS = [
 		"types": [
 			"s",
 			"s"
+		]
+	},
+	{
+		"source": "СЛОТ %d",
+		"pattern": "^СЛОТ\\ (-?\\d+)$",
+		"types": [
+			"d"
+		]
+	},
+	{
+		"source": "МИССИЯ %02d",
+		"pattern": "^МИССИЯ\\ (-?\\d+)$",
+		"types": [
+			"d"
+		]
+	},
+	{
+		"source": "%d / 50 завершено",
+		"pattern": "^(-?\\d+)\\ /\\ 50\\ завершено$",
+		"types": [
+			"d"
 		]
 	}
 ]

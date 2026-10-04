@@ -1,0 +1,542 @@
+{
+  "pulse": {
+    "file": "pulse.glb",
+    "vertices": 3232,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "reactor": {
+    "file": "reactor.glb",
+    "vertices": 3416,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "shield": {
+    "file": "shield.glb",
+    "vertices": 3048,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "cryo": {
+    "file": "cryo.glb",
+    "vertices": 3232,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "burst": {
+    "file": "burst.glb",
+    "vertices": 3472,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "rail": {
+    "file": "rail.glb",
+    "vertices": 3232,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "mortar": {
+    "file": "mortar.glb",
+    "vertices": 3472,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "repair": {
+    "file": "repair.glb",
+    "vertices": 3176,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "nova": {
+    "file": "nova.glb",
+    "vertices": 3566,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "drone": {
+    "file": "drone.glb",
+    "vertices": 3232,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "runner": {
+    "file": "runner.glb",
+    "vertices": 3232,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "tank": {
+    "file": "tank.glb",
+    "vertices": 2936,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "disruptor": {
+    "file": "disruptor.glb",
+    "vertices": 3236,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "medic": {
+    "file": "medic.glb",
+    "vertices": 3232,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "boss": {
+    "file": "boss.glb",
+    "vertices": 2972,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p0_drone": {
+    "file": "p0_drone.glb",
+    "vertices": 3580,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p0_runner": {
+    "file": "p0_runner.glb",
+    "vertices": 3580,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p0_tank": {
+    "file": "p0_tank.glb",
+    "vertices": 3284,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p0_disruptor": {
+    "file": "p0_disruptor.glb",
+    "vertices": 3584,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p0_medic": {
+    "file": "p0_medic.glb",
+    "vertices": 3580,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p0_boss": {
+    "file": "p0_boss.glb",
+    "vertices": 3320,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p1_drone": {
+    "file": "p1_drone.glb",
+    "vertices": 3268,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p1_runner": {
+    "file": "p1_runner.glb",
+    "vertices": 3268,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p1_tank": {
+    "file": "p1_tank.glb",
+    "vertices": 2972,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p1_disruptor": {
+    "file": "p1_disruptor.glb",
+    "vertices": 3272,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p1_medic": {
+    "file": "p1_medic.glb",
+    "vertices": 3268,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p1_boss": {
+    "file": "p1_boss.glb",
+    "vertices": 3008,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p2_drone": {
+    "file": "p2_drone.glb",
+    "vertices": 3368,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p2_runner": {
+    "file": "p2_runner.glb",
+    "vertices": 3368,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p2_tank": {
+    "file": "p2_tank.glb",
+    "vertices": 3072,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p2_disruptor": {
+    "file": "p2_disruptor.glb",
+    "vertices": 3372,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p2_medic": {
+    "file": "p2_medic.glb",
+    "vertices": 3368,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p2_boss": {
+    "file": "p2_boss.glb",
+    "vertices": 3108,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p3_drone": {
+    "file": "p3_drone.glb",
+    "vertices": 3312,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p3_runner": {
+    "file": "p3_runner.glb",
+    "vertices": 3312,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p3_tank": {
+    "file": "p3_tank.glb",
+    "vertices": 3016,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p3_disruptor": {
+    "file": "p3_disruptor.glb",
+    "vertices": 3316,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p3_medic": {
+    "file": "p3_medic.glb",
+    "vertices": 3312,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p3_boss": {
+    "file": "p3_boss.glb",
+    "vertices": 3052,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p4_drone": {
+    "file": "p4_drone.glb",
+    "vertices": 3516,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p4_runner": {
+    "file": "p4_runner.glb",
+    "vertices": 3516,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p4_tank": {
+    "file": "p4_tank.glb",
+    "vertices": 3220,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p4_disruptor": {
+    "file": "p4_disruptor.glb",
+    "vertices": 3520,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p4_medic": {
+    "file": "p4_medic.glb",
+    "vertices": 3516,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "p4_boss": {
+    "file": "p4_boss.glb",
+    "vertices": 3256,
+    "animations": [
+      "Idle",
+      "Walk",
+      "Attack",
+      "Deploy",
+      "Death"
+    ]
+  },
+  "ship": {
+    "file": "ship.glb",
+    "vertices": 1174,
+    "animations": []
+  },
+  "carrier": {
+    "file": "carrier.glb",
+    "vertices": 1174,
+    "animations": []
+  },
+  "terrain_forest": {
+    "file": "terrain_forest.glb",
+    "vertices": 8469,
+    "animations": []
+  },
+  "terrain_ice": {
+    "file": "terrain_ice.glb",
+    "vertices": 5109,
+    "animations": []
+  },
+  "terrain_lava": {
+    "file": "terrain_lava.glb",
+    "vertices": 4809,
+    "animations": []
+  },
+  "terrain_desert": {
+    "file": "terrain_desert.glb",
+    "vertices": 9069,
+    "animations": []
+  },
+  "terrain_void": {
+    "file": "terrain_void.glb",
+    "vertices": 7557,
+    "animations": []
+  },
+  "core": {
+    "file": "core.glb",
+    "vertices": 978,
+    "animations": []
+  },
+  "planet": {
+    "file": "planet.glb",
+    "vertices": 1986,
+    "animations": []
+  }
+}

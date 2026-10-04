@@ -23,7 +23,7 @@ func run() -> void:
 	game.store.path = PATH
 	game.store.data = OrbitProgress.defaults()
 	game.store.data.sound = false
-	game.action("continue")
+	game.action("new_game")
 	check(game.state == "dialogue" and game.story_context == "intro", "fresh campaign opens the story")
 	game.advance_story()
 	check(game.story_index == 0 and game.story_clock > 0, "first input reveals the whole line")
@@ -31,10 +31,10 @@ func run() -> void:
 	check(game.prologue and game.mission.number == 0 and game.state == "battle", "intro starts a playable prologue")
 	for i in range(660): game.advance(0.05)
 	check(game.state == "cinematic" and game.store.data.completed.is_empty() and game.store.unlocked().size() == 3, "prologue inevitably loses without granting campaign rewards")
-	game._process(9.1)
+	game._process(14.1)
 	check(game.state == "dialogue" and game.story_context == "theft", "core theft leads to pursuit dialogue")
 	finish_dialogue()
-	check(game.store.data.prologue_seen and game.state == "travel" and game.travel_target == 1, "pursuit saves story completion and launches the journey")
+	check(game.store.data.prologue_seen and game.state == "travel" and game.travel_target == 1, "pursuit records story completion and launches the journey")
 	game.action("travel_skip")
 	check(game.state == "briefing" and game.mission.number == 1, "travel leads to first mission briefing")
 	game.action("launch")

@@ -12,7 +12,7 @@ const TYPE_NAMES = {
 }
 const DESCRIPTIONS = {
 	"pulse": "Стреляет по своей дорожке",
-	"reactor": "Вырабатывает энергию каждые 7 с",
+	"reactor": "Вырабатывает энергию каждые 14 с",
 	"shield": "Блокирует киборгов прочной бронёй",
 	"cryo": "Замедляет врагов на 3 секунды",
 	"burst": "Выпускает два заряда за залп",
@@ -23,7 +23,7 @@ const DESCRIPTIONS = {
 }
 const BASE = {
 	"pulse": {"cost": 80, "hp": 140.0, "damage": 13.0, "interval": 1.45},
-	"reactor": {"cost": 50, "hp": 110.0, "damage": 0.0, "interval": 7.0},
+	"reactor": {"cost": 50, "hp": 110.0, "damage": 0.0, "interval": 14.0},
 	"shield": {"cost": 90, "hp": 850.0, "damage": 0.0, "interval": 1.0},
 	"cryo": {"cost": 110, "hp": 150.0, "damage": 7.0, "interval": 1.8},
 	"burst": {"cost": 140, "hp": 160.0, "damage": 11.0, "interval": 1.7},
@@ -83,7 +83,7 @@ static func make_robot(id: String, kind: String, unlock: int) -> Dictionary:
 		"cost": int(base.cost + tier * (5 if kind in ["reactor", "shield"] else 8)),
 		"hp": base.hp * hp_scale, "damage": base.damage * power,
 		"interval": base.interval / (1.0 + tier * 0.04),
-		"energy": 30 + tier * 5 + int(tuning / 3),
+		"energy": 40 + tier * 5 + int(tuning / 3),
 		"cooldown": 1.8 if kind == "shield" else (4.0 if kind == "nova" else 0.65)
 	}
 
@@ -116,8 +116,8 @@ static func level(number: int) -> Dictionary:
 		"number": number, "sector": sector, "name": LOCATION_NAMES[sector][(number - 1) % 10], "terrain": TERRAIN[sector],
 		"sector_name": SECTORS[sector], "mode": mode, "mode_name": MODES[mode],
 		"description": MODE_INFO[mode], "color": COLORS[sector], "lanes": lanes,
-		"blocked": blocked, "waves": batches, "start_energy": 240 + sector * 20,
-		"sky_interval": 9.0 if mode == 1 else 6.0,
+		"blocked": blocked, "waves": batches, "start_energy": 300 + sector * 20,
+		"sky_interval": 22.0 if mode == 1 else 17.0,
 		"spawn_interval": maxf(1.8, 3.4 - number * 0.025 - (0.35 if mode == 2 else 0.0)),
 		"enemy_scale": 1.0 + number * 0.025, "reward": "seed_%02d" % number,
 		"boss": number % 5 == 0
@@ -132,4 +132,4 @@ static func enemy(kind: String, number: int) -> Dictionary:
 		"medic": base = {"hp": 60.0, "speed": 13.0, "bite": 23.0}
 		"boss": base = {"hp": 240.0 + number * 3.0, "speed": 8.0, "bite": 48.0}
 	var scale = 1.0 + number * 0.025
-	return {"hp": base.hp * scale, "speed": base.speed + number * 0.09, "bite": base.bite * (1 + number * 0.01)}
+	return {"hp": base.hp * scale * 1.75, "speed": (base.speed + number * 0.09) * 0.82, "bite": base.bite * (1 + number * 0.01)}

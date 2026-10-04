@@ -31,9 +31,9 @@ var energy = 240
 var score = 0
 var wave_index = 0
 var pending: Array = []
-var wave_wait = 15.0
+var wave_wait = 22.0
 var spawn_clock = 0.0
-var sky_clock = 2.0
+var sky_clock = 10.0
 var emp_clock = 25.0
 var time = 0.0
 var ui_time = 0.0
@@ -45,7 +45,15 @@ var earned_stars = 0
 var rng = RandomNumberGenerator.new()
 var sound_players: Dictionary = {}
 var music: AudioStreamPlayer
-var backdrop: OrbitBackdrop
+var world: OrbitWorld
+var active_campaign = false
+var dirty = false
+var return_state = "menu"
+var resume_state = ""
+var battle_generation = 0
+var slot_mode = "save"
+var pending_slot = 0
+var exit_state = "menu"
 var prologue = false
 var story_context = "intro"
 var story_index = 0
@@ -62,13 +70,13 @@ func _ready() -> void:
 	get_tree().auto_accept_quit = false
 	get_tree().root.close_requested.connect(quit_game)
 	for robot in catalogue: robots[robot.id] = robot
-	store.load_progress()
+	store.load_settings()
 	for key in OrbitContent.TYPES + ["drone", "runner", "tank", "disruptor", "medic", "boss", "ship"]:
-		art[key] = load("res://assets/%s.svg" % key)
+		art[key] = load("res://assets3d/icons/%s.png" % key) if ResourceLoader.exists("res://assets3d/icons/%s.png" % key) else load("res://assets/%s.svg" % key)
 	for sector in range(5):
 		for kind in ["drone", "runner", "tank", "disruptor", "medic", "boss"]:
 			var key = "p%d_%s" % [sector, kind]
-			art[key] = load("res://assets/%s.svg" % key)
+			art[key] = load("res://assets3d/icons/%s.png" % key) if ResourceLoader.exists("res://assets3d/icons/%s.png" % key) else art[kind]
 	for key in ["deploy", "energy", "hit", "alarm", "unlock"]:
 		var player = AudioStreamPlayer.new()
 		player.stream = load("res://audio/%s.wav" % key)
@@ -83,9 +91,9 @@ func _ready() -> void:
 	)
 	apply_settings()
 	music.play()
-	backdrop = OrbitBackdrop.new()
-	backdrop.game = self
-	add_child(backdrop)
+	world = OrbitWorld.new()
+	world.game = self
+	add_child(world)
 	view = OrbitView.new()
 	view.game = self
 	add_child(view)
@@ -123,11 +131,11 @@ func advance_story() -> void:
 		"intro": start_prologue()
 		"theft":
 			store.data.prologue_seen = true
-			store.save_progress()
+			dirty = true
 			begin_travel(store.next_level())
 		"ending":
 			store.data.core_recovered = true
-			store.save_progress()
+			dirty = true
 			state = "menu"
 
 func start_prologue() -> void:
@@ -142,8 +150,8 @@ func start_prologue() -> void:
 	guards = [false, false, false, false, false]
 	energy = 160
 	for cell in [Vector2i(2, 1), Vector2i(2, 3)]:
-		plants[cell] = {"id": "core_pulse", "hp": 140.0, "timer": 0.2, "flash": 0.0, "disabled": 0.0}
-	plants[Vector2i(0, 2)] = {"id": "core_reactor", "hp": 110.0, "timer": 1.0, "flash": 0.0, "disabled": 0.0}
+		plants[cell] = {"id": "core_pulse", "hp": 140.0, "timer": 1.6, "flash": 0.0, "disabled": 0.0, "uid": next_uid(), "age": 0.0}
+	plants[Vector2i(0, 2)] = {"id": "core_reactor", "hp": 110.0, "timer": 6.0, "flash": 0.0, "disabled": 0.0, "uid": next_uid(), "age": 0.0}
 	wave_index = 1
 	spawn_clock = 1.0
 	notify("Удерживайте шлюз! Гражданские эвакуируются на корабль.", 9.0)
@@ -171,8 +179,12 @@ func _exit_tree() -> void:
 		sound_players[key].stop()
 		sound_players[key].stream = null
 
-func quit_game() -> void:
+func quit_game(force: bool = false, exit_code: int = 0) -> void:
 	if quitting: return
+	if active_campaign and dirty and not force:
+		if state != "exit_confirm": exit_state = state
+		state = "exit_confirm"
+		return
 	quitting = true
 	set_process(false)
 	music.stop()
@@ -182,7 +194,7 @@ func quit_game() -> void:
 		player.stream = null
 	# Let the audio thread release queued WAV playback before engine shutdown.
 	await get_tree().create_timer(0.2).timeout
-	get_tree().quit()
+	get_tree().quit(exit_code)
 
 func notify(message: String, duration: float = 3.0) -> void:
 	toast = message
@@ -203,10 +215,16 @@ func choose_level(number: int) -> void:
 		begin_story("intro")
 		return
 	mission = OrbitContent.level(number)
+	level_page = int((number - 1) / 10)
 	state = "briefing"
 
 func start_level(number: int) -> bool:
 	if not store.accessible(number): return false
+	active_campaign = true
+	resume_state = ""
+	dirty = true
+	battle_generation += 1
+	return_state = "menu"
 	prologue = false
 	mission = OrbitContent.level(number)
 	deck = store.data.deck.duplicate()
@@ -224,9 +242,9 @@ func start_level(number: int) -> bool:
 	score = 0
 	wave_index = 0
 	pending.clear()
-	wave_wait = 15.0
+	wave_wait = 22.0
 	spawn_clock = 0.0
-	sky_clock = 2.0
+	sky_clock = 10.0
 	emp_clock = 25.0
 	time = 0.0
 	serial = 0
@@ -260,14 +278,14 @@ func deploy(cell: Vector2i) -> bool:
 		notify("Не хватает энергии. Соберите синие энергокапсулы.")
 		return false
 	energy -= stats.cost
-	plants[cell] = {"id": selected, "hp": stats.hp, "timer": 1.0 if stats.kind == "reactor" else (5.0 if stats.kind == "nova" else 0.2), "flash": 0.0, "disabled": 0.0}
+	plants[cell] = {"id": selected, "hp": stats.hp, "timer": 6.0 if stats.kind == "reactor" else (5.0 if stats.kind == "nova" else 1.6), "flash": 0.0, "disabled": 0.0, "uid": next_uid(), "age": 0.0}
 	cooldowns[selected] = stats.cooldown
 	burst(center(cell), Color(stats.color))
 	fx("deploy")
 	return true
 
 func add_energy(point: Vector2, value: int = 30) -> void:
-	orbs.append({"pos": point, "value": value, "age": 0.0})
+	orbs.append({"pos": point, "value": value, "age": 0.0, "uid": next_uid()})
 
 func collect(point: Vector2) -> bool:
 	if state != "battle": return false
@@ -283,14 +301,14 @@ func collect(point: Vector2) -> bool:
 func spawn_enemy(row: int, kind: String = "drone", x: float = 1365.0) -> void:
 	var stats = OrbitContent.enemy(kind, mission.number)
 	serial += 1
-	enemies.append({"id": serial, "row": row, "kind": kind, "x": x, "hp": stats.hp, "max_hp": stats.hp, "speed": stats.speed, "bite": stats.bite, "slow": 0.0, "flash": 0.0, "special": 4.0, "biome_clock": 6.0, "shield": stats.hp * 0.12 if mission.terrain == "ice" else 0.0, "biting": false})
+	enemies.append({"id": serial, "row": row, "kind": kind, "x": x, "hp": stats.hp, "max_hp": stats.hp, "speed": stats.speed, "bite": stats.bite, "slow": 0.0, "flash": 0.0, "special": 4.0, "biome_clock": 6.0, "shield": stats.hp * 0.12 if mission.terrain == "ice" else 0.0, "biting": false, "age": 0.0})
 
 func burst(point: Vector2, color: Color, count: int = 7) -> void:
 	for i in range(count):
 		particles.append({"pos": point, "velocity": Vector2(rng.randf_range(-80, 80), rng.randf_range(-100, -15)), "life": 0.5, "color": color})
 
 func effect(point: Vector2, color: Color, radius: float = 70.0) -> void:
-	effects.append({"pos": point, "color": color, "radius": radius, "life": 0.4})
+	effects.append({"pos": point, "color": color, "radius": radius, "life": 0.4, "uid": next_uid()})
 
 func blast(point: Vector2, damage: float, radius: float) -> void:
 	for enemy in enemies:
@@ -306,7 +324,7 @@ func _process(delta: float) -> void:
 	if state == "dialogue": story_clock += delta
 	if state in ["cinematic", "travel"]:
 		scene_clock += delta
-		if state == "cinematic" and scene_clock >= 9.0: begin_story("theft")
+		if state == "cinematic" and scene_clock >= 14.0: begin_story("theft")
 		elif state == "travel" and scene_clock >= 4.5: choose_level(travel_target)
 	if state == "battle": advance(minf(delta, 0.05))
 	view.queue_redraw()
@@ -314,6 +332,7 @@ func _process(delta: float) -> void:
 func advance(delta: float) -> void:
 	if state != "battle": return
 	time += delta
+	dirty = true
 	for id in cooldowns: cooldowns[id] = maxf(0.0, cooldowns[id] - delta)
 	for i in range(particles.size() - 1, -1, -1):
 		particles[i].life -= delta
@@ -325,7 +344,7 @@ func advance(delta: float) -> void:
 		if effects[i].life <= 0.0: effects.remove_at(i)
 	for i in range(orbs.size() - 1, -1, -1):
 		orbs[i].age += delta
-		if orbs[i].age > 15.0: orbs.remove_at(i)
+		if orbs[i].age > 20.0: orbs.remove_at(i)
 	sky_clock -= delta
 	if sky_clock <= 0.0:
 		sky_clock = mission.sky_interval
@@ -371,7 +390,7 @@ func _update_waves(delta: float) -> void:
 		if wave_wait <= 0.0:
 			pending = mission.waves[wave_index].duplicate(true)
 			wave_index += 1
-			wave_wait = 7.0
+			wave_wait = 12.0
 			spawn_clock = 0.0
 			notify("Волна %d / %d. Киборги приближаются!" % [wave_index, mission.waves.size()])
 			fx("alarm")
@@ -380,6 +399,7 @@ func _update_robots(delta: float) -> void:
 	for cell in plants.keys():
 		var bot: Dictionary = plants[cell]
 		var stats: Dictionary = robots[bot.id]
+		bot.age = bot.get("age", 0.0) + delta
 		bot.flash = maxf(0.0, bot.flash - delta)
 		if bot.disabled > 0:
 			bot.disabled = maxf(0.0, bot.disabled - delta)
@@ -407,7 +427,7 @@ func _update_robots(delta: float) -> void:
 					if enemy.row == cell.y and enemy.hp > 0 and enemy.x > center(cell).x:
 						var count = 2 if stats.kind == "burst" else 1
 						for i in range(count):
-							bullets.append({"pos": center(cell) + Vector2(31 - i * 23, -4), "row": cell.y, "damage": stats.damage, "kind": stats.kind, "hits": []})
+							bullets.append({"pos": center(cell) + Vector2(31 - i * 23, -4), "row": cell.y, "damage": stats.damage, "kind": stats.kind, "hits": [], "uid": next_uid()})
 						bot.timer = stats.interval
 						bot.flash = 0.1
 						break
@@ -445,6 +465,7 @@ func _update_enemies(delta: float) -> void:
 			score += 100 if enemy.kind == "boss" else 10
 			enemies.remove_at(i)
 			continue
+		enemy.age = enemy.get("age", 0.0) + delta
 		enemy.flash = maxf(0.0, enemy.flash - delta)
 		enemy.slow = maxf(0.0, enemy.slow - delta)
 		enemy.special -= delta
@@ -487,7 +508,7 @@ func _update_enemies(delta: float) -> void:
 				guards[enemy.row] = false
 				for other in enemies:
 					if other.row == enemy.row: other.hp = 0.0
-				effects.append({"pos": Vector2(720, center(Vector2i(0, enemy.row)).y), "radius": 610.0, "life": 0.4, "color": Color("6de6dc"), "beam": true})
+				effects.append({"pos": Vector2(720, center(Vector2i(0, enemy.row)).y), "radius": 610.0, "life": 0.4, "color": Color("6de6dc"), "beam": true, "uid": next_uid()})
 				fx("alarm")
 				notify("Аварийный барьер очистил дорожку %d. Второй прорыв опасен!" % (enemy.row + 1))
 			else:
@@ -503,6 +524,7 @@ func finish(won: bool) -> void:
 		toast_time = 0.0
 		fx("alarm")
 		return
+	dirty = true
 	state = "victory" if won else "defeat"
 	if won:
 		var used = 0
@@ -529,7 +551,7 @@ func toggle_card(id: String) -> void:
 		return
 	else:
 		store.data.deck.append(id)
-	store.save_progress()
+	dirty = true
 
 func _unhandled_input(event: InputEvent) -> void:
 	if quitting: return
@@ -538,10 +560,16 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseButton and not event.pressed and event.button_index == MOUSE_BUTTON_LEFT and slider_key != "":
 		slider_key = ""
-		store.save_progress()
+		store.save_settings()
 		fx("deploy")
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_F5 and active_campaign:
+			open_slots("save")
+			return
+		if event.keycode == KEY_F9:
+			open_slots("load")
+			return
 		if state == "dialogue" and event.keycode in [KEY_ENTER, KEY_SPACE]:
 			advance_story()
 			return
@@ -556,10 +584,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			elif event.keycode in [KEY_ESCAPE, KEY_SPACE]: state = "pause"
 		elif state == "pause" and event.keycode in [KEY_ESCAPE, KEY_SPACE, KEY_ENTER]: state = "battle"
 		elif event.keycode == KEY_ESCAPE:
-			if state == "settings": state = previous_screen
+			if state == "exit_confirm": state = exit_state
+			elif state in ["save", "load", "new_confirm"]: state = return_state
+			elif state == "settings": state = previous_screen
 			elif state not in ["dialogue", "cinematic", "travel"]: state = "menu"
 		elif event.keycode == KEY_ENTER:
-			if state == "menu": action("continue")
+			if state == "menu": action("continue" if active_campaign else "new_game")
 			elif state == "briefing": action("launch")
 			elif state == "victory": action("next")
 			elif state == "defeat": action("retry")
@@ -575,7 +605,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				if not button.get("disabled", false): action(button.action, button.get("value", ""))
 				return
 		if state == "dialogue": advance_story()
-		elif state == "battle" and not collect(point): deploy(cell_at(point))
+		elif state == "battle" and not world.collect_screen(point): deploy(world.cell_from_screen(point))
 
 func update_slider(point: Vector2) -> void:
 	store.data[slider_key] = clampf((point.x - 136.0) / 535.0, 0.0, 1.0)
@@ -584,31 +614,64 @@ func update_slider(point: Vector2) -> void:
 func action(command: String, value: Variant = "") -> void:
 	match command:
 		"continue":
+			if not active_campaign: return
+			if resume_state != "":
+				state = "pause" if resume_state == "battle" else resume_state
+				resume_state = ""
+			elif not store.data.prologue_seen: begin_story("intro")
+			else: begin_travel(store.next_level())
+		"new_game":
+			return_state = state
+			if active_campaign: state = "new_confirm"
+			else: new_game()
+		"new_accept": new_game()
+		"save", "load": open_slots(command)
+		"slot":
+			if slot_mode == "save":
+				if not store.slot_info(int(value)).is_empty(): pending_slot = int(value)
+				else: save_slot(int(value))
+			else: load_slot(int(value))
+		"overwrite": save_slot(pending_slot)
+		"cancel_overwrite": pending_slot = 0
+		"slot_back":
+			pending_slot = 0
+			state = return_state
+		"legacy": load_legacy()
+		"story": action("new_game")
+		"journey":
 			if not store.data.prologue_seen: begin_story("intro")
 			else: begin_travel(store.next_level())
-		"story": begin_story("intro")
 		"dialogue_next": advance_story()
 		"travel_skip": choose_level(travel_target)
 		"language":
 			if str(value) in ["ru", "en", "de"]:
 				store.data.language = str(value)
-				store.save_progress()
+				store.save_settings()
 				apply_settings()
 		"fullscreen":
 			store.data.fullscreen = not store.data.fullscreen
-			store.save_progress()
+			store.save_settings()
 			apply_settings()
 		"slider":
 			slider_key = str(value)
 			update_slider(get_local_mouse_position())
 		"quit": quit_game()
-		"menu": state = "menu"
+		"quit_accept": quit_game(true)
+		"quit_back": state = exit_state
+		"menu":
+			var underlying = return_state if state in ["save", "load"] else (previous_screen if state == "settings" else state)
+			if underlying != "menu": resume_state = "pause" if underlying == "battle" else underlying
+			return_state = "menu"
+			state = "menu"
 		"map":
+			if not active_campaign: return
 			level_page = int((store.next_level() - 1) / 10)
 			state = "map"
 		"level": choose_level(int(value))
+		"planet": level_page = clampi(int(value), 0, 4)
 		"map_page": level_page = clampi(level_page + int(value), 0, 4)
 		"hangar":
+			if not active_campaign: return
 			previous_screen = state if state in ["briefing", "menu", "map"] else "menu"
 			state = "hangar"
 		"hangar_back": state = previous_screen
@@ -638,5 +701,208 @@ func action(command: String, value: Variant = "") -> void:
 		"settings_back": state = previous_screen
 		"sound":
 			store.data.sound = not store.data.sound
-			store.save_progress()
+			store.save_settings()
 			apply_settings()
+
+
+func next_uid() -> int:
+	serial += 1
+	return serial
+
+func new_game() -> void:
+	store.new_campaign()
+	active_campaign = true
+	dirty = true
+	resume_state = ""
+	return_state = "menu"
+	plants.clear()
+	enemies.clear()
+	orbs.clear()
+	bullets.clear()
+	mission = OrbitContent.level(1)
+	prologue = false
+	deck = store.data.deck.duplicate()
+	selected = deck[0]
+	pending.clear()
+	cooldowns.clear()
+	guards = [true, true, true, true, true]
+	energy = mission.start_energy
+	score = 0
+	time = 0
+	serial = 0
+	wave_index = 0
+	reward_new = false
+	earned_stars = 0
+	level_page = 0
+	focus_robot = "core_pulse"
+	begin_story("intro")
+
+func open_slots(mode: String) -> void:
+	if mode == "save" and not active_campaign: return
+	if state not in ["save", "load", "new_confirm"]: return_state = state
+	pending_slot = 0
+	slot_mode = mode
+	state = mode
+
+static func encode(value: Variant) -> Variant:
+	if value is Vector2: return {"v2": [value.x, value.y]}
+	if value is Vector2i: return {"v2i": [value.x, value.y]}
+	if value is Array:
+		var result = []
+		for item in value: result.append(encode(item))
+		return result
+	if value is Dictionary:
+		var result = {}
+		for key in value: result[str(key)] = encode(value[key])
+		return result
+	return value
+
+static func decode(value: Variant) -> Variant:
+	if value is Dictionary:
+		if value.size() == 1 and value.get("v2") is Array and value.v2.size() == 2: return Vector2(float(value.v2[0]), float(value.v2[1]))
+		if value.size() == 1 and value.get("v2i") is Array and value.v2i.size() == 2: return Vector2i(int(value.v2i[0]), int(value.v2i[1]))
+		var result = {}
+		for key in value: result[key] = decode(value[key])
+		return result
+	if value is Array:
+		var result = []
+		for item in value: result.append(decode(item))
+		return result
+	return value
+
+const SESSION_FIELDS = ["selected", "energy", "score", "wave_index", "wave_wait", "spawn_clock", "sky_clock", "emp_clock", "time", "serial", "prologue", "story_context", "story_index", "story_clock", "scene_clock", "travel_target", "reward_new", "earned_stars"]
+
+func snapshot() -> Dictionary:
+	var target = return_state if state in ["save", "load", "new_confirm"] else state
+	if target == "exit_confirm": target = exit_state
+	if target == "settings": target = previous_screen
+	if target == "menu" and resume_state != "": target = resume_state
+	var result = {"state": target, "mission_number": mission.number, "rng_state": str(rng.state), "deck": deck.duplicate(), "guards": guards.duplicate(), "cooldowns": cooldowns.duplicate(), "enemies": encode(enemies), "bullets": encode(bullets), "orbs": encode(orbs), "pending": encode(pending), "plants": []}
+	for field in SESSION_FIELDS: result[field] = get(field)
+	for cell in plants: result.plants.append({"cell": [cell.x, cell.y], "bot": plants[cell].duplicate(true)})
+	return result
+
+func save_slot(slot: int) -> bool:
+	if not active_campaign or slot < 1 or slot > 3: return false
+	var ok = store.save_slot(slot, snapshot())
+	if ok:
+		dirty = false
+		pending_slot = 0
+		state = return_state
+		notify("Сохранение записано. Бой и маршрут сохранены.", 5)
+	else: notify(store.notice, 8)
+	return ok
+
+func valid_session(payload: Dictionary, progress: Dictionary) -> bool:
+	var states = ["menu", "map", "hangar", "briefing", "battle", "pause", "victory", "defeat", "dialogue", "cinematic", "travel", "settings"]
+	if payload.get("state") not in states: return false
+	var number = int(payload.get("mission_number", -1))
+	if number < 0 or number > 50: return false
+	for key in SESSION_FIELDS:
+		if not payload.has(key): return false
+	for key in ["energy", "score", "wave_index", "wave_wait", "spawn_clock", "sky_clock", "emp_clock", "time", "serial", "story_index", "story_clock", "scene_clock", "travel_target", "earned_stars"]:
+		if not numeric(payload[key]): return false
+	for key in ["prologue", "reward_new"]:
+		if not payload[key] is bool: return false
+	if not payload.selected is String or (payload.selected != "recycle" and not robots.has(payload.selected)): return false
+	if payload.story_context not in ["intro", "theft", "ending"]: return false
+	if payload.energy < 0 or payload.time < 0 or payload.serial < 0 or payload.earned_stars < 0 or payload.earned_stars > 3: return false
+	if payload.travel_target < 1 or payload.travel_target > 50: return false
+	if payload.state == "dialogue" and (payload.story_index < 0 or payload.story_index >= OrbitStory.lines(payload.story_context).size()): return false
+	if payload.wave_index < 0 or payload.wave_index > OrbitContent.level(maxi(1,number)).waves.size(): return false
+
+	for key in ["deck", "guards", "enemies", "bullets", "orbs", "pending", "plants"]:
+		if not payload.get(key) is Array: return false
+	if payload.guards.size() != 5 or payload.plants.size() > 45 or payload.enemies.size() > 500 or payload.orbs.size() > 500 or payload.bullets.size() > 1000: return false
+	if not payload.get("cooldowns") is Dictionary or not str(payload.get("rng_state", "")).is_valid_int(): return false
+	var owned = OrbitContent.STARTERS.duplicate()
+	for key in progress.completed: owned.append("seed_%02d" % int(key))
+	if payload.deck.size() > 6: return false
+	for guard in payload.guards:
+		if not guard is bool: return false
+	for key in payload.cooldowns:
+		if not robots.has(key) or not numeric(payload.cooldowns[key]) or payload.cooldowns[key] < 0: return false
+	for event in payload.pending:
+		if not event is Dictionary or event.get("kind") not in ["drone", "runner", "tank", "disruptor", "medic", "boss"] or not numeric(event.get("row")): return false
+		if event.row < 0 or event.row > 4: return false
+	for id in payload.deck:
+		if id not in owned: return false
+	var used = {}
+	for entry in payload.plants:
+		if not entry is Dictionary or not entry.get("cell") is Array or entry.cell.size() != 2 or not entry.get("bot") is Dictionary: return false
+		var cell = Vector2i(int(entry.cell[0]), int(entry.cell[1]))
+		if cell.x < 0 or cell.x >= 9 or cell.y < 0 or cell.y >= 5 or used.has(cell): return false
+		used[cell] = true
+		if entry.bot.get("id") not in owned: return false
+		for key in ["uid", "hp", "timer", "disabled", "flash", "age"]:
+			if not numeric(entry.bot.get(key)): return false
+	for enemy in payload.enemies:
+		if not enemy is Dictionary or enemy.get("kind") not in ["drone", "runner", "tank", "disruptor", "medic", "boss"]: return false
+		if int(enemy.get("row", -1)) < 0 or int(enemy.get("row", -1)) >= 5: return false
+		for key in ["id", "x", "hp", "max_hp", "speed", "bite", "slow", "flash", "special", "biome_clock", "shield"]:
+			if not numeric(enemy.get(key)): return false
+	for orb in payload.orbs:
+		if not orb is Dictionary or not safe_vector(orb.get("pos")) or not numeric(orb.get("value")) or not numeric(orb.get("uid")) or not numeric(orb.get("age")): return false
+	for bullet in payload.bullets:
+		if not bullet is Dictionary or not safe_vector(bullet.get("pos")) or not bullet.get("hits") is Array or not numeric(bullet.get("uid")) or not numeric(bullet.get("damage")) or not numeric(bullet.get("row")) or bullet.get("kind") not in OrbitContent.TYPES: return false
+	return true
+
+func load_slot(slot: int) -> bool:
+	var payload = store.load_slot(slot)
+	if payload.is_empty() or not valid_session(payload.session, payload.progress):
+		notify("Не удалось загрузить сохранение. Файл сохранён без изменений.", 7)
+		return false
+	store.adopt(payload.progress)
+	var session: Dictionary = payload.session
+	mission = OrbitContent.level(maxi(1, int(session.mission_number)))
+	for field in SESSION_FIELDS: set(field, session[field])
+	if prologue:
+		mission.number = 0
+		mission.name = "Падение станции"
+		mission.lanes = [0, 1, 2, 3, 4]
+		mission.sector_name = "Станция Астра"
+		mission.mode_name = "Эвакуация колонии"
+	plants.clear()
+	for entry in session.plants: plants[Vector2i(int(entry.cell[0]), int(entry.cell[1]))] = entry.bot.duplicate(true)
+	enemies.assign(decode(session.enemies))
+	bullets.assign(decode(session.bullets))
+	orbs.assign(decode(session.orbs))
+	pending = decode(session.pending)
+	deck = session.deck.duplicate()
+	guards.assign(session.guards)
+	cooldowns = session.cooldowns.duplicate()
+	rng.state = int(session.rng_state)
+	particles.clear()
+	effects.clear()
+	battle_generation += 1
+	active_campaign = true
+	dirty = false
+	return_state = "menu"
+	resume_state = ""
+	pending_slot = 0
+	state = "pause" if session.state in ["battle", "pause"] else session.state
+	if state == "settings": state = "menu"
+	level_page = int((store.next_level() - 1) / 10)
+	apply_settings()
+	notify("Сохранение загружено. Нажмите «Продолжить», когда будете готовы.", 6)
+	return true
+
+func load_legacy() -> bool:
+	var parsed = store.read_json("user://orbit_progress.json")
+	if not store.valid(parsed): return false
+	store.adopt(parsed)
+	active_campaign = true
+	dirty = true
+	resume_state = ""
+	return_state = "menu"
+	state = "map"
+	level_page = int((store.next_level() - 1) / 10)
+	notify("Старая кампания импортирована. Сохраните её в новый слот.", 7)
+	return true
+
+
+static func numeric(value: Variant) -> bool:
+	return (value is int or value is float) and is_finite(float(value))
+
+static func safe_vector(value: Variant) -> bool:
+	return value is Dictionary and value.get("v2") is Array and value.v2.size() == 2 and numeric(value.v2[0]) and numeric(value.v2[1])

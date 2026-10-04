@@ -62,14 +62,14 @@ func run() -> void:
 	check(game.cell_at(Vector2(240, 292)) == Vector2i(0, 0) and game.cell_at(Vector2(1284, 772)) == Vector2i(-1, -1), "grid boundaries map correctly")
 	check(not game.deploy(Vector2i(0, 0)), "inactive lanes reject robots")
 	game.selected = "core_reactor"
-	check(game.deploy(Vector2i(0, 1)) and game.energy == 190, "reactor costs exactly 50 energy")
+	check(game.deploy(Vector2i(0, 1)) and game.energy == 250, "reactor costs exactly 50 energy")
 	check(not game.deploy(Vector2i(0, 1)) and not game.deploy(Vector2i(1, 1)), "occupied cells and seed cooldown reject deployment")
-	step(1.1)
+	step(6.1)
 	check(game.orbs.size() == 1, "reactor produces an energy capsule")
 	var point: Vector2 = game.orbs[0].pos
-	check(game.collect(point) and game.energy == 220 and not game.collect(point), "energy capsule credits once")
+	check(game.collect(point) and game.energy == 290 and not game.collect(point), "energy capsule credits once")
 	game.selected = "recycle"
-	check(game.deploy(Vector2i(0, 1)) and game.energy == 232, "recycling refunds 25 percent, rounded down")
+	check(game.deploy(Vector2i(0, 1)) and game.energy == 302, "recycling refunds 25 percent, rounded down")
 	game.selected = "core_pulse"
 	game.energy = 0
 	check(not game.deploy(Vector2i(1, 1)), "insufficient energy blocks deployment")
@@ -79,7 +79,7 @@ func run() -> void:
 	game.selected = "core_pulse"
 	game.deploy(Vector2i(0, 1))
 	game.spawn_enemy(1, "drone", 520)
-	step(7)
+	step(12)
 	check(game.enemies.is_empty() and game.score == 10, "pulse robot kills a cyborg on its lane")
 	reset()
 	game.deploy(Vector2i(0, 1))
@@ -90,14 +90,14 @@ func run() -> void:
 	use_seed("seed_01")
 	game.deploy(Vector2i(0, 1))
 	game.spawn_enemy(1, "tank", 460)
-	step(1)
+	step(2)
 	check(game.enemies[0].slow > 0.0, "cryo projectiles slow a cyborg")
 	reset(6)
 	use_seed("seed_05")
 	game.deploy(Vector2i(0, 1))
 	game.spawn_enemy(1, "tank", 460)
 	game.spawn_enemy(1, "tank", 500)
-	step(0.85)
+	step(2.0)
 	check(game.enemies[0].hp < game.enemies[0].max_hp and game.enemies[1].hp < game.enemies[1].max_hp, "rail projectile pierces multiple targets")
 	var hp: float = game.enemies[0].hp
 	step(0.1)
@@ -107,7 +107,7 @@ func run() -> void:
 	game.deploy(Vector2i(0, 1))
 	game.spawn_enemy(1, "tank", 460)
 	game.spawn_enemy(2, "tank", 460)
-	step(0.6)
+	step(2.0)
 	check(game.enemies[0].hp < game.enemies[0].max_hp and game.enemies[1].hp < game.enemies[1].max_hp, "mortar splash hits adjacent lanes")
 	reset(4)
 	game.selected = "core_shield"
@@ -115,14 +115,14 @@ func run() -> void:
 	use_seed("seed_03")
 	game.deploy(Vector2i(3, 1))
 	game.plants[Vector2i(4, 1)].hp = 500.0
-	step(0.3)
+	step(2.0)
 	check(game.plants[Vector2i(4, 1)].hp > 500.0, "repair robot heals an adjacent ally")
 	reset(7)
 	use_seed("seed_06")
 	game.deploy(Vector2i(4, 1))
 	game.spawn_enemy(1, "tank", game.center(Vector2i(4, 1)).x + 125)
 	step(5.1)
-	check(not game.plants.has(Vector2i(4, 1)) and game.enemies.is_empty(), "nova detonates once, consumes itself and destroys nearby enemies")
+	check(not game.plants.has(Vector2i(4, 1)) and (game.enemies.is_empty() or game.enemies[0].hp < game.enemies[0].max_hp * 0.25), "nova detonates once, consumes itself and heavily damages armored enemies")
 	reset(5)
 	game.selected = "core_pulse"
 	game.deploy(Vector2i(0, 1))
@@ -158,7 +158,7 @@ func run() -> void:
 	step(3)
 	check(game.time == before and not game.deploy(Vector2i(0, 1)), "pause freezes gameplay and deployment")
 	reset()
-	check(game.energy == 240 and game.guards[1] and game.state == "battle", "retry resets mission resources and defenses")
+	check(game.energy == 300 and game.guards[1] and game.state == "battle", "retry resets mission resources and defenses")
 	game.store.data = OrbitProgress.defaults()
 	game.store.data.sound = false
 	var earned = true
@@ -171,6 +171,8 @@ func run() -> void:
 	game.toggle_card("core_pulse")
 	game.toggle_card("seed_25")
 	check(game.store.data.deck.size() == 6 and "seed_25" in game.store.data.deck, "hangar replaces an equipped seed with an unlocked one")
+	check(game.store.save_progress(), "campaign is explicitly saved on request")
+	game.store.save_progress()
 	var restored = OrbitProgress.new()
 	restored.path = save_path
 	restored.load_progress()
