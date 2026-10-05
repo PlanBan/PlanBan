@@ -27,6 +27,7 @@ func load_all() -> void:
   elif FileAccess.file_exists(path): notice = "corrupt"
  if valid_save(payload):
   data = AstraCards.integers(payload.run)
+  if not data.has("research"): data.research = AstraResearch.defaults()
   rng.state = int(data.rng)
   if not data.battle.is_empty(): battle.restore(data.battle)
 func migrate_legacy(sources: Array = []) -> void:
@@ -57,7 +58,7 @@ func resume_available() -> bool:
 func new_run(seed_value: int = 0, deck_kind: int = 0) -> void:
  if deck_kind not in meta.decks: deck_kind = 0
  rng.seed = seed_value if seed_value != 0 else int(Time.get_unix_time_from_system()) ^ Time.get_ticks_usec()
- data = {"state":"intro","act":0,"depth":-1,"column":1,"current":"","visited":[],"map":[],"deck":[],"serial":1,"core":20,"max_core":20,"credits":30,"battles":0,"reward":[],"stock":[],"battle":{},"rng":"0","intro":0,"seed":str(rng.seed),"deck_kind":deck_kind,"ended":false,"hull":0}
+ data = {"state":"intro","act":0,"depth":-1,"column":1,"current":"","visited":[],"map":[],"deck":[],"serial":1,"core":20,"max_core":20,"credits":30,"battles":0,"reward":[],"stock":[],"battle":{},"rng":"0","intro":0,"seed":str(rng.seed),"deck_kind":deck_kind,"ended":false,"hull":0,"research":AstraResearch.defaults()}
  for id in AstraCards.starter(deck_kind): add_card(id)
  meta.runs += 1
  build_map(); save()
@@ -102,7 +103,7 @@ func choose_node(id: String) -> bool:
  var kind: String = picked.kind
  match kind:
   "battle","elite","boss":
-   battle.begin(data.deck, int(data.core), int(data.act), kind, rng.randi())
+   battle.begin(data.deck, int(data.core), int(data.act), kind, rng.randi(),int(data.max_core),AstraResearch.bonuses(data.get("research",{})))
    data.battle = battle.checkpoint(); data.state = "battle"
   "reward": prepare_reward(false)
   "shop": data.state = "shop"; data.stock = offers(3)
@@ -147,7 +148,7 @@ func finish_node() -> void:
    data.state = "ending"
    if not data.ended: meta.wins += 1; data.ended = true
   else:
-   data.act += 1; data.core = mini(20,int(data.core)+10)
+   data.act += 1; data.core = mini(int(data.max_core),int(data.core)+10)
    data.battle.clear(); build_map(); data.state = "travel"
  else: data.state = "map"
  save()
@@ -164,7 +165,7 @@ func remove_card(uid: int) -> bool:
  return false
 func rest() -> bool:
  if data.state != "rest": return false
- data.core = mini(20,int(data.core)+7); finish_node(); return true
+ data.core = mini(int(data.max_core),int(data.core)+7); finish_node(); return true
 func shop_buy(index: int) -> bool:
  if data.state != "shop" or index < 0 or index >= data.stock.size() or data.stock[index] == "": return false
  var id: String = data.stock[index]
@@ -181,6 +182,14 @@ func event_choice(choice: int) -> bool:
  var log_id = "signal%d" % int(data.act)
  if log_id not in meta.logs: meta.logs.append(log_id)
  finish_node(); return true
+func buy_research(branch: String, rank: int) -> bool:
+ if data.get("state","") not in ["map","upgrade","travel","rest","shop"] or branch not in AstraResearch.BRANCHES: return false
+ if not data.has("research"): data.research = AstraResearch.defaults()
+ var level = int(data.research[branch])
+ if rank != level or level >= 3 or int(data.act)<level or data.credits<AstraResearch.COSTS[level]: return false
+ data.credits -= AstraResearch.COSTS[level]; data.research[branch] = level+1
+ if branch == "core": data.max_core += 4; data.core = mini(data.max_core,data.core+4)
+ save(); return true
 func valid_meta(value: Variant) -> bool:
  if not value is Dictionary or value.get("version",0) != 4: return false
  for key in ["unlocked","logs","decks","hulls"]:
@@ -207,9 +216,12 @@ func valid_save(payload: Variant) -> bool:
  var run: Dictionary = payload.run
  if run.get("state","") not in ["intro","map","battle","reward","event","planet","upgrade","rest","shop","remove","travel","defeat","ending"]: return false
  for key in ["act","depth","column","serial","core","max_core","credits","battles","intro","deck_kind","hull"]:
-  var ranges = {"act":[0,4],"depth":[-1,6],"column":[0,2],"core":[0,20],"max_core":[20,20],"intro":[0,4],"deck_kind":[0,2],"hull":[0,5]}
+  var ranges = {"act":[0,4],"depth":[-1,6],"column":[0,2],"core":[0,32],"max_core":[20,32],"intro":[0,4],"deck_kind":[0,2],"hull":[0,5]}
   var bounds: Array = ranges.get(key,[0,1000000])
   if not numeric(run.get(key),bounds[0],bounds[1]): return false
+ if run.core > run.max_core or int(run.max_core) % 4 != 0: return false
+ if run.has("research") and (not AstraResearch.valid(run.research) or run.max_core != 20+4*int(run.research.core)): return false
+ if not run.has("research") and run.max_core != 20: return false
  if not run.get("rng") is String or not run.rng.is_valid_int() or not run.get("seed") is String or not run.get("ended") is bool: return false
  for key in ["deck","map","visited","reward","stock"]:
   if not run.get(key) is Array or run[key].size() > 100: return false
@@ -239,13 +251,18 @@ func valid_battle(value: Dictionary, owned: Array) -> bool:
  if value.get("phase","") not in ["player","resolving","won","lost"]: return false
  if value.get("kind","") not in ["battle","elite","boss"] or not value.get("rng") is String or not value.rng.is_valid_int() or not value.get("boss_phase") is bool: return false
  for key in ["act","turn","core","max_core","enemy_core","max_enemy_core","energy","max_energy","serial"]:
-  var limits = {"act":[0,4],"turn":[1,10000],"core":[0,20],"max_core":[20,20],"enemy_core":[0,100],"max_enemy_core":[1,100],"energy":[0,12],"max_energy":[1,6],"serial":[1000,1000000]}
+  var limits = {"act":[0,4],"turn":[1,10000],"core":[0,32],"max_core":[20,32],"enemy_core":[0,100],"max_enemy_core":[1,100],"energy":[0,12],"max_energy":[1,6],"serial":[1000,1000000]}
   if not numeric(value.get(key),limits[key][0],limits[key][1]): return false
  for key in ["hand","draw","discard","friendly","enemy","pending","intent"]:
   if not value.get(key) is Array or value[key].size() > 100: return false
  if value.friendly.size() != 4 or value.enemy.size() != 4 or value.hand.size() > 7: return false
- if value.has("ruleset") and (not numeric(value.ruleset,41,42)): return false
+ if value.has("ruleset") and (not numeric(value.ruleset,41,43)): return false
  if int(value.get("ruleset",41)) == 42 and (value.hand.size() > 5 or value.energy > value.max_energy or value.max_energy > 5): return false
+ if int(value.get("ruleset",41)) == 43 and (value.hand.size()>5 or value.energy>value.max_energy or value.max_energy>6): return false
+ if value.core>value.max_core or value.enemy_core>value.max_enemy_core: return false
+ if value.has("tech") and not value.tech.is_empty() and not AstraResearch.valid_bonuses(value.tech): return false
+ if value.has("briefed") and not value.briefed is bool: return false
+ if value.has("taunt") and not numeric(value.taunt,0,2): return false
  if value.has("tutorial") and (not value.tutorial is bool or not numeric(value.get("tutorial_step"),0,5)): return false
  var located: Array = []
  for entry in value.hand + value.draw + value.discard:
@@ -268,7 +285,8 @@ func valid_battle(value: Dictionary, owned: Array) -> bool:
     if not numeric(bot.get(key),0,1000000): return false
    if bot.hp <= 0 or bot.hp > bot.max_hp or not bot.get("effect") is String: return false
    if not numeric(bot.get("cost"),0,12) or not numeric(bot.get("rarity"),0,4): return false
-   if bot.has("focus") and not numeric(bot.focus,0,1): return false
+   if bot.has("armor") and not numeric(bot.armor,0,1): return false
+   if bot.has("focus") and not numeric(bot.focus,0,2): return false
    if bot.has("ordered_turn") and not numeric(bot.ordered_turn,1,10000): return false
  if located.size() != owned.size(): return false
  for action in value.pending:

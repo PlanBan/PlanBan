@@ -17,6 +17,7 @@ const CARDS = {
  "overload": {"name":["Перегрузка","Overload","Überlastung"],"cost":2,"attack":0,"hp":0,"rarity":1,"effect":"overload","art":"nova","target":"all"},
  "barrier": {"name":["Аварийный щит","Emergency shield","Notschild"],"cost":1,"attack":0,"hp":0,"rarity":0,"effect":"barrier","art":"shield","target":"friend"},
  "astra": {"name":["Импульс Астры","Astra pulse","Astra-Impuls"],"cost":1,"attack":0,"hp":0,"rarity":4,"effect":"boost","art":"reactor","target":"all"},
+ "core_repair": {"name":["Ремонт ядра","Core repair","Kernreparatur"],"cost":2,"attack":0,"hp":0,"rarity":1,"effect":"coreheal","art":"repair","target":"all"},
  "emp": {"name":["ЭМИ","EMP","EMP"],"cost":2,"attack":0,"hp":0,"rarity":2,"effect":"emp","art":"cryo","target":"enemy"},
  "recall": {"name":["Пересборка","Reassembly","Neuaufbau"],"cost":0,"attack":0,"hp":0,"rarity":1,"effect":"recall","art":"repair","target":"friend"},
  "verdant": {"name":["Симбионт","Symbiont","Symbiont"],"cost":2,"attack":2,"hp":4,"rarity":2,"effect":"regen","art":"pulse","planet":0},
@@ -26,6 +27,7 @@ const CARDS = {
  "echo": {"name":["Эхо Астры","Astra echo","Astra-Echo"],"cost":3,"attack":3,"hp":4,"rarity":4,"effect":"echo","art":"nova","planet":4}
 }
 const EFFECTS = {
+ "coreheal":["Восстанавливает ядру 8 HP","Restores 8 core HP","Stellt 8 Kern-LP wieder her"],
  "armor":["Броня: поглощает 2 урона","Armour: absorbs 2 damage","Panzerung: absorbiert 2 Schaden"],
  "jam":["Отключает способность цели","Disables target's ability","Schaltet Zielfähigkeit ab"],
  "refund":["За убийство: +1 энергия","On kill: +1 energy","Bei Abschuss: +1 Energie"],
@@ -40,7 +42,7 @@ const EFFECTS = {
  "heal":["Ремонт союзника: 4 здоровья","Repair ally: 4 health","Verbündeten heilen: 4 LP"],
  "overload":["Всем врагам: 2 урона","All enemies: 2 damage","Alle Gegner: 2 Schaden"],
  "barrier":["Щит союзнику на ход: 3","Ally shield for one turn: 3","Schild für einen Zug: 3"],
- "boost":["+2 энергии; предел 5","+2 energy; limit 5","+2 Energie; Grenze 5"],
+ "boost":["+2 энергии; предел 6","+2 energy; limit 6","+2 Energie; Grenze 6"],
  "emp":["Отключение цели на ход","Disables target for one turn","Schaltet Ziel einen Zug ab"],
  "recall":["Вернуть союзника в руку","Return an ally to your hand","Verbündeten zurück auf die Hand"],
  "regen":["Каждый ход: +1 здоровье","Each turn: +1 health","Pro Zug: +1 LP"],
@@ -87,16 +89,21 @@ static func card(id: String, upgrade: int = 0) -> Dictionary:
   result.attack += upgrade
   result.hp += upgrade * 2
  elif upgrade > 0: result.cost = maxi(0, result.cost - upgrade)
+ if result.effect == "coreheal": result.healing = 8+4*upgrade
  return result
+static func description(entry: Dictionary, language: String) -> String:
+ if entry.effect == "coreheal":
+  return word(["Восстанавливает ядру %d HP","Restores %d core HP","Stellt %d Kern-LP wieder her"],language) % int(entry.get("healing",8))
+ return word(EFFECTS.get(entry.effect,["","",""]),language)
 static func reward_pool(act: int, unlocked: Array) -> Array:
  var result: Array = []
  for id in CARDS:
   if CARDS[id].get("planet", -1) == act or (not CARDS[id].has("planet") and id in unlocked): result.append(id)
  return result
 static func starter(kind: int) -> Array:
- if kind == 1: return ["pulse","pulse","shield","reactor","barrier","repair"]
- if kind == 2: return ["pulse","pulse","reactor","mechanic","repair","astra"]
- return ["pulse","pulse","pulse","reactor","repair","barrier"]
+ if kind == 1: return ["pulse","core_repair","shield","reactor","barrier","repair"]
+ if kind == 2: return ["pulse","core_repair","reactor","mechanic","repair","astra"]
+ return ["pulse","pulse","core_repair","reactor","repair","barrier"]
 static func integers(value: Variant) -> Variant:
  # JSON parses integer fields as floats. Model quantities and IDs are discrete.
  if value is float: return int(value)

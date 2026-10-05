@@ -13,13 +13,13 @@ func _initialize() -> void:
  run.data.state = "map"
  check(run.choose_node("0_1"),"first encounter")
  var battle = run.battle
- check(battle.data.hand.size() == 3 and battle.data.energy == 2,"opening hand and energy")
+ check(battle.data.hand.size() == 3 and battle.data.energy == 3,"opening hand and energy")
  check(not battle.play(0,"enemy",0),"robot must be placed in friendly slot")
  var pulse_index = -1
  for i in range(battle.data.hand.size()):
   if battle.data.hand[i].id == "pulse": pulse_index = i; break
  check(battle.play(pulse_index,"friendly",0),"play robot")
- check(battle.data.energy == 1 and battle.data.friendly[0].attack == 2,"cost and stats")
+ check(battle.data.energy == 2 and battle.data.friendly[0].attack == 2,"cost and stats")
  check(not battle.play(0,"friendly",0),"occupied slot rejected")
  check(battle.end_turn(),"begin combat")
  var before = battle.data.enemy_core
@@ -31,7 +31,7 @@ func _initialize() -> void:
  check(not copy.data.is_empty() and copy.battle.data.phase == "resolving","load pending combat")
  battle.resolve_all(); copy.battle.resolve_all()
  check(JSON.stringify(battle.checkpoint()) == JSON.stringify(copy.battle.checkpoint()),"resume produces identical next turn including RNG")
- check(battle.data.energy == 2 and battle.data.hand.size() <= 5,"refresh and hand limit")
+ check(battle.data.energy == 3 and battle.data.hand.size() <= 5,"refresh and hand limit")
  var initial = run.data.deck.duplicate(true)
  battle.begin(initial,20,0,"battle",123)
  battle.data.enemy = [null,null,null,null]

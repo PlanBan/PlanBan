@@ -1,7 +1,7 @@
 extends RefCounted
 class_name OrbitProgress
 ## Campaign saves are explicit. Preferences have their own file and never save a battle.
-const PREFERENCES = ["sound", "language", "music_volume", "effects_volume", "master_volume", "fullscreen", "ui_scale"]
+const PREFERENCES = ["sound", "language", "music_volume", "effects_volume", "master_volume", "fullscreen", "ui_scale", "map_zoom"]
 var path = "user://astra_slot_1.json"
 var settings_path = "user://astra_settings.json"
 var data: Dictionary = defaults()
@@ -9,7 +9,7 @@ var notice = ""
 var last_save_ok = true
 
 static func defaults() -> Dictionary:
-	return {"version": 3, "completed": {}, "deck": ["core_pulse", "core_reactor", "core_shield"], "sound": true, "language": "ru", "music_volume": 0.65, "effects_volume": 0.65, "master_volume": 0.85, "fullscreen": false, "ui_scale": 1.0, "prologue_seen": false, "core_recovered": false}
+	return {"version": 3, "completed": {}, "deck": ["core_pulse", "core_reactor", "core_shield"], "sound": true, "language": "ru", "music_volume": 0.65, "effects_volume": 0.65, "master_volume": 0.85, "fullscreen": false, "ui_scale": 1.0, "map_zoom": 1.25, "prologue_seen": false, "core_recovered": false}
 
 func read_json(file_path: String) -> Variant:
 	if not FileAccess.file_exists(file_path): return null
@@ -58,6 +58,8 @@ func sanitize_preferences() -> void:
 	data.fullscreen = data.fullscreen == true
 	if not data.ui_scale is float and not data.ui_scale is int: data.ui_scale = 1.0
 	data.ui_scale = clampf(float(data.ui_scale), 0.9, 1.25)
+	if not data.map_zoom is float and not data.map_zoom is int: data.map_zoom = 1.25
+	data.map_zoom = clampf(float(data.map_zoom), 1.0, 1.4)
 
 func load_settings() -> void:
 	var parsed = read_json(settings_path)

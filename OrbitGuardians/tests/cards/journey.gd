@@ -13,6 +13,9 @@ func _initialize() -> void:
    decisions += 1
    match run.data.state:
     "map":
+     for branch in (["core","frames","systems","weapons"] if run.data.core < 12 else ["weapons","frames","systems","core"]):
+      var level = int(run.data.research[branch])
+      if run.buy_research(branch,level): break
      var available = run.available_nodes()
      var chosen = available[0]; var best = -999
      for id in available:
@@ -36,7 +39,7 @@ func _initialize() -> void:
      var best = 0; var score = -999
      for i in range(run.data.reward.size()):
       var id = run.data.reward[i]
-      var value = {"rail":8,"cryo":8,"verdant":9,"ember":9,"echo":9,"burst":7,"shield":5,"reactor":1,"astra":8,"mechanic":6,"mortar":6,"overload":7,"repair":4,"frost":7,"nova":7,"emp":3,"recall":2,"barrier":3,"storm":6,"pulse":5}[id]
+      var value = {"rail":8,"cryo":8,"verdant":9,"ember":9,"echo":9,"burst":7,"shield":5,"reactor":1,"astra":8,"mechanic":6,"mortar":6,"overload":7,"repair":4,"frost":7,"nova":7,"emp":3,"recall":2,"barrier":3,"storm":6,"pulse":5,"core_repair":8}[id]
       if value > score: best = i; score = value
      run.take_reward(best)
     "rest": run.rest()
@@ -71,7 +74,7 @@ static func play_turn(battle: AstraBattle) -> void:
  while plays < 18 and battle.data.phase == "player":
   var best = 0.1; var choice: Dictionary = {}
   for i in range(battle.data.hand.size()):
-   var entry = AstraCards.card(battle.data.hand[i].id,int(battle.data.hand[i].upgrade))
+   var entry = battle.instance(battle.data.hand[i])
    if entry.cost > battle.data.energy: continue
    for side in ["friendly","enemy"]:
     for lane in range(4):
@@ -106,6 +109,7 @@ static func evaluate_play(battle: AstraBattle, entry: Dictionary, side: String, 
   return score
  var target: Variant = data[side][lane]
  match entry.effect:
+  "coreheal": return minf(8,data.max_core-data.core)*1.4 if side=="friendly" and lane==0 else -999
   "boost": return 10 if side == "friendly" and lane == 0 else -999
   "storm": return 8 if side == "friendly" and lane == 0 and data.core > 3 else -999
   "overload":

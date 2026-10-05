@@ -82,6 +82,7 @@ func set_screen(value: String) -> void:
  route_travel = 0.0
  hovered.clear(); hovered_entry.clear(); selected_bot = -1
  if screen == "map" and selected_node not in run.available_nodes(): selected_node = ""
+ if value == "battle" and not run.battle.data.get("tutorial",false) and not run.battle.data.get("briefed",true): screen = "challenge"
  if view != null: view.queue_redraw()
 func display_entries() -> Array:
  if screen == "collection":
@@ -93,6 +94,16 @@ func display_entries() -> Array:
 func action(command: String, value: Variant = 0) -> void:
  fx("deploy")
  match command:
+  "fight":
+   if screen == "challenge": run.battle.data.briefed = true; persist(); set_screen("battle")
+  "map_zoom":
+   if screen == "map" and route_travel<=0:
+    run.store.data.map_zoom = clampf(run.store.data.map_zoom+float(value),1.0,1.4); run.store.save_settings()
+  "research": previous_screen = screen; set_screen("research")
+  "buy_research":
+   var parts = str(value).split(":")
+   if parts.size()==2 and run.buy_research(parts[0],int(parts[1])): fx("unlock"); notify("research_bought")
+   else: notify("research_unavailable")
   "new": set_screen("new")
   "deck_kind":
    if int(value) in run.meta.decks: deck_kind = int(value)
@@ -129,7 +140,7 @@ func action(command: String, value: Variant = 0) -> void:
   "resume": set_screen(previous_screen if previous_screen not in ["menu","pause"] else run.data.state)
   "menu": persist(); set_screen("menu")
   "settings": previous_screen = screen; set_screen("settings")
-  "back": set_screen(previous_screen if screen in ["settings","deck"] else "menu")
+  "back": set_screen(previous_screen if screen in ["settings","deck","research"] else "menu")
   "inspect_back":
    set_screen(previous_screen)
    if screen == "battle" and inspection_selection >= 0 and inspection_selection < run.battle.data.hand.size(): selected = inspection_selection
@@ -244,8 +255,8 @@ func _input(event: InputEvent) -> void:
   elif event.keycode == KEY_ESCAPE:
    if screen == "inspect": action("inspect_back")
    elif screen == "pause": action("resume")
-   elif screen in ["battle","map"]: action("pause")
-   elif screen in ["settings","deck"]: action("back")
+   elif screen in ["battle","map","challenge"]: action("pause")
+   elif screen in ["settings","deck","research"]: action("back")
    elif screen == "overview": action("overview_back")
    else: action("menu")
   elif event.ctrl_pressed and event.keycode in [KEY_EQUAL,KEY_PLUS,KEY_KP_ADD]: action("ui_scale",.05)
@@ -271,21 +282,21 @@ func _input(event: InputEvent) -> void:
    if not card.is_empty() and screen != "inspect": open_inspector(card.entry)
   elif event.pressed and event.button_index in [MOUSE_BUTTON_WHEEL_DOWN,MOUSE_BUTTON_WHEEL_UP] and screen == "inspect":
    inspector_zoom = clampf(inspector_zoom+(.1 if event.button_index == MOUSE_BUTTON_WHEEL_UP else -.1),.8,1.2)
-  elif event.pressed and screen == "map" and event.button_index in [MOUSE_BUTTON_WHEEL_DOWN,MOUSE_BUTTON_WHEEL_UP]: world.scroll_map(-30 if event.button_index == MOUSE_BUTTON_WHEEL_DOWN else 30)
+  elif event.pressed and screen == "map" and event.button_index in [MOUSE_BUTTON_WHEEL_DOWN,MOUSE_BUTTON_WHEEL_UP]: action("map_zoom",-.05 if event.button_index == MOUSE_BUTTON_WHEEL_DOWN else .05)
   elif event.pressed and event.button_index == MOUSE_BUTTON_WHEEL_UP:
    var card = world.pick_card(point)
    if not card.is_empty(): open_inspector(card.entry)
  elif event is InputEventMouseMotion:
   var card = world.pick_card(point)
   hovered = card
-  if not card.is_empty(): hovered_entry = card.entry.duplicate(true)
+  hovered_entry = card.entry.duplicate(true) if not card.is_empty() else {}
   pointer_move(point,-1)
 func _notification(what: int) -> void:
  if what == NOTIFICATION_WM_GO_BACK_REQUEST and view != null:
   if screen == "battle" or screen == "map": action("pause")
   elif screen == "pause": action("resume")
   elif screen == "inspect" or screen == "records": action("inspect_back")
-  elif screen in ["settings","deck"]: action("back")
+  elif screen in ["settings","deck","research"]: action("back")
   elif screen == "overview": action("overview_back")
   else: action("menu")
  if what in [NOTIFICATION_APPLICATION_PAUSED,NOTIFICATION_APPLICATION_FOCUS_OUT] and not run.data.is_empty():

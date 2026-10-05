@@ -12,21 +12,23 @@ func restore(payload: Dictionary) -> void:
 func modern() -> bool:
  return int(data.get("ruleset",41)) >= 42
 func energy_limit() -> int:
- return 5 if modern() else 12
+ return 6 if int(data.get("ruleset",41)) >= 43 else (5 if modern() else 12)
 func gain_energy(amount: int) -> void:
  data.energy = mini(energy_limit(),data.energy+amount)
  if modern(): data.max_energy = maxi(data.max_energy,data.energy)
 func checkpoint() -> Dictionary:
  data.rng = str(rng.state)
  return data.duplicate(true)
-func begin(deck: Array, core: int, act: int, kind: String, seed_value: int) -> void:
+func begin(deck: Array, core: int, act: int, kind: String, seed_value: int, maximum: int = 20, technology: Dictionary = {}) -> void:
  rng.seed = seed_value
  data = {"act":act,"kind":kind,"turn":1,"core":core,"max_core":20,"enemy_core":18 + act * 4 + (10 if kind == "boss" else (5 if kind == "elite" else 0)),"max_enemy_core":0,"energy":3,"max_energy":3,"hand":[],"draw":deck.duplicate(true),"discard":[],"friendly":[null,null,null,null],"enemy":[null,null,null,null],"phase":"player","pending":[],"intent":[],"serial":1000,"rng":"0","boss_phase":false}
  data.max_enemy_core = data.enemy_core
  data.carry = 0
- data.ruleset = 42
- data.energy = 2; data.max_energy = 2
- data.enemy_core = 16+act*3+(8 if kind == "boss" else (5 if kind == "elite" else 0)); data.max_enemy_core = data.enemy_core
+ data.ruleset = 43
+ data.max_core = maximum; data.tech = technology.duplicate(true)
+ data.briefed = false; data.taunt = absi(seed_value)%3
+ data.energy = 3+int(technology.get("opening",0))+int(technology.get("energy",0)); data.max_energy = data.energy
+ data.enemy_core = 20+act*4+(14 if kind == "boss" else (6 if kind == "elite" else 0)); data.max_enemy_core = data.enemy_core
  shuffle(data.draw)
  # A fair opening hand, drawn from the real deck, never generated for free.
  for id in ["pulse","reactor"]:
@@ -63,13 +65,18 @@ func draw_cards(count: int) -> void:
   data.hand.append(data.draw.pop_back())
 func instance(entry: Dictionary) -> Dictionary:
  var value = AstraCards.card(entry.id, int(entry.get("upgrade", 0)))
+ if value.hp > 0 and int(data.get("ruleset",41)) >= 43 and not data.get("tutorial",false):
+  value.hp += int(data.get("tech",{}).get("hp",0))
+  if value.attack > 0: value.attack += int(data.get("tech",{}).get("attack",0))
+ if value.effect=="coreheal": value.healing += int(data.get("tech",{}).get("healing",0))
+ value.armor = int(data.get("tech",{}).get("armor",0)) if value.hp > 0 else 0
  value.uid = entry.uid; value.max_hp = value.hp; value.shield = 0; value.temporary = 0; value.frozen = 0; value.jammed = 0; value.burn = 0
  if value.effect == "guard": value.shield = 2
  return value
 func spawn(kind: String, lane: int) -> void:
  var value: Dictionary = AstraCards.ENEMIES[kind].duplicate(true)
  value.id = kind; value.cost = 0; value.rarity = 0; value.upgrade = 0
- value.attack += int(data.act / 2) if not modern() or kind in ["elite","boss"] else 0
+ value.attack += int(data.act / 2) if int(data.get("ruleset",41)) >=43 or not modern() or kind in ["elite","boss"] else 0
  value.hp += int(data.act / 2)
  value.art = "p%d_%s" % [int(data.act),value.art]
  var clan: Array = AstraCards.CLANS[int(data.act)]
@@ -109,6 +116,7 @@ func play(hand_index: int, side: String, lane: int) -> bool:
   if step == 0 and (value.id != "pulse" or lane != 1): return false
   if step in [1,2,4] or (step == 3 and value.id != "reactor"): return false
  if value.cost > data.energy: return false
+ if value.effect == "coreheal" and data.core >= data.max_core: return false
  if value.hp > 0:
   if side != "friendly" or lane < 0 or lane > 3 or data.friendly[lane] != null: return false
  else:
@@ -121,6 +129,10 @@ func play(hand_index: int, side: String, lane: int) -> bool:
   events.append({"kind":"deploy","side":"friendly","lane":lane,"uid":value.uid})
  else:
   match value.effect:
+   "coreheal":
+    var healing = int(value.healing)
+    var before = int(data.core); data.core = mini(data.max_core,data.core+healing)
+    events.append({"kind":"heal_core","side":"friendly","damage":data.core-before})
    "heal": data.friendly[lane].hp = mini(data.friendly[lane].max_hp, data.friendly[lane].hp + 4)
    "barrier": data.friendly[lane].temporary += 3
    "overload":
@@ -165,7 +177,7 @@ func order(lane: int, kind: String) -> bool:
  if bot == null or int(bot.get("ordered_turn",-1)) == int(data.turn): return false
  if kind == "aim" and (bot.attack <= 0 or bot.frozen > 0): return false
  data.energy -= 1; bot.ordered_turn = data.turn
- if kind == "aim": bot.focus = 1
+ if kind == "aim": bot.focus = int(data.get("tech",{}).get("aim",1))
  else: bot.temporary += 2
  events = [{"kind":"ability","side":"friendly","lane":lane,"uid":bot.uid,"effect":kind}]
  checkpoint(); return true
@@ -216,7 +228,7 @@ func strike(side: String, lane: int) -> void:
 func hurt(side: String, lane: int, amount: int, source_side: String) -> void:
  var bot: Variant = data[side][lane]
  if bot == null: return
- var damage = amount
+ var damage = maxi(0,amount-int(bot.get("armor",0)))
  for neighbour in [lane - 1, lane + 1]:
   if neighbour < 0 or neighbour > 3: continue
   var guard: Variant = data[side][neighbour]
@@ -250,7 +262,9 @@ func next_round() -> void:
  for intent in data.intent:
   if data.enemy[int(intent.lane)] == null: spawn(intent.id, int(intent.lane))
  data.turn += 1
- data.max_energy = (2 if data.turn < 4 else 3) if modern() else mini(6, 3 + int((data.turn - 1) / 3))
+ if data.get("tutorial",false): data.max_energy = 2
+ elif int(data.get("ruleset",41)) >= 43: data.max_energy = (3 if data.turn < 4 else 4)+int(data.get("tech",{}).get("energy",0))
+ else: data.max_energy = (2 if data.turn < 4 else 3) if modern() else mini(6, 3 + int((data.turn - 1) / 3))
  var refund = 0 if data.get("tutorial",false) else data.carry; data.carry = 0
  var reactors = 0
  for bot in data.friendly:

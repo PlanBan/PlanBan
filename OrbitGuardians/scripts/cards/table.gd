@@ -113,12 +113,14 @@ func bind_card(key: String, entry: Dictionary, point: Vector2, scale_value: floa
  if record.entry != entry or record.language != game.language():
   if record.mini != null and record.entry.art != entry.art:
    record.mini.queue_free(); record.mini = null
+  if record.mini != null: AstraRoles.paint(record.mini,entry)
   record.entry = entry.duplicate(true); record.face.card = entry.duplicate(true); record.face.language = game.language(); record.language = game.language(); record.face.queue_redraw(); record.viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
  record.outline.visible = (hand >= 0 and hand == game.selected) or game.drag_key == key
  if side in ["friendly","enemy"] and record.mini == null and entry.hp > 0:
   var path = "res://assets3d/diorama/explorer.glb" if entry.art == "pulse" else "res://assets3d/tabletop/card_%s.glb" % entry.art
   if ResourceLoader.exists(path):
    record.mini = model(path); record.node.add_child(record.mini); record.mini.scale = Vector3.ONE*0.01; record.mini.position = Vector3(0,0.12,.16); record.mini.rotation.y = PI if side == "enemy" else 0
+   AstraRoles.paint(record.mini,entry)
    animate_model(record.mini,"Deploy")
  masks.append(key)
 func sync_cards() -> void:
@@ -136,22 +138,22 @@ func sync_cards() -> void:
    cards[key].dying = true; cards[key].life = 0.6
 func set_stage() -> void:
  var act = int(game.run.data.get("act",0))
- var signature = "%s/%d/%s/%d/%d" % [game.screen,act,game.language(),int(game.run.data.get("hull",0)),int(game.run.data.get("intro",0))]
+ var signature = "%s/%d/%s/%d/%d" % [game.screen,act,game.language(),int(game.run.data.get("hull",0)),int(game.run.data.get("intro",0))]+"/"+str(game.run.store.data.map_zoom)
  if signature == scene_signature: return
  scene_signature = signature
  stage_clock = 0
- camera.size = 17.7 if game.screen in ["map","overview"] else 14.5
+ camera.size = 17.7/float(game.run.store.data.map_zoom) if game.screen == "map" else (17.7 if game.screen == "overview" else 12.1)
  make_ambience(act)
  make_showcase()
  for child in map_root.get_children(): child.queue_free()
  diorama = null
  map_nodes.clear()
  planet.visible = game.screen in ["menu","new","intro","travel","ending"]
- camera.size = 17.7 if game.screen in ["map","overview"] else 14.5
+ camera.size = 17.7/float(game.run.store.data.map_zoom) if game.screen == "map" else (17.7 if game.screen == "overview" else 12.1)
  room.visible = true
  table_model.visible = false
  for child in arena.get_children(): child.queue_free()
- if game.screen in ["battle","pause"]: make_arena()
+ if game.screen in ["battle","pause","challenge"]: make_arena()
  if planet.material_override is ShaderMaterial:
   planet.material_override.set_shader_parameter("biome",act)
   planet.material_override.set_shader_parameter("tint",AstraCards.COLORS[act])
@@ -198,9 +200,9 @@ func feedback(events: Array) -> void:
    var tween = create_tween(); tween.tween_property(node,"position",target+Vector3(0,0.48,-0.75 if event.side == "friendly" else 0.75),0.13).set_trans(Tween.TRANS_QUAD); tween.tween_property(node,"position",target,0.22)
    cards[key].life = 0.36
   if event.kind == "death" and cards.has(key) and cards[key].mini != null: animate_model(cards[key].mini,"Death")
-  if event.kind in ["deploy","hit","death","ability","core"]:
+  if event.kind in ["deploy","hit","death","ability","core","heal_core"]:
    var pos = slot_point(event.get("side","friendly"),clampi(int(event.get("lane",1)),0,3))
-   if event.kind == "core": pos = Vector2(595,135 if event.side == "enemy" else 655)
+   if event.kind in ["core","heal_core"]: pos = Vector2(595,135 if event.side == "enemy" else 655)
    for i in range(6):
     var spark = sphere(self,position_for(pos,0.8),0.035,material(Color("f6ae62") if event.get("side","") == "enemy" else Color("65d9c4"),1.4))
     transient.append({"node":spark,"velocity":Vector3(sin(i*4.7)*1.7,1.6,cos(i*4.7)*1.7),"life":0.5})
@@ -225,7 +227,7 @@ func _process(delta: float) -> void:
    if value.hand >= 0 and value.hand == game.selected: target.y += 0.4
    node.position = node.position.lerp(target,minf(1,delta*11)); node.rotation.y = lerpf(node.rotation.y,value.rot,minf(1,delta*9)); node.scale = node.scale.lerp(Vector3.ONE*value.scale,minf(1,delta*9))
   if value.mini != null:
-   value.mini.scale = value.mini.scale.lerp(Vector3.ONE*(.90 if value.entry.art == "pulse" else .67),minf(1,delta*4))
+   value.mini.scale = value.mini.scale.lerp(Vector3.ONE*(1.03 if value.entry.art == "pulse" else .78),minf(1,delta*4))
    value.mini.position.y = 0.14+sin(clock*2+float(value.entry.uid))*0.025
    value.mini.rotation.y = (PI if value.side == "enemy" else 0)+sin(clock*.65)*.08
   var polygon = PackedVector2Array()
@@ -249,14 +251,16 @@ func make_arena() -> void:
   var recess = material(Color("0a151e")); recess.metallic = .45
   for lane in range(4):
    var center = position_for(slot_point(side,lane),.26)
-   box(arena,center,Vector3(3.44,.06,2.9),recess)
-   for dx in [-1.66,1.66]:
-    for dz in [-1.38,1.38]:
+   var bounds = position_for(slot_point(side,lane)+Vector2(102,70),.26)-position_for(slot_point(side,lane)-Vector2(102,70),.26)
+   box(arena,center,Vector3(absf(bounds.x),.06,absf(bounds.z)),recess)
+   for dx in [-absf(bounds.x)*.48,absf(bounds.x)*.48]:
+    for dz in [-absf(bounds.z)*.48,absf(bounds.z)*.48]:
      box(arena,center+Vector3(dx,.05,dz),Vector3(.13,.025,.21),cyan)
-   for dz in [-1.44,1.44]: box(arena,center+Vector3(0,.036,dz),Vector3(3.21,.025,.023),material(Color("566872")))
+   for dz in [-absf(bounds.z)*.5,absf(bounds.z)*.5]: box(arena,center+Vector3(0,.036,dz),Vector3(absf(bounds.x)*.91,.025,.023),material(Color("566872")))
  for lane in range(4):
   var center = position_for(Vector2(230+lane*250,402),.24)
-  box(arena,center,Vector3(3.36,.04,2.8),material(Color("101d25")))
+  var bounds = position_for(Vector2(230+lane*250+100,402+60),.24)-position_for(Vector2(230+lane*250-100,402-60),.24)
+  box(arena,center,Vector3(absf(bounds.x),.04,absf(bounds.z)),material(Color("101d25")))
 func make_ambience(act: int) -> void:
  if act == biome_index: return
  biome_index = act
@@ -291,6 +295,11 @@ func make_ambience(act: int) -> void:
 func make_showcase() -> void:
  for child in showcase.get_children(): child.queue_free()
  stage_models.clear()
+ if game.screen == "challenge":
+  var commander = model("res://assets3d/commanders/world_%d.glb" % int(game.run.data.act)); showcase.add_child(commander)
+  commander.position = position_for(Vector2(550,605),.15); commander.rotation.y = .12
+  commander.scale = Vector3.ONE*.01
+  stage_models.commander = commander; stage_models.commander_home = commander.position
  if game.screen in ["intro","travel","ending","menu","new"]:
   var ship = model("res://assets3d/ship.glb"); showcase.add_child(ship); ship.scale = Vector3.ONE*(.50 if game.screen == "intro" else .35)
   ship.position = position_for(Vector2(1120,470),1.0); ship.rotation.y = -.4; stage_models.ship = ship; stage_models.home = ship.position
@@ -315,6 +324,12 @@ func make_showcase() -> void:
    if stage == 1:
     for i in range(3): beam(showcase,position_for(Vector2(485+i*170,500),.85),center,.045,material(Color("f04016"),2))
 func animate_showcase(delta: float) -> void:
+ if stage_models.has("commander"):
+  var commander: Node3D = stage_models.commander
+  var rise = smoothstep(0.0,1.0,clampf(stage_clock/1.1,0,1))
+  commander.scale = Vector3.ONE*(.08+1.4*rise)
+  commander.position = stage_models.commander_home+Vector3(0,-2.2*(1-rise)+sin(clock*1.8)*.06,0)
+  commander.rotation.y = .13+sin(clock*.8)*.12
  if not stage_models.has("ship"): return
  var ship: Node3D = stage_models.ship
  ship.position = stage_models.home+Vector3(0,sin(stage_clock*1.8)*.11,0)

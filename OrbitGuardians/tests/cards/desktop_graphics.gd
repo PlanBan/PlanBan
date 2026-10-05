@@ -2,7 +2,7 @@ extends SceneTree
 var game: AstraGame
 var checks = 0
 var failures = 0
-var output = "/workspace/artifacts/desktop"
+var output = "/workspace/artifacts/commanders"
 func check(value: bool, name: String) -> void:
  checks += 1
  if not value: failures += 1; printerr("FAIL: ",name)
@@ -82,6 +82,19 @@ func run_test() -> void:
  check(game.screen == "map" and game.run.data.battles == 0 and game.run.data.core == 20,"training does not consume an encounter")
  check(game.world.map_nodes.size() == 17 and game.world.diorama != null,"physical route retained")
  await screenshot("map")
+ var zoom_before = game.run.store.data.map_zoom
+ var map_payload = JSON.stringify(game.run.data)
+ await command("map_zoom",.05)
+ check(game.run.store.data.map_zoom>zoom_before and JSON.stringify(game.run.data)==map_payload,"zoom does not commit a route or change battle resources")
+ await command("map_zoom",-.05)
+ await command("research"); await screenshot("research")
+ check(game.screen=="research","technology tree is reachable before combat")
+ var credits=int(game.run.data.credits)
+ await command("buy_research","core:0")
+ check(game.run.data.max_core==24 and game.run.data.core==24 and game.run.data.credits==credits-18,"real input purchases expanded core once")
+ await command("back")
+ check(game.screen=="map","tree returns to previous route")
+ game.toast_clock=0
  var before = JSON.stringify(game.run.data)
  await tap(game.world.map_nodes["6_1"].point)
  check(game.selected_node == "" and JSON.stringify(game.run.data) == before,"future boss stays locked")
@@ -90,7 +103,11 @@ func run_test() -> void:
  await tap(game.world.map_nodes["0_1"].point)
  check(game.selected_node == "0_1" and JSON.stringify(game.run.data) == before,"preview leaves save unchanged")
  await screenshot("map-selected"); await command("depart"); await create_timer(1.1).timeout; await frames(15)
- check(game.screen == "battle" and game.run.battle.data.hand.size() == 3 and game.run.battle.data.energy == 2,"ordinary encounter has restrained start")
+ check(game.screen == "challenge" and game.run.battle.data.hand.size() == 3 and game.run.battle.data.energy == 3,"encounter opens opposing commander before fighting")
+ await create_timer(1.4).timeout; await frames(6)
+ check(game.world.stage_models.has("commander") and game.world.stage_models.commander.scale.x>1.3,"commander silhouette rises in 3D")
+ await screenshot("challenge"); await command("fight")
+ check(game.screen=="battle" and game.run.battle.data.briefed and game.run.battle.data.max_core==24,"accepting dialogue opens battle with researched core")
  check(game.world.slot_point("friendly",0).y-game.world.slot_point("enemy",0).y >= 280,"one empty row separates armies")
  await screenshot("battle")
  var pulse = -1
@@ -98,7 +115,7 @@ func run_test() -> void:
   if game.run.battle.data.hand[i].id == "pulse": pulse = i; break
  await tap(hand_rect(pulse).get_center()); await tap(game.world.slot_point("friendly",0)); await frames(15)
  await tap(game.world.slot_point("friendly",0)); await command("order","guard")
- check(game.run.battle.data.friendly[0].temporary == 2 and game.run.battle.data.energy == 0,"guard spends competing energy")
+ check(game.run.battle.data.friendly[0].temporary == 2 and game.run.battle.data.energy == 1,"guard spends competing energy")
  var repeat = false
  for item in game.view.buttons:
   if item.command == "order": repeat = true
@@ -144,7 +161,7 @@ func run_test() -> void:
     var point = game.world.slot_point(side,lane)
     check(game.world.project(game.world.position_for(point)).distance_to(point) < .5,"projection at "+str(resolution)+side+str(lane))
  root.size = Vector2i(1280,720)
- game.run.data.act = 0; game.run.battle.begin(game.run.data.deck,20,0,"battle",41293); game.run.data.state = "battle"; game.set_screen("battle")
+ game.run.data.act = 0; game.run.battle.begin(game.run.data.deck,20,0,"battle",41293); game.run.battle.data.briefed=true; game.run.data.state = "battle"; game.set_screen("battle")
  game.run.battle.draw_cards(100); await frames(20)
  check(game.run.battle.data.hand.size() == 5,"stress hand stops at five cards")
  var rects: Array = []
@@ -162,6 +179,17 @@ func run_test() -> void:
  await screenshot("battle-five-cards"); await move(hand_rect(0).get_center()); await key(KEY_E)
  check(game.screen == "inspect","E inspects hovered card")
  await screenshot("inspector-large-text"); await key(KEY_ESCAPE)
+ game.run.battle.data.friendly[1] = game.run.battle.instance({"id":"shield","uid":9901,"upgrade":0})
+ game.run.battle.data.friendly[2] = game.run.battle.instance({"id":"mechanic","uid":9902,"upgrade":0})
+ # Dedicated rendering fixture: role colour/materials are checked independently of campaign saves.
+ await frames(12); await screenshot("role-colours")
+ check(AstraRoles.color(game.run.battle.data.friendly[1])==AstraRoles.DEFENCE,"shield role is yellow")
+ await move(game.world.slot_point("friendly",1)); await screenshot("armour-hover")
+ for act in range(5):
+  game.run.data.act=act; game.run.battle.data.act=act;game.run.battle.data.briefed=false;game.set_screen("challenge")
+  await create_timer(1.4).timeout; await screenshot("commander-%d" % act)
+  check(game.world.stage_models.has("commander"),"original opposing commander "+str(act))
+ game.run.battle.data.friendly[1]=null;game.run.battle.data.friendly[2]=null;game.run.battle.data.act=0;game.run.data.act=0;game.run.battle.data.briefed=true;game.set_screen("battle")
  await command("pause"); await screenshot("pause"); await command("menu"); await screenshot("menu-final")
  game.set_process(false)
  for lang in ["ru","en","de"]:

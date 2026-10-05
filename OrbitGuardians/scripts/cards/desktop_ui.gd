@@ -20,7 +20,8 @@ func _process(_delta: float) -> void:
   if signature != face_signature:
    face_signature = signature; large_face.card = game.inspect_entry.duplicate(true); large_face.language = game.language()
    large_face.hostile = game.inspect_entry.get("cost",1) == 0 and game.inspect_entry.id in AstraCards.ENEMIES
-   var path = "res://assets3d/tabletop/portraits/%s.png" % game.inspect_entry.art
+   var path = "res://assets3d/roles/portraits/%s.png" % game.inspect_entry.art
+   if not ResourceLoader.exists(path): path = "res://assets3d/tabletop/portraits/%s.png" % game.inspect_entry.art
    large_face.art = load(path) if ResourceLoader.exists(path) else load("res://assets3d/icons/%s.png" % game.inspect_entry.art)
    large_face.queue_redraw()
   var zoom = 1.38*game.inspector_zoom
@@ -45,20 +46,71 @@ func title(key: String, sub: String = "") -> void:
  frame(Rect2(30,24,1540,110),CYAN,.92)
  label(game.l(key),Vector2(58,74),36,INK,1240)
  if sub != "": label(sub,Vector2(60,111),23,DIM,1300)
-func health_bar(rect: Rect2, name: String, current: int, maximum: int, color: Color = CYAN) -> void:
- frame(rect,color,.94)
+func health_bar(rect: Rect2, name: String, current: int, maximum: int, color: Color = AstraRoles.HP) -> void:
+ var energy = name == game.l("energy")
+ var accent = Color("72edc4") if energy else AstraRoles.HP
+ var fraction = clampf(float(current)/maxi(1,maximum),0,1)
+ if not energy and fraction <= .25: accent = accent.lerp(AstraRoles.ATTACK,.35+.2*sin(game.clock*4))
+ frame(rect,accent,.96)
+ var icon = rect.position+Vector2(26,25)
+ if energy:
+  draw_colored_polygon(PackedVector2Array([icon+Vector2(3,-12),icon+Vector2(-8,2),icon,icon+Vector2(-3,12),icon+Vector2(9,-2),icon+Vector2(1,-2)]),accent)
+ else:
+  draw_circle(icon+Vector2(-4,-3),5,accent); draw_circle(icon+Vector2(4,-3),5,accent)
+  draw_colored_polygon(PackedVector2Array([icon+Vector2(-9,-1),icon+Vector2(9,-1),icon+Vector2(0,10)]),accent)
  var value = "%d / %d" % [current,maximum]
  var value_size = 24 if rect.size.x < 400 else 27
  var value_width = font.get_string_size(value,HORIZONTAL_ALIGNMENT_LEFT,-1,int(value_size*text_scale())).x
- label(name,rect.position+Vector2(18,31),23,color,rect.size.x-value_width-54)
- label(value,Vector2(rect.end.x-18-value_width,rect.position.y+31),value_size,INK,value_width+1)
- var track = Rect2(rect.position+Vector2(18,43),Vector2(rect.size.x-36,10))
- draw_rect(track,Color("19313b"))
- draw_rect(Rect2(track.position,Vector2(track.size.x*clampf(float(current)/maxi(1,maximum),0,1),track.size.y)),color)
+ label(name,rect.position+Vector2(45,31),22,accent,rect.size.x-value_width-79)
+ label(value,Vector2(rect.end.x-18-value_width,rect.position.y+31),value_size,accent,value_width+1)
+ var divisions = 10 if not energy else maximum
+ var width = (rect.size.x-36-3*(divisions-1))/divisions
+ for i in range(divisions):
+  var track = Rect2(rect.position+Vector2(18+i*(width+3),44),Vector2(width,9))
+  draw_rect(track,Color("183443"))
+  var fill = clampf(fraction*divisions-i,0,1)
+  draw_rect(Rect2(track.position,Vector2(width*fill,9)),accent)
+func rival_art(act: int, rect: Rect2) -> void:
+ var path = "res://assets3d/commanders/portraits/world_%d.png" % act
+ if not portraits.has(path): portraits[path] = load(path)
+ draw_texture_rect(portraits[path],rect,false)
+func combat_stats(entry: Dictionary, point: Vector2, width: float, size_value: int = 25) -> void:
+ label("%s %d" % [game.l("attack_short"),entry.attack],point,size_value,AstraRoles.ATTACK,width*.43)
+ label("HP %d / %d" % [entry.hp,entry.get("max_hp",entry.hp)],point+Vector2(width*.47,0),size_value,AstraRoles.HP,width*.53)
+func challenge() -> void:
+ var battle = game.run.battle.data; var act = int(battle.act)
+ frame(Rect2(42,30,1516,108),AstraRoles.ATTACK,.96)
+ label(game.l("opponent_title"),Vector2(72,75),26,AstraRoles.ATTACK,500)
+ label(AstraRivals.name_for(act,game.language()),Vector2(72,116),33,INK,950)
+ frame(Rect2(837,230,687,390),AstraRoles.ATTACK,.97)
+ label(AstraCards.word(AstraRivals.TITLES[act],game.language()),Vector2(869,280),25,AstraRoles.DEFENCE,615)
+ words(AstraRivals.line_for(battle,game.language()),Vector2(869,341),610,29,INK)
+ health_bar(Rect2(869,510,617,74),game.l("enemy_core"),battle.enemy_core,battle.max_enemy_core)
+ button(Rect2(915,680,540,87),game.l("fight"),"fight",0,true,game.world.stage_clock>=1.2)
+ button(Rect2(60,773,276,62),game.l("pause"),"pause")
+ label(game.l("fight_hint"),Vector2(869,835),21,DIM,625)
+func research() -> void:
+ title("research",game.l("research_tip"))
+ label(game.l("scrap")+": %d" % int(game.run.data.credits),Vector2(1450,84),29,AstraRoles.DEFENCE,235,true)
+ var owned = game.run.data.get("research",AstraResearch.defaults())
+ for branch_index in range(4):
+  var branch: String = AstraResearch.BRANCHES[branch_index]; var level = int(owned.get(branch,0)); var x = 34+branch_index*391; var color = AstraResearch.COLORS[branch_index]
+  label(game.l("branch_"+branch),Vector2(x+176,188),29,color,346,true)
+  for rank in range(3):
+   var y = 214+rank*187; var rect = Rect2(x,y,367,155)
+   var purchased = rank<level; var unlocked = rank==level and int(game.run.data.act)>=rank
+   if rank>0: draw_line(Vector2(x+183,y-29),Vector2(x+183,y),color if rank<=level else DIM,3)
+   frame(rect,color,.97,purchased)
+   label("%02d · %s" % [rank+1,AstraCards.word(AstraResearch.NAMES[branch_index][rank],game.language())],rect.position+Vector2(17,33),24,color,331)
+   words(AstraCards.word(AstraResearch.EFFECTS[branch_index][rank],game.language()),rect.position+Vector2(17,68),327,21,INK)
+   var caption = game.l("researched") if purchased else (game.l("research_buy")+" · %d" % AstraResearch.COSTS[rank] if unlocked else game.l("research_act") % (rank+1))
+   button(Rect2(x+13,y+110,341,38),caption,"buy_research",branch+":"+str(rank),false,unlocked and game.run.data.credits>=AstraResearch.COSTS[rank])
+ button(Rect2(565,803,470,66),game.l("back"),"back",0,true)
 func art(entry: Dictionary, rect: Rect2) -> void:
  var key: String = entry.art
  if not portraits.has(key):
-  var path = "res://assets3d/tabletop/portraits/%s.png" % key
+  var path = "res://assets3d/roles/portraits/%s.png" % key
+  if not ResourceLoader.exists(path): path = "res://assets3d/tabletop/portraits/%s.png" % key
   portraits[key] = load(path) if ResourceLoader.exists(path) else load("res://assets3d/icons/%s.png" % key)
  if portraits[key] != null: draw_texture_rect(portraits[key],rect,false)
 func hit_card(entry: Dictionary, rect: Rect2, side: String, index: int, hand: int = -1) -> void:
@@ -69,13 +121,13 @@ func pick_card(point: Vector2) -> Dictionary:
  return {}
 func compact_card(entry: Dictionary, rect: Rect2, side: String, index: int, hand: int = -1) -> void:
  var selected = hand == game.selected and hand >= 0
- frame(rect,CYAN if selected else DIM,.98,selected)
- label(AstraCards.word(entry.name,game.language()),rect.position+Vector2(13,28),22,INK,rect.size.x-50)
+ frame(rect,AstraRoles.color(entry),.98,selected)
+ words(AstraCards.word(entry.name,game.language()),rect.position+Vector2(13,23),rect.size.x-50,19,INK)
  draw_circle(rect.position+Vector2(rect.size.x-25,26),16,CYAN)
  label(str(entry.cost),rect.position+Vector2(rect.size.x-25,33),22,Color("09202b"),28,true)
- art(entry,Rect2(rect.position+Vector2(28,40),Vector2(rect.size.x-56,86)))
+ art(entry,Rect2(rect.position+Vector2(28,49),Vector2(rect.size.x-56,80)))
  if entry.hp > 0:
-  label("%s %d   /   HP %d" % [game.l("attack_short"),entry.attack,entry.hp],rect.position+Vector2(13,150),22,INK,rect.size.x-26)
+  combat_stats(entry,rect.position+Vector2(13,150),rect.size.x-26,21)
  else: label(game.l("action"),rect.position+Vector2(13,150),21,CYAN,rect.size.x-26)
  label(game.l("card_key") % (hand%5+1) if hand >= 0 else game.l("inspect_short"),rect.position+Vector2(13,178),18,DIM,rect.size.x-26)
  hit_card(entry,rect,side,index,hand)
@@ -87,7 +139,7 @@ func menu() -> void:
  for i in range(5):
   var keys = ["continue","new","collection","settings","quit"]
   button(Rect2(80,390+i*79,545,62),game.l(keys[i]),keys[i],0,i < 2,i != 0 or game.run.resume_available())
- label("RU / EN / DE   ·   DESKTOP / 4.2",Vector2(80,804),21,DIM,540)
+ label("RU / EN / DE   ·   DESKTOP / 4.3",Vector2(80,804),21,DIM,540)
 func new_run() -> void:
  title("choose_deck",game.l("small_start"))
  var keys = ["scout","citadel","engineer"]
@@ -119,12 +171,16 @@ func route() -> void:
  label(game.l(AstraCards.PLANETS[act]).to_upper(),Vector2(52,85),38,CYAN,293)
  words(game.l("location%d" % act),Vector2(52,132),290,26,INK)
  label("%d / 5" % (act+1),Vector2(53,222),45,CYAN,290)
- words(game.l("route_desktop"),Vector2(53,291),290,24)
- health_bar(Rect2(46,449,301,68),game.l("your_core"),int(data.core),20)
+ words(game.l("route_desktop"),Vector2(53,291),290,21)
+ button(Rect2(48,397,77,36),"−","map_zoom",-.05)
+ label("%d%%" % int(game.run.store.data.map_zoom*100),Vector2(195,424),22,DIM,115,true)
+ button(Rect2(270,397,77,36),"+","map_zoom",.05)
+ health_bar(Rect2(46,449,301,68),game.l("your_core"),int(data.core),int(data.max_core))
  label(game.l("scrap")+": "+str(data.credits),Vector2(53,568),29,AMBER,290)
  button(Rect2(48,634,296,62),game.l("deck")+" · %d" % data.deck.size(),"deck")
- button(Rect2(48,716,296,62),game.l("planet_map"),"overview")
- button(Rect2(48,796,296,45),game.l("pause"),"pause")
+ button(Rect2(48,703,296,53),game.l("research"),"research")
+ button(Rect2(48,769,296,45),game.l("planet_map"),"overview")
+ button(Rect2(48,826,296,30),game.l("pause"),"pause")
  frame(Rect2(1210,27,365,827),CYAN,.94)
  label(game.l("world_unlock"),Vector2(1236,76),27,CYAN,315)
  var special = AstraCards.card(["verdant","frost","ember","storm","echo"][act])
@@ -148,21 +204,26 @@ func preview_panel() -> void:
  frame(Rect2(1170,106,400,558),CYAN,.96)
  var entry: Dictionary = game.hovered_entry
  if game.hovered.is_empty() and game.selected >= 0 and game.selected < game.run.battle.data.hand.size():
-  var raw = game.run.battle.data.hand[game.selected]; entry = AstraCards.card(raw.id,int(raw.upgrade))
+  var raw = game.run.battle.data.hand[game.selected]; entry = game.run.battle.instance(raw)
  elif game.hovered.is_empty() and game.selected_bot >= 0 and game.run.battle.data.friendly[game.selected_bot] != null: entry = game.run.battle.data.friendly[game.selected_bot]
  if entry.is_empty():
-  var y = words(game.l("preview_hint"),Vector2(1200,163),340,25,INK)
-  if game.run.battle.data.get("tutorial",false): preview_bottom = words(game.l("training_rule"),Vector2(1200,y+35),340,24)
+  var battle = game.run.battle.data
+  if battle.get("tutorial",false):
+   var y = words(game.l("preview_hint"),Vector2(1200,163),340,25,INK)
+   preview_bottom = words(game.l("training_rule"),Vector2(1200,y+35),340,24)
   else:
-   y = words(game.l("energy_rule"),Vector2(1200,y+30),340,24)
-   preview_bottom = words(game.l("draw_rule"),Vector2(1200,y+30),340,24)
+   label(AstraRivals.name_for(int(battle.act),game.language()),Vector2(1198,150),28,AstraRoles.ATTACK,345)
+   rival_art(int(battle.act),Rect2(1223,170,293,229))
+   health_bar(Rect2(1190,407,354,65),game.l("core"),battle.enemy_core,battle.max_enemy_core)
+   preview_bottom = words(game.l("enemy_console_hint"),Vector2(1200,506),335,22,DIM)
   return
  label(AstraCards.word(entry.name,game.language()),Vector2(1198,150),30,CYAN,345)
  art(entry,Rect2(1234,176,276,172))
  label(game.l("energy")+": "+str(entry.cost),Vector2(1200,384),26,INK,340)
- if entry.hp > 0: label("%s %d   ·   HP %d / %d" % [game.l("attack_short"),entry.attack,entry.hp,entry.get("max_hp",entry.hp)],Vector2(1200,425),26,INK,340)
- preview_bottom = words(AstraCards.word(AstraCards.EFFECTS.get(entry.effect,["","",""]),game.language()),Vector2(1200,472),339,26,INK)
- if game.selected_bot >= 0: preview_bottom = words(game.l("orders_tip"),Vector2(1200,556),339,21,DIM)
+ if entry.hp > 0: combat_stats(entry,Vector2(1200,420),340,25)
+ if entry.get("armor",0)+entry.get("shield",0)+entry.get("temporary",0)>0: label(game.l("armor")+": %d   %s: %d" % [entry.get("armor",0),game.l("shield_short"),entry.get("shield",0)+entry.get("temporary",0)],Vector2(1200,453),22,AstraRoles.DEFENCE,340)
+ preview_bottom = words(AstraCards.description(entry,game.language()),Vector2(1200,487),339,23,INK)
+ if game.selected_bot >= 0: label(game.l("orders_short"),Vector2(1200,617),20,DIM,340)
  label(game.l("inspect_key"),Vector2(1200,653),18,DIM,340)
 func battle() -> void:
  var data = game.run.battle.data
@@ -197,21 +258,21 @@ func battle() -> void:
    frame(Rect2(point+Vector2(-103,-72),Vector2(206,30)),color,.95)
    label(AstraCards.word(bot.name,game.language()),point+Vector2(0,-49),19,color,190,true)
    frame(Rect2(point+Vector2(-103,25),Vector2(206,51)),color,.96,side == "friendly" and lane == game.selected_bot)
-   label("%s %d%s" % [game.l("attack_short"),bot.attack," +1" if bot.get("focus",0) > 0 else ""],point+Vector2(-89,50),22,INK,100)
-   label("HP %d / %d" % [bot.hp,bot.max_hp],point+Vector2(12,50),22,INK,85)
+   label("%s %d%s" % [game.l("attack_short"),bot.attack," +1" if bot.get("focus",0) > 0 else ""],point+Vector2(-89,50),22,AstraRoles.ATTACK,100)
+   label("HP %d / %d" % [bot.hp,bot.max_hp],point+Vector2(12,50),22,AstraRoles.HP,85)
    var hp_width = 180*clampf(float(bot.hp)/maxi(1,bot.max_hp),0,1)
-   draw_rect(Rect2(point+Vector2(-90,61),Vector2(180,5)),Color("29404b")); draw_rect(Rect2(point+Vector2(-90,61),Vector2(hp_width,5)),color)
-   if bot.shield+bot.temporary > 0:
-    frame(Rect2(point+Vector2(-101,-33),Vector2(55,28)),CYAN,.98)
-    label("◇ "+str(bot.shield+bot.temporary),point+Vector2(-94,-12),19,CYAN,43)
+   draw_rect(Rect2(point+Vector2(-90,61),Vector2(180,5)),Color("29404b")); draw_rect(Rect2(point+Vector2(-90,61),Vector2(hp_width,5)),AstraRoles.HP)
+   if bot.get("armor",0)+bot.shield+bot.temporary > 0:
+    frame(Rect2(point+Vector2(-101,-33),Vector2(78,28)),AstraRoles.DEFENCE,.98)
+    label("◇ %d · %d" % [bot.get("armor",0),bot.shield+bot.temporary],point+Vector2(-94,-12),18,AstraRoles.DEFENCE,67)
    if bot.frozen > 0 or bot.jammed > 0 or bot.burn > 0: label(game.l("status"),point+Vector2(-93,18),20,AMBER,185)
    hit_card(bot,rect,side,lane)
- health_bar(Rect2(52,626,610,64),game.l("your_core"),int(data.core),20)
+ health_bar(Rect2(52,626,610,64),game.l("your_core"),int(data.core),int(data.max_core))
  health_bar(Rect2(686,626,451,64),game.l("energy"),int(data.energy),maxi(data.max_energy,data.energy))
  var hand = data.hand; var pages = maxi(1,int(ceil(hand.size()/5.0)))
  game.hand_page = clampi(game.hand_page,0,pages-1)
  for index in range(game.hand_page*5,mini(hand.size(),(game.hand_page+1)*5)):
-  var raw = hand[index]; var entry = AstraCards.card(raw.id,int(raw.upgrade)); entry.uid = raw.uid
+  var raw = hand[index]; var entry = game.run.battle.instance(raw); entry.uid = raw.uid
   var count = mini(5,hand.size()-game.hand_page*5)
   var x = 597-count*211/2.0+(index%5)*211
   compact_card(entry,Rect2(x,707,197,183),"hand",-1,index)
@@ -224,7 +285,7 @@ func battle() -> void:
   button(Rect2(1186,680,177,58),game.l("aim"),"order","aim",false,available and data.friendly[game.selected_bot].attack > 0 and data.friendly[game.selected_bot].frozen == 0)
   button(Rect2(1376,680,177,58),game.l("guard"),"order","guard",false,available)
  elif game.selected >= 0 and game.selected < hand.size() and AstraCards.CARDS[hand[game.selected].id].get("target","") == "all":
-  button(Rect2(1186,680,367,58),game.l("confirm_play"),"cast",0,true,data.phase == "player")
+  button(Rect2(1186,680,367,58),game.l("confirm_play"),"cast",0,true,data.phase == "player" and (hand[game.selected].id != "core_repair" or data.core<data.max_core))
  if data.get("tutorial",false):
   frame(Rect2(49,345,1087,121),CYAN,.98,true)
   words(game.l("lesson%d" % int(data.tutorial_step)),Vector2(71,380),1040,24,INK)
@@ -243,8 +304,8 @@ func offer_card(id: String, index: int, side: String) -> void:
  label(AstraCards.word(entry.name,game.language()),rect.position+Vector2(24,44),30,CYAN,306)
  art(entry,Rect2(rect.position+Vector2(30,76),Vector2(295,210)))
  label(game.l("energy")+": "+str(entry.cost),rect.position+Vector2(24,323),26,INK,306)
- if entry.hp > 0: label("%s %d / HP %d" % [game.l("attack_short"),entry.attack,entry.hp],rect.position+Vector2(24,365),27,INK,306)
- words(AstraCards.word(AstraCards.EFFECTS[entry.effect],game.language()),rect.position+Vector2(24,410),300,25,INK)
+ if entry.hp > 0: combat_stats(entry,rect.position+Vector2(24,365),306,26)
+ words(AstraCards.description(entry,game.language()),rect.position+Vector2(24,410),300,25,INK)
  hit_card(entry,rect,side,index)
 func shop() -> void:
  title("shop",game.l("scrap")+": "+str(game.run.data.credits))
@@ -266,6 +327,7 @@ func browse() -> void:
  button(Rect2(1250,695,140,64),"→","page",1,false,(game.page+1)*6 < entries.size())
  label("%d / %d" % [game.page+1,maxi(1,int(ceil(entries.size()/6.0)))],Vector2(800,738),29,INK,300,true)
  button(Rect2(550,791,500,65),game.l("leave" if screen in ["upgrade","remove"] else "back"),"leave" if screen in ["upgrade","remove"] else "back")
+ if screen == "upgrade": button(Rect2(60,280,260,62),game.l("research"),"research")
  if screen == "collection": button(Rect2(60,185,260,62),game.l("records"),"records")
 func event_screen() -> void:
  title("event",game.l(AstraCards.PLANETS[int(game.run.data.act)]))
@@ -277,7 +339,7 @@ func simple_screen(key: String, text: String, command: String, button_key: Strin
  title(key)
  frame(Rect2(200,230,1200,350),CYAN,.98)
  words(game.l(text),Vector2(240,310),1120,31,INK)
- if key == "rest": label("HP %d → %d" % [game.run.data.core,mini(20,game.run.data.core+7)],Vector2(240,513),38,CYAN,1060)
+ if key == "rest": label("HP %d → %d" % [game.run.data.core,mini(game.run.data.max_core,game.run.data.core+7)],Vector2(240,513),38,CYAN,1060)
  button(Rect2(530,703,540,87),game.l(button_key),command,0,true)
 func settings() -> void:
  title("settings",game.l("desktop_hint"))
@@ -311,8 +373,9 @@ func inspector() -> void:
  var entry = game.inspect_entry
  label(AstraCards.word(entry.name,game.language()),Vector2(914,153),37,CYAN,584)
  label(game.l("energy")+": "+str(entry.cost),Vector2(914,235),32,INK,570)
- if entry.hp > 0: label("%s %d  ·  HP %d / %d" % [game.l("attack_short"),entry.attack,entry.hp,entry.get("max_hp",entry.hp)],Vector2(914,290),31,INK,570)
- words(AstraCards.word(AstraCards.EFFECTS.get(entry.effect,["","",""]),game.language()),Vector2(914,382),556,32,INK)
+ if entry.hp > 0: combat_stats(entry,Vector2(914,290),570,31)
+ if entry.get("armor",0)+entry.get("shield",0)+entry.get("temporary",0)>0: label(game.l("armor")+": %d   %s: %d" % [entry.get("armor",0),game.l("shield_short"),entry.get("shield",0)+entry.get("temporary",0)],Vector2(914,335),26,AstraRoles.DEFENCE,570)
+ words(AstraCards.description(entry,game.language()),Vector2(914,382),556,32,INK)
  words(game.l("zoom_hint"),Vector2(914,611),552,24)
  button(Rect2(914,737,565,67),game.l("back"),"inspect_back",0,true)
 func records() -> void:
@@ -338,6 +401,8 @@ func _draw() -> void:
   "map": route()
   "overview": overview()
   "battle": battle()
+  "challenge": challenge()
+  "research": research()
   "pause": pause()
   "reward": reward()
   "shop": shop()

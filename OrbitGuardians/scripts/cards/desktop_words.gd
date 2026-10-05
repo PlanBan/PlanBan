@@ -1,6 +1,15 @@
 extends RefCounted
 class_name AstraDesktopWords
 const TEXT = {
+ "opponent_title":["ВРАЖЕСКИЙ КОМАНДИР","ENEMY COMMANDER","FEINDLICHER KOMMANDANT"],
+ "fight":["К бою","Begin battle","Kampf beginnen"],"fight_hint":["Командир управляет армией. Уничтожьте его ядро.","The commander controls the army. Destroy their core.","Der Kommandant steuert die Armee. Zerstöre seinen Kern."],
+ "research":["Технологии","Technology","Technologien"],"research_tip":["Улучшения действуют до конца путешествия. Вторая ступень открывается на Борее, третья — на Игнисе.","Upgrades last for this journey. Tier two opens on Borea; tier three on Ignis.","Verbesserungen gelten für diese Reise. Stufe zwei öffnet auf Borea, Stufe drei auf Ignis."],
+ "branch_weapons":["ОРУЖИЕ","WEAPONS","WAFFEN"],"branch_frames":["КОРПУСА / БРОНЯ","FRAMES / ARMOUR","GEHÄUSE / PANZERUNG"],"branch_core":["ЯДРО КОРАБЛЯ","SHIP CORE","SCHIFFSKERN"],"branch_systems":["ЭНЕРГОСИСТЕМЫ","ENERGY SYSTEMS","ENERGIESYSTEME"],
+ "research_buy":["Изучить","Research","Erforschen"],"researched":["Изучено","Researched","Erforscht"],"research_act":["После предыдущего · мир %d","Previous tier required · world %d","Vorige Stufe nötig · Welt %d"],
+ "research_bought":["Технология изучена","Technology researched","Technologie erforscht"],"research_unavailable":["Нужны предыдущая ступень, нужная планета и сплав","Requires previous tier, the right world and alloy","Benötigt vorige Stufe, passende Welt und Legierung"],
+ "armor":["Броня","Armour","Panzerung"],"orders_short":["Приказы: прицел или щит · 1 энергия","Orders: aim or guard · 1 energy","Befehle: Zielen oder Schutz · 1 Energie"],
+ "enemy_console_hint":["HP синие · атака красная · броня жёлтая. ПКМ: крупный вид.","Blue HP · red attack · yellow armour. Right click: inspect.","LP blau · Angriff rot · Panzerung gelb. Rechtsklick: Details."],
+
  "new":["Новая игра","New game","Neues Spiel"],
  "desktop_subtitle":["Верните Астру. Один корабль. Пять миров.","Recover Astra. One ship. Five worlds.","Hole Astra zurück. Ein Schiff. Fünf Welten."],
  "desktop_hint":["F11 — полный экран · Ctrl +/− — размер текста · ПКМ или E — крупная карта","F11: fullscreen · Ctrl +/−: text size · Right click or E: inspect card","F11: Vollbild · Strg +/−: Textgröße · Rechtsklick oder E: Kartenansicht"],
@@ -10,7 +19,7 @@ const TEXT = {
  "enemy_core":["ЯДРО ПРОТИВНИКА","ENEMY CORE","GEGNERKERN"],"your_core":["ВАШЕ ЯДРО","YOUR CORE","DEIN KERN"],
  "neutral_zone":["НЕЙТРАЛЬНАЯ ЗОНА","NEUTRAL ZONE","NEUTRALE ZONE"],
  "preview_hint":["Наведите мышь на карту или робота, чтобы прочитать свойства.","Hover a card or robot to read its details.","Zeige auf eine Karte oder einen Roboter, um Details zu lesen."],
- "energy_rule":["2 энергии; с 4-го хода — 3. Реакторы: ещё +1. Предел 5.","2 energy; 3 from turn 4. Reactors: +1 more. Limit 5.","2 Energie; ab Zug 4: 3. Reaktoren: +1. Grenze 5."],
+ "energy_rule":["3 энергии; с 4-го хода — 4. Реакторы: ещё +1. Предел 6.","3 energy; 4 from turn 4. Reactors: +1 more. Limit 6.","3 Energie; ab Zug 4: 4. Reaktoren: +1. Grenze 6."],
  "draw_rule":["Старт: 3 карты. Добор: 1 за ход. Предел: 5 в руке.","Start: 3 cards. Draw: 1 per turn. Hand limit: 5.","Start: 3 Karten. Ziehen: 1 pro Zug. Handlimit: 5."],
  "orders_tip":["Прицел: +1 урон. Защита: щит 2. Цена 1; один приказ за ход.","Aim: +1 damage. Guard: shield 2. Cost 1; one order per turn.","Zielen: +1 Schaden. Schutz: Schild 2. Kosten 1; ein Befehl pro Zug."],
  "travel_text":["Архонт пал. След Астры ведёт дальше. Ядро восстановлено на 10 HP; колода продолжит путь с вами.","The Archon fell. Astra's trail leads onward. Core restored by 10 HP; your deck travels with you.","Der Archon ist gefallen. Astras Spur führt weiter. Kern um 10 LP geheilt; dein Deck reist mit dir."],
@@ -23,7 +32,7 @@ const TEXT = {
  "aim":["Прицел · 1","Aim · 1","Zielen · 1"],"guard":["Защита · 1","Guard · 1","Schutz · 1"],
  "order_help":["Прицел: +1 урон следующей атаки. Защита: щит 2 до конца хода. Один приказ роботу за ход.","Aim: +1 damage on the next attack. Guard: shield 2 for this turn. One order per robot per turn.","Zielen: +1 Schaden beim nächsten Angriff. Schutz: Schild 2 für diesen Zug. Ein Befehl pro Roboter und Zug."],
  "reinforcement":["После хода придут","Arriving after this turn","Nach diesem Zug kommen"],
- "route_desktop":["Нажмите подсвеченную точку, затем «В путь». Колесо мыши немного сдвигает диораму.","Select a glowing node, then set course. The mouse wheel pans the diorama.","Wähle einen leuchtenden Knoten, dann brich auf. Das Mausrad verschiebt die Karte."],
+ "route_desktop":["Выберите узел → «В путь». Колесо: масштаб.","Node → set course. Mouse wheel: zoom.","Knoten → aufbrechen. Mausrad: Zoom."],
  "save":["Сохранить · F5","Save · F5","Speichern · F5"],"saved":["Игра сохранена","Game saved","Spiel gespeichert"],
  "fullscreen":["Полный экран · F11","Fullscreen · F11","Vollbild · F11"],"text_size":["Размер текста","Text size","Textgröße"],
  "audio_note":["Оригинальная мелодия: мягкие клавиши, бас и арпеджио. Постоянный гул отключён. Нулевая громкость полностью останавливает музыку.","Original melody: soft keys, bass and arpeggios. The constant hum is removed. Zero volume stops music completely.","Eigene Melodie: sanfte Tasten, Bass und Arpeggien. Kein Dauersummen. Lautstärke null stoppt die Musik vollständig."],

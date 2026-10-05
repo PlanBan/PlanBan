@@ -8,7 +8,8 @@ var art: Texture2D
 const W = 300.0
 const H = 430.0
 func _ready() -> void:
- var candidate = "res://assets3d/tabletop/portraits/%s.png" % card.art
+ var candidate = "res://assets3d/roles/portraits/%s.png" % card.art
+ if not ResourceLoader.exists(candidate): candidate = "res://assets3d/tabletop/portraits/%s.png" % card.art
  if not ResourceLoader.exists(candidate): candidate = "res://assets3d/icons/%s.png" % card.art
  art = load(candidate)
  queue_redraw()
@@ -18,7 +19,7 @@ func line(text: String, point: Vector2, size_value: int, color: Color, width: fl
  draw_string(font,point,text,HORIZONTAL_ALIGNMENT_LEFT,width,fitted,color)
 func _draw() -> void:
  var ink = Color("e6edf0")
- var accent = Color("ff8250") if hostile else Color("53d5e9")
+ var accent = AstraRoles.color(card)
  var face = Color("222124") if hostile else Color("15242d")
  draw_rect(Rect2(0,0,W,H),Color("050c12"))
  draw_rect(Rect2(7,7,W-14,H-14),face)
@@ -36,10 +37,10 @@ func _draw() -> void:
  draw_circle(Vector2(260,87),25,Color("ff9552") if hostile else Color("65e6f4"))
  line(("Ω" if card.id == "boss" else "!") if hostile else str(card.cost),Vector2(246,102),38,Color("102321"),45)
  if card.hp > 0:
-  line("× " + str(card.attack),Vector2(26,328),39,ink,112)
-  line("♥ " + str(card.hp),Vector2(174,328),39,ink,106)
+  line("× " + str(card.attack),Vector2(26,328),39,AstraRoles.ATTACK,112)
+  line("HP " + str(card.hp),Vector2(174,328),39,AstraRoles.HP,106)
  else: line(AstraWords.get_text("action",language),Vector2(26,327),29,ink)
- var description: String = AstraCards.word(AstraCards.EFFECTS.get(card.effect,["","",""]),language)
+ var description: String = AstraCards.description(card,language)
  var words = description.split(" ")
  var rows: Array[String] = [""]
  for word in words:
