@@ -51,7 +51,7 @@ func _initialize() -> void:
      var target: Variant = null
      for entry in run.data.deck:
       if entry.id == "reactor": target = entry; break
-     if target != null: run.remove_card(int(target.uid))
+     if target != null and run.data.deck.size() > 6: run.remove_card(int(target.uid))
      else: run.finish_node()
     "shop":
      for i in range(run.data.stock.size()): run.shop_buy(i)
@@ -80,6 +80,12 @@ static func play_turn(battle: AstraBattle) -> void:
   if choice.is_empty(): break
   if not battle.play(int(choice.index),choice.side,int(choice.lane)): break
   plays += 1
+ for lane in range(4):
+  var bot: Variant = battle.data.friendly[lane]
+  if bot == null or battle.data.energy <= 0: continue
+  var enemy: Variant = battle.data.enemy[lane]
+  if enemy != null and enemy.attack >= bot.hp and enemy.hp > bot.attack+1: battle.order(lane,"guard")
+  elif bot.attack > 0: battle.order(lane,"aim")
 static func evaluate_play(battle: AstraBattle, entry: Dictionary, side: String, lane: int) -> float:
  var data = battle.data
  if entry.hp > 0:
@@ -94,7 +100,7 @@ static func evaluate_play(battle: AstraBattle, entry: Dictionary, side: String, 
    var count = 0
    for bot in data.friendly:
     if bot != null and bot.effect == "energy": count += 1
-   score = 5 if count == 0 and data.turn < 6 else -1
+   score = 11 if count == 0 and data.turn < 5 else -1
    if opponent != null: score -= 2
   if entry.effect == "mend": score += 1
   return score

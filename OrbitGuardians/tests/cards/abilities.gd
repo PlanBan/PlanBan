@@ -10,7 +10,8 @@ func fixture(act: int = 0) -> void:
  for i in range(AstraCards.STARTERS.size()): deck.append({"id":AstraCards.STARTERS[i],"upgrade":0,"uid":i+1})
  battle.begin(deck,20,act,"battle",4321)
  battle.data.friendly = [null,null,null,null]; battle.data.enemy = [null,null,null,null]; battle.data.intent.clear()
- battle.data.energy = 10
+ battle.data.energy = 5; battle.data.max_energy = 5
+ battle.data.enemy_core = 18; battle.data.max_enemy_core = 18
 func bot(id: String, uid: int = 500) -> Dictionary:
  return battle.instance({"id":id,"uid":uid,"upgrade":0})
 func cast(id: String, side: String = "friendly", lane: int = 0) -> bool:
@@ -19,12 +20,12 @@ func cast(id: String, side: String = "friendly", lane: int = 0) -> bool:
 func _initialize() -> void:
  fixture(); battle.data.friendly[0] = bot("pulse"); battle.spawn("runner",0); battle.data.enemy[0].shield = 0
  battle.end_turn(); battle.resolve_all()
- check(battle.data.energy == 4,"Pulse kill refund is spendable next turn")
+ check(battle.data.energy == 3,"Pulse kill refund is spendable next turn")
  fixture(); battle.data.friendly[0] = bot("reactor"); battle.data.friendly[0].jammed = 1
  battle.end_turn(); battle.resolve_all()
- check(battle.data.energy == 3,"jam suppresses Reactor for a full turn")
+ check(battle.data.energy == 2,"jam suppresses Reactor for a full turn")
  battle.end_turn(); battle.resolve_all()
- check(battle.data.energy == 4,"Reactor resumes after jam expires")
+ check(battle.data.energy == 3,"Reactor resumes after jam expires")
  fixture(); battle.data.friendly[1] = bot("pulse"); battle.data.friendly[1].hp = 1
  check(cast("barrier","friendly",1),"shield action")
  battle.hurt("friendly",1,3,"enemy")
@@ -37,7 +38,7 @@ func _initialize() -> void:
  fixture(); battle.spawn("tank",1)
  check(cast("emp","enemy",1) and battle.data.enemy[1].jammed == 1 and battle.data.enemy[1].frozen == 1,"EMP disables chosen opponent")
  fixture(); var energy = battle.data.energy; var hand = battle.data.draw.size()
- check(cast("astra") and battle.data.energy == mini(12,energy+2) and battle.data.hand.size() == 1 and battle.data.draw.size() == hand-1,"Astra energy and actual draw")
+ check(cast("astra") and battle.data.energy == mini(5,energy-1+2) and battle.data.hand.is_empty() and battle.data.draw.size() == hand,"Astra costs energy and does not flood hand")
  fixture(); battle.data.friendly[1] = bot("burst"); battle.data.enemy_core = 18
  battle.end_turn(); battle.resolve_all()
  check(battle.data.enemy_core == 16,"Twin Spark attacks twice")
@@ -60,12 +61,12 @@ func _initialize() -> void:
  fixture(2); battle.spawn("drone",0); check(battle.data.enemy[0].effect == "burn","Ignis clan uses burn")
  battle.data.friendly[0] = bot("shield"); battle.data.friendly[0].shield = 0; battle.data.turn = 2; battle.next_round()
  check(battle.data.friendly[0].hp == 5,"Ignis third-turn overheat")
- fixture(3); battle.next_round(); check(battle.data.energy == 4,"Aurica even-turn energy")
+ fixture(3); battle.next_round(); check(battle.data.energy == 3,"Aurica even-turn energy")
  fixture(4); battle.data.friendly[0] = bot("pulse"); battle.data.turn = 3; battle.next_round(); check(battle.data.friendly[0].jammed == 1,"Nexus fourth-turn jam")
  fixture(); battle.spawn("runner",0); battle.spawn("runner",3)
  check(cast("frost") and battle.data.enemy[0].frozen == 1 and battle.data.enemy[3].frozen == 1,"Frost prism freezes whole board")
  fixture(); var core = battle.data.core
- check(cast("storm") and battle.data.core == core-1 and battle.data.energy == 12,"Capacitor has a real core cost")
+ check(cast("storm") and battle.data.core == core-1 and battle.data.energy == 5,"Capacitor has a real core cost and capped energy")
  fixture(); battle.data.friendly[0] = bot("ember"); battle.spawn("tank",0); battle.strike("friendly",0)
  check(battle.data.enemy[0].burn == 2,"Ember applies burn")
  fixture(); battle.data.friendly[0] = bot("echo"); var count = battle.data.hand.size(); battle.strike("friendly",0)
@@ -74,6 +75,7 @@ func _initialize() -> void:
  check(battle.data.boss_phase and battle.data.enemy[0] != null and battle.data.enemy[0].id == "elite","boss changes phase at half health")
  var run = AstraRun.new(); run.path = "user://qa_card_nodes.json"; run.meta_path = "user://qa_card_nodes_meta.json"; run.new_run(99)
  run.data.state = "upgrade"; check(run.upgrade(int(run.data.deck[0].uid)) and run.data.deck[0].upgrade == 1,"upgrade node changes a specific card")
+ run.add_card("pulse")
  run.data.state = "remove"; var size_value = run.data.deck.size(); check(run.remove_card(int(run.data.deck[1].uid)) and run.data.deck.size() == size_value-1,"remove node thins deck")
  run.data.state = "shop"; run.data.stock = ["pulse","cryo","reactor"]; run.data.credits = 50
  check(run.shop_buy(0) and not run.shop_buy(0) and run.data.credits == 30,"shop charges once and sold offer cannot be bought twice")
@@ -83,7 +85,7 @@ func _initialize() -> void:
  var bad = run.data.duplicate(true); bad.map[0].links = ["bogus"]
  check(not run.valid_save({"format":"astra_tabletop","version":4,"run":bad}),"invalid route links rejected")
  var prefs = run.store.preferences(); run.new_run(100)
- check(run.store.preferences() == prefs and run.data.core == 20 and run.data.deck.size() == 12,"new run resets run power and retains preferences")
+ check(run.store.preferences() == prefs and run.data.core == 20 and run.data.deck.size() == 6,"new run resets run power and retains preferences")
  var legacy_path = "user://qa_card_legacy.json"
  var legacy = OrbitProgress.defaults()
  for i in range(1,21): legacy.completed[str(i)] = 3

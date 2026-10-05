@@ -1,6 +1,6 @@
 extends Node
 class_name AstraGame
-## Main mobile shell. Every mutation is checkpointed; a resolving turn resumes safely.
+## Desktop shell. Every mutation is checkpointed; a resolving turn resumes safely.
 var run = AstraRun.new()
 var world: AstraTable
 var view: AstraTableUI
@@ -31,32 +31,48 @@ var hold_entry: Dictionary = {}
 var hold_clock = 0.0
 var selected_node = ""
 var route_travel = 0.0
+var hovered: Dictionary = {}
+var hovered_entry: Dictionary = {}
+var selected_bot = -1
+var hand_page = 0
+var inspector_zoom = 1.0
+var inspection_selection = -1
 func language() -> String:
  return run.store.data.language
 func l(key: String) -> String:
- return AstraWords.get_text(key,language())
+ return AstraDesktopWords.get_text(key,language())
 func _ready() -> void:
  get_tree().auto_accept_quit = false
+ get_tree().root.min_size = Vector2i(1024,576)
  get_tree().root.close_requested.connect(quit_game)
  run.load_all()
  for key in ["deploy","energy","hit","alarm","unlock"]:
-  var player = AudioStreamPlayer.new(); add_child(player); player.stream = load("res://audio/%s.wav" % key); sounds[key] = player
- music = AudioStreamPlayer.new(); add_child(music); music.stream = load("res://audio/table_hum.wav")
+  var player = AudioStreamPlayer.new(); add_child(player); player.stream = load("res://audio/desktop_%s.wav" % key); sounds[key] = player
+ music = AudioStreamPlayer.new(); add_child(music)
+ var soundtrack: AudioStreamWAV = load("res://audio/desktop_theme.wav")
+ soundtrack.loop_mode = AudioStreamWAV.LOOP_FORWARD
+ soundtrack.loop_end = int(soundtrack.get_length()*soundtrack.mix_rate); music.stream = soundtrack
  music.finished.connect(func():
   if not quitting: music.play()
  )
- apply_settings(); music.play()
+ apply_settings()
  world = AstraTable.new(); world.game = self; add_child(world)
- view = AstraTableUI.new(); view.game = self; add_child(view)
+ view = AstraDesktopUI.new(); view.game = self; add_child(view)
  if run.notice != "": notify(run.notice,7)
 func apply_settings() -> void:
  var prefs: Dictionary = run.store.data
  var master = prefs.master_volume if prefs.sound else 0.0
- if music != null: music.volume_db = linear_to_db(maxf(0.00001,master*prefs.music_volume))-7
+ if music != null:
+  music.volume_db = linear_to_db(maxf(0.00001,master*prefs.music_volume))-4
+  if master*prefs.music_volume <= 0: music.stop()
+  elif not music.playing and not quitting: music.play()
  for player in sounds.values(): player.volume_db = linear_to_db(maxf(0.00001,master*prefs.effects_volume))-10
- if DisplayServer.get_name() != "headless": DisplayServer.window_set_title("Orbital Front · Astra / Tabletop")
+ if DisplayServer.get_name() != "headless":
+  DisplayServer.window_set_title("Орбитальный рубеж / Desktop")
+  var mode = DisplayServer.WINDOW_MODE_FULLSCREEN if prefs.fullscreen else DisplayServer.WINDOW_MODE_WINDOWED
+  if DisplayServer.window_get_mode() != mode: DisplayServer.window_set_mode(mode)
 func fx(key: String) -> void:
- if run.store.data.sound and sounds.has(key): sounds[key].play()
+ if run.store.data.sound and run.store.data.master_volume*run.store.data.effects_volume > 0 and sounds.has(key): sounds[key].play()
 func notify(key: String, seconds: float = 2.5) -> void:
  toast = key; toast_clock = seconds
 func persist() -> void:
@@ -64,6 +80,7 @@ func persist() -> void:
 func set_screen(value: String) -> void:
  screen = value; selected = -1; page = 0; drag_key = ""; drag_index = -1; dragging = false; slider = ""; pointer_id = -99; pressed = {}; hold_entry.clear()
  route_travel = 0.0
+ hovered.clear(); hovered_entry.clear(); selected_bot = -1
  if screen == "map" and selected_node not in run.available_nodes(): selected_node = ""
  if view != null: view.queue_redraw()
 func display_entries() -> Array:
@@ -84,8 +101,11 @@ func action(command: String, value: Variant = 0) -> void:
    if run.resume_available(): set_screen(run.data.state)
   "intro":
    run.data.intro += 1
-   if run.data.intro >= 3: run.data.state = "map"
+   if run.data.intro >= 4: run.start_training()
    persist(); set_screen(run.data.state)
+  "skip_story": run.data.intro = 4; run.start_training(); set_screen("battle")
+  "skip_training":
+   if run.battle.data.get("tutorial",false): run.finish_training(); set_screen("map")
   "node":
    if screen == "map" and route_travel <= 0 and str(value) in run.available_nodes(): selected_node = str(value)
    else: notify("route_locked")
@@ -98,12 +118,21 @@ func action(command: String, value: Variant = 0) -> void:
    if screen == "battle" and lock_clock <= 0 and run.battle.end_turn(): selected = -1; phase_clock = 0.4; persist()
   "cast":
    if selected >= 0: play_selected("friendly",0)
+  "order":
+   if selected_bot >= 0 and run.battle.order(selected_bot,str(value)):
+    world.feedback(run.battle.events); persist(); fx("energy")
+  "hand_page": hand_page = maxi(0,hand_page+int(value))
+  "save": persist(); notify("saved")
+  "fullscreen": run.store.data.fullscreen = not run.store.data.fullscreen; run.store.save_settings(); apply_settings()
+  "ui_scale": run.store.data.ui_scale = clampf(run.store.data.ui_scale+float(value),.9,1.25); run.store.save_settings()
   "pause": previous_screen = screen; persist(); set_screen("pause")
   "resume": set_screen(previous_screen if previous_screen not in ["menu","pause"] else run.data.state)
   "menu": persist(); set_screen("menu")
   "settings": previous_screen = screen; set_screen("settings")
   "back": set_screen(previous_screen if screen in ["settings","deck"] else "menu")
-  "inspect_back": set_screen(previous_screen)
+  "inspect_back":
+   set_screen(previous_screen)
+   if screen == "battle" and inspection_selection >= 0 and inspection_selection < run.battle.data.hand.size(): selected = inspection_selection
   "collection": set_screen("collection")
   "records": previous_screen = screen; set_screen("records")
   "deck": previous_screen = screen; set_screen("deck")
@@ -145,9 +174,10 @@ func play_selected(side: String, lane: int) -> void:
  else: notify("invalid_target")
 func update_slider(point: Vector2) -> void:
  if slider == "": return
- run.store.data[slider] = clampf((point.x-120)/480.0,0,1)
+ run.store.data[slider] = clampf((point.x-530)/650.0,0,1)
  apply_settings(); view.queue_redraw()
 func open_inspector(entry: Dictionary) -> void:
+ inspection_selection = selected; inspector_zoom = 1.0
  previous_screen = screen; inspect_entry = entry.duplicate(true); set_screen("inspect"); hold_entry.clear()
 func pointer_down(point: Vector2, identity: int) -> void:
  if pointer_id != -99: return
@@ -164,6 +194,7 @@ func pointer_down(point: Vector2, identity: int) -> void:
    var index = int(card.hand)
    cast_on_release = selected == index
    selected = index; drag_index = index; drag_key = card.key
+   selected_bot = -1
  elif screen == "map": pressed = {"command":"map"}
 func pointer_move(point: Vector2, identity: int) -> void:
  if pointer_id != identity: return
@@ -197,7 +228,9 @@ func pointer_up(point: Vector2, identity: int) -> void:
    if not slot.is_empty() and selected >= 0: play_selected(slot.side,int(slot.lane))
    elif selected < 0:
     var card = world.pick_card(point)
-    if not card.is_empty(): open_inspector(card.entry)
+    if not card.is_empty():
+     hovered_entry = card.entry.duplicate(true)
+     if card.side == "friendly": selected_bot = int(card.lane)
  elif screen in ["reward","shop","upgrade","remove","deck","collection"]:
   var card = world.pick_card(point)
   if not card.is_empty(): action("reward" if screen == "reward" else ("buy" if screen == "shop" else "browse"),int(card.lane))
@@ -205,6 +238,24 @@ func pointer_up(point: Vector2, identity: int) -> void:
  view.queue_redraw()
 func _input(event: InputEvent) -> void:
  if view == null or quitting: return
+ if event is InputEventKey and event.pressed and not event.echo:
+  if event.keycode == KEY_F11: action("fullscreen")
+  elif event.keycode == KEY_F5: action("save")
+  elif event.keycode == KEY_ESCAPE:
+   if screen == "inspect": action("inspect_back")
+   elif screen == "pause": action("resume")
+   elif screen in ["battle","map"]: action("pause")
+   elif screen in ["settings","deck"]: action("back")
+   elif screen == "overview": action("overview_back")
+   else: action("menu")
+  elif event.ctrl_pressed and event.keycode in [KEY_EQUAL,KEY_PLUS,KEY_KP_ADD]: action("ui_scale",.05)
+  elif event.ctrl_pressed and event.keycode in [KEY_MINUS,KEY_KP_SUBTRACT]: action("ui_scale",-.05)
+  elif event.keycode == KEY_E and not hovered_entry.is_empty() and screen != "inspect": open_inspector(hovered_entry)
+  elif event.keycode == KEY_SPACE and screen == "battle": action("turn")
+  elif event.keycode >= KEY_1 and event.keycode <= KEY_5 and screen == "battle":
+   var index = int(event.keycode-KEY_1)+hand_page*5
+   if index < run.battle.data.hand.size(): selected = index; selected_bot = -1
+  return
  var point = Vector2.ZERO
  if event is InputEventScreenTouch or event is InputEventScreenDrag or event is InputEventMouseButton or event is InputEventMouseMotion: point = view.get_global_transform_with_canvas().affine_inverse()*event.position
  if event is InputEventScreenTouch:
@@ -215,8 +266,20 @@ func _input(event: InputEvent) -> void:
   if event.button_index == MOUSE_BUTTON_LEFT:
    if event.pressed: pointer_down(point,-1)
    else: pointer_up(point,-1)
+  elif event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+   var card = world.pick_card(point)
+   if not card.is_empty() and screen != "inspect": open_inspector(card.entry)
+  elif event.pressed and event.button_index in [MOUSE_BUTTON_WHEEL_DOWN,MOUSE_BUTTON_WHEEL_UP] and screen == "inspect":
+   inspector_zoom = clampf(inspector_zoom+(.1 if event.button_index == MOUSE_BUTTON_WHEEL_UP else -.1),.8,1.2)
   elif event.pressed and screen == "map" and event.button_index in [MOUSE_BUTTON_WHEEL_DOWN,MOUSE_BUTTON_WHEEL_UP]: world.scroll_map(-30 if event.button_index == MOUSE_BUTTON_WHEEL_DOWN else 30)
- elif event is InputEventMouseMotion: pointer_move(point,-1)
+  elif event.pressed and event.button_index == MOUSE_BUTTON_WHEEL_UP:
+   var card = world.pick_card(point)
+   if not card.is_empty(): open_inspector(card.entry)
+ elif event is InputEventMouseMotion:
+  var card = world.pick_card(point)
+  hovered = card
+  if not card.is_empty(): hovered_entry = card.entry.duplicate(true)
+  pointer_move(point,-1)
 func _notification(what: int) -> void:
  if what == NOTIFICATION_WM_GO_BACK_REQUEST and view != null:
   if screen == "battle" or screen == "map": action("pause")

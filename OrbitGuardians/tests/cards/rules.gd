@@ -8,18 +8,18 @@ func _initialize() -> void:
  var run = AstraRun.new()
  run.path = "user://qa_cards_run.json"; run.meta_path = "user://qa_cards_meta.json"
  run.load_all(); run.new_run(41293)
- check(run.data.deck.size() == 12,"starter deck")
+ check(run.data.deck.size() == 6,"small starter deck")
  check(run.data.map.size() == 17,"seven depth branching map")
  run.data.state = "map"
  check(run.choose_node("0_1"),"first encounter")
  var battle = run.battle
- check(battle.data.hand.size() == 5 and battle.data.energy == 3,"opening hand and energy")
+ check(battle.data.hand.size() == 3 and battle.data.energy == 2,"opening hand and energy")
  check(not battle.play(0,"enemy",0),"robot must be placed in friendly slot")
  var pulse_index = -1
  for i in range(battle.data.hand.size()):
   if battle.data.hand[i].id == "pulse": pulse_index = i; break
  check(battle.play(pulse_index,"friendly",0),"play robot")
- check(battle.data.energy == 2 and battle.data.friendly[0].attack == 2,"cost and stats")
+ check(battle.data.energy == 1 and battle.data.friendly[0].attack == 2,"cost and stats")
  check(not battle.play(0,"friendly",0),"occupied slot rejected")
  check(battle.end_turn(),"begin combat")
  var before = battle.data.enemy_core
@@ -31,14 +31,14 @@ func _initialize() -> void:
  check(not copy.data.is_empty() and copy.battle.data.phase == "resolving","load pending combat")
  battle.resolve_all(); copy.battle.resolve_all()
  check(JSON.stringify(battle.checkpoint()) == JSON.stringify(copy.battle.checkpoint()),"resume produces identical next turn including RNG")
- check(battle.data.energy == 3 and battle.data.hand.size() <= 7,"refresh and hand limit")
+ check(battle.data.energy == 2 and battle.data.hand.size() <= 5,"refresh and hand limit")
  var initial = run.data.deck.duplicate(true)
  battle.begin(initial,20,0,"battle",123)
  battle.data.enemy = [null,null,null,null]
  var bot = battle.instance({"id":"shield","uid":1,"upgrade":0})
  battle.data.friendly = [bot,battle.instance({"id":"pulse","uid":2,"upgrade":0}),null,null]
  battle.hurt("friendly",1,2,"")
- check(battle.data.friendly[1].hp == 1,"Bastion protects adjacent card")
+ check(battle.data.friendly[1].hp == 2,"Bastion protects adjacent card")
  battle.hurt("friendly",0,2,"")
  check(battle.data.friendly[0].hp == 6 and battle.data.friendly[0].shield == 0,"Bastion shield absorbs damage")
  battle.data.hand = [{"id":"cryo","uid":3,"upgrade":0}]; battle.data.energy = 3

@@ -64,6 +64,11 @@ func new_run(seed_value: int = 0, deck_kind: int = 0) -> void:
 func add_card(id: String) -> void:
  data.deck.append({"id":id,"uid":data.serial,"upgrade":0}); data.serial += 1
  if id not in meta.unlocked: meta.unlocked.append(id)
+func start_training() -> void:
+ battle.start_training(data.deck,rng.randi())
+ data.state = "battle"; data.battle = battle.checkpoint(); save()
+func finish_training() -> void:
+ data.core = 20; data.battle.clear(); battle.data.clear(); data.state = "map"; data.training_complete = true; save()
 func build_map() -> void:
  data.map.clear(); data.depth = -1; data.column = 1; data.current = ""; data.visited.clear()
  var rows = [["battle"],["event","rest","reward"],["battle","elite","battle"],["upgrade","shop","remove"],["battle","planet","event"],["rest","reward","upgrade"],["boss"]]
@@ -115,6 +120,7 @@ func prepare_reward(after_battle: bool) -> void:
  if after_battle: data.credits += 16 + int(data.act) * 4 + (16 if battle.data.kind == "elite" else (30 if battle.data.kind == "boss" else 0))
 func finish_battle() -> void:
  if data.state != "battle" or battle.data.phase not in ["won","lost"]: return
+ if battle.data.get("tutorial",false): finish_training(); return
  data.core = battle.data.core
  if battle.data.phase == "lost":
   data.state = "defeat"
@@ -141,7 +147,7 @@ func finish_node() -> void:
    data.state = "ending"
    if not data.ended: meta.wins += 1; data.ended = true
   else:
-   data.act += 1; data.core = mini(20,int(data.core)+6)
+   data.act += 1; data.core = mini(20,int(data.core)+10)
    data.battle.clear(); build_map(); data.state = "travel"
  else: data.state = "map"
  save()
@@ -233,11 +239,14 @@ func valid_battle(value: Dictionary, owned: Array) -> bool:
  if value.get("phase","") not in ["player","resolving","won","lost"]: return false
  if value.get("kind","") not in ["battle","elite","boss"] or not value.get("rng") is String or not value.rng.is_valid_int() or not value.get("boss_phase") is bool: return false
  for key in ["act","turn","core","max_core","enemy_core","max_enemy_core","energy","max_energy","serial"]:
-  var limits = {"act":[0,4],"turn":[1,10000],"core":[0,20],"max_core":[20,20],"enemy_core":[0,100],"max_enemy_core":[1,100],"energy":[0,12],"max_energy":[3,6],"serial":[1000,1000000]}
+  var limits = {"act":[0,4],"turn":[1,10000],"core":[0,20],"max_core":[20,20],"enemy_core":[0,100],"max_enemy_core":[1,100],"energy":[0,12],"max_energy":[1,6],"serial":[1000,1000000]}
   if not numeric(value.get(key),limits[key][0],limits[key][1]): return false
  for key in ["hand","draw","discard","friendly","enemy","pending","intent"]:
   if not value.get(key) is Array or value[key].size() > 100: return false
  if value.friendly.size() != 4 or value.enemy.size() != 4 or value.hand.size() > 7: return false
+ if value.has("ruleset") and (not numeric(value.ruleset,41,42)): return false
+ if int(value.get("ruleset",41)) == 42 and (value.hand.size() > 5 or value.energy > value.max_energy or value.max_energy > 5): return false
+ if value.has("tutorial") and (not value.tutorial is bool or not numeric(value.get("tutorial_step"),0,5)): return false
  var located: Array = []
  for entry in value.hand + value.draw + value.discard:
   if not valid_entry(entry) or entry.uid not in owned or entry.uid in located: return false
@@ -259,6 +268,8 @@ func valid_battle(value: Dictionary, owned: Array) -> bool:
     if not numeric(bot.get(key),0,1000000): return false
    if bot.hp <= 0 or bot.hp > bot.max_hp or not bot.get("effect") is String: return false
    if not numeric(bot.get("cost"),0,12) or not numeric(bot.get("rarity"),0,4): return false
+   if bot.has("focus") and not numeric(bot.focus,0,1): return false
+   if bot.has("ordered_turn") and not numeric(bot.ordered_turn,1,10000): return false
  if located.size() != owned.size(): return false
  for action in value.pending:
   if not action is Dictionary or action.get("side","") not in ["friendly","enemy","round"]: return false

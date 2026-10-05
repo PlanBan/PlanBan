@@ -2,15 +2,17 @@ config_version=5
 
 [application]
 config/name="Орбитальный рубеж"
-config/version="4.1.0"
+config/version="4.2.0"
 run/main_scene="res://scenes/Tabletop.tscn"
 config/icon="res://assets3d/icons/pulse.png"
 
 [display]
-window/size/viewport_width=720
-window/size/viewport_height=1280
-window/size/window_width_override=480
-window/size/window_height_override=854
+window/size/viewport_width=1600
+window/size/viewport_height=900
+window/size/window_width_override=1280
+window/size/window_height_override=720
+window/size/min_width=1024
+window/size/min_height=576
 window/stretch/mode="canvas_items"
 window/stretch/aspect="keep"
 window/handheld/orientation=1

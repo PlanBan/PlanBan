@@ -24,7 +24,7 @@ var biome_index = -1
 var diorama: AstraDiorama
 var room: Node3D
 var arena: Node3D
-const SCREEN = Vector2(720,1280)
+const SCREEN = Vector2(1600,900)
 func material(color: Color, glow: float = 0.0) -> StandardMaterial3D:
  var mat = StandardMaterial3D.new(); mat.albedo_color = color; mat.metallic = 0.7; mat.roughness = 0.44
  if glow > 0: mat.emission_enabled = true; mat.emission = color; mat.emission_energy_multiplier = glow
@@ -44,7 +44,7 @@ func animate_model(root: Node, clip: String) -> void:
    if name.to_lower().ends_with(clip.to_lower()):
     if clip in ["Idle","Walk"]: player.get_animation(name).loop_mode = Animation.LOOP_LINEAR
     player.play(name,.12)
-    if clip not in ["Idle","Walk"]:
+    if clip not in ["Idle","Walk","Death"]:
      for idle in player.get_animation_list():
       if idle.to_lower().ends_with("idle"): player.get_animation(idle).loop_mode = Animation.LOOP_LINEAR; player.queue(idle)
     return
@@ -65,6 +65,7 @@ func _ready() -> void:
  lamp = OmniLight3D.new(); add_child(lamp); lamp.position = Vector3(-4,2,5); lamp.light_color = Color("ff9648"); lamp.light_energy = 0.9; lamp.omni_range = 8
  table_model = model("res://assets3d/tabletop/spark_table.glb"); add_child(table_model)
  room = model("res://assets3d/diorama/command_desk.glb"); add_child(room)
+ room.scale.x = 2.6; room.scale.z = .85
  props = Node3D.new(); add_child(props)
  planet = sphere(props,Vector3(0,3,-9),2.2,material(Color("518973")))
  planet.material_override = ShaderMaterial.new(); planet.material_override.shader = load("res://shaders/planet.gdshader")
@@ -73,6 +74,7 @@ func _ready() -> void:
  showcase = Node3D.new(); add_child(showcase)
  arena = Node3D.new(); add_child(arena)
  set_process(true)
+ get_viewport().size_changed.connect(func(): scene_signature = "")
 func project(pos: Vector3) -> Vector2:
  return game.view.get_global_transform_with_canvas().affine_inverse()*camera.unproject_position(pos)
 func position_for(point: Vector2, height: float = 0.3) -> Vector3:
@@ -81,7 +83,7 @@ func position_for(point: Vector2, height: float = 0.3) -> Vector3:
  var hit = Plane(Vector3.UP,height).intersects_ray(origin,direction)
  return hit if hit != null else Vector3.ZERO
 func slot_point(side: String, lane: int) -> Vector2:
- return Vector2(120 + lane * 160, 490 if side == "enemy" else 730)
+ return Vector2(230 + lane * 250, 252 if side == "enemy" else 548)
 func route_point(node: Dictionary) -> Vector2:
  if diorama != null and is_instance_valid(diorama): return project(diorama.to_global(diorama.node_position(node.id)+Vector3(0,.12,0)))
  return Vector2(135 + int(node.col)*225, 908 - int(node.depth)*84)
@@ -95,6 +97,7 @@ func make_card(key: String, entry: Dictionary, hostile: bool) -> Dictionary:
  var mesh = MeshInstance3D.new(); var quad = QuadMesh.new(); quad.size = Vector2(1.79,2.57); mesh.mesh = quad
  var face_mat = StandardMaterial3D.new(); face_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED; face_mat.albedo_texture = viewport.get_texture(); face_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS; mesh.material_override = face_mat
  card_node.add_child(mesh); mesh.position.y = 0.065; mesh.rotation.x = -PI/2
+ mesh.visible = false
  var record = {"node":card_node,"face":face,"viewport":viewport,"outline":outline,"entry":entry.duplicate(true),"target":Vector3.ZERO,"point":Vector2.ZERO,"polygon":PackedVector2Array(),"scale":1.0,"rot":0.0,"side":"","lane":-1,"hand":-1,"key":key,"mini":null,"dying":false,"life":0.0,"language":game.language()}
  cards[key] = record
  return record
@@ -115,7 +118,7 @@ func bind_card(key: String, entry: Dictionary, point: Vector2, scale_value: floa
  if side in ["friendly","enemy"] and record.mini == null and entry.hp > 0:
   var path = "res://assets3d/diorama/explorer.glb" if entry.art == "pulse" else "res://assets3d/tabletop/card_%s.glb" % entry.art
   if ResourceLoader.exists(path):
-   record.mini = model(path); record.node.add_child(record.mini); record.mini.scale = Vector3.ONE*0.01; record.mini.position = Vector3(0,0.12,-0.38); record.mini.rotation.y = PI if side == "enemy" else 0
+   record.mini = model(path); record.node.add_child(record.mini); record.mini.scale = Vector3.ONE*0.01; record.mini.position = Vector3(0,0.12,.16); record.mini.rotation.y = PI if side == "enemy" else 0
    animate_model(record.mini,"Deploy")
  masks.append(key)
 func sync_cards() -> void:
@@ -127,47 +130,24 @@ func sync_cards() -> void:
    for lane in range(4):
     if battle[side][lane] != null:
      var entry: Dictionary = battle[side][lane]
-     bind_card(("e" if side == "enemy" else "c")+str(entry.uid),entry,slot_point(side,lane),1.17,0,side,lane)
-  var hand: Array = battle.hand
-  var spacing = minf(114.0,500.0 / maxf(1,hand.size()-1))
-  for index in range(hand.size()):
-   var entry = AstraCards.card(hand[index].id,int(hand[index].upgrade)); entry.uid = hand[index].uid
-   var relative = index - (hand.size()-1)/2.0
-   var point = Vector2(360+relative*spacing,1049+absf(relative)*11)
-   if index == game.selected: point.y -= 74
-   if game.drag_key == "c"+str(entry.uid): point = game.pointer - Vector2(0,75)
-   bind_card("c"+str(entry.uid),entry,point,1.06,relative*0.055,"hand",-1,index)
- elif screen in ["reward","shop"]:
-  var offers: Array = game.run.data.reward if screen == "reward" else game.run.data.stock
-  for index in range(offers.size()):
-   if offers[index] == "": continue
-   var entry = AstraCards.card(offers[index]); entry.uid = 9000 + index
-   bind_card("r%d" % index,entry,Vector2(140+index*220,570),1.60,0,"offer",index)
- elif screen == "inspect":
-  var entry: Dictionary = game.inspect_entry.duplicate(true); entry.uid = 99000
-  bind_card("inspect",entry,Vector2(360,587),2.9,0,"inspect",-1)
- elif screen in ["upgrade","remove","deck","collection"]:
-  var entries: Array = game.display_entries()
-  for index in range(mini(6,entries.size()-game.page*6)):
-   var entry = entries[game.page*6+index]
-   var value = AstraCards.card(entry.id,int(entry.get("upgrade",0))); value.uid = entry.uid
-   bind_card("d%d" % entry.uid,value,Vector2(140+(index%3)*220,465+int(index/3)*315),1.32,0,"browse",game.page*6+index)
+     bind_card(("e" if side == "enemy" else "c")+str(entry.uid),entry,slot_point(side,lane),1.3,0,side,lane)
  for key in cards.keys():
   if key not in masks and not cards[key].dying:
    cards[key].dying = true; cards[key].life = 0.6
 func set_stage() -> void:
  var act = int(game.run.data.get("act",0))
- var signature = "%s/%d/%s/%d" % [game.screen,act,game.language(),int(game.run.data.get("hull",0))]
+ var signature = "%s/%d/%s/%d/%d" % [game.screen,act,game.language(),int(game.run.data.get("hull",0)),int(game.run.data.get("intro",0))]
  if signature == scene_signature: return
  scene_signature = signature
  stage_clock = 0
+ camera.size = 17.7 if game.screen in ["map","overview"] else 14.5
  make_ambience(act)
  make_showcase()
  for child in map_root.get_children(): child.queue_free()
  diorama = null
  map_nodes.clear()
  planet.visible = game.screen in ["menu","new","intro","travel","ending"]
- camera.size = 18.4 if game.screen in ["map","overview"] else 19.7
+ camera.size = 17.7 if game.screen in ["map","overview"] else 14.5
  room.visible = true
  table_model.visible = false
  for child in arena.get_children(): child.queue_free()
@@ -175,15 +155,11 @@ func set_stage() -> void:
  if planet.material_override is ShaderMaterial:
   planet.material_override.set_shader_parameter("biome",act)
   planet.material_override.set_shader_parameter("tint",AstraCards.COLORS[act])
- if game.screen in ["map","overview","menu","new","intro","travel","ending"]:
+ if game.screen in ["map","overview","menu","new","travel","ending"]:
   diorama = AstraDiorama.new(); map_root.add_child(diorama)
+  if game.screen in ["menu","new"]: diorama.position.x = position_for(Vector2(1120,450),0).x
   diorama.setup(self,game,act,game.screen == "map")
   if game.screen != "map": diorama.rotation.y = -.10; diorama.position.y = -.12
- if game.screen == "map":
-  var special = AstraCards.card(["verdant","frost","ember","storm","echo"][act])
-  var preview = model("res://assets3d/diorama/explorer.glb" if special.art == "pulse" else "res://assets3d/tabletop/card_%s.glb" % special.art); showcase.add_child(preview)
-  preview.position = position_for(Vector2(603,178),1.8); preview.scale = Vector3.ONE*(.9 if special.art == "pulse" else .60); stage_models.reward_preview = preview
-  animate_model(preview,"Idle")
 func rebuild_links() -> void:
  for child in map_root.get_children():
   if child.name.begins_with("RouteLink"): child.queue_free()
@@ -198,6 +174,7 @@ func scroll_map(amount: float) -> void:
  if game.screen != "map": return
  if diorama != null: diorama.scroll(amount)
 func pick_card(point: Vector2) -> Dictionary:
+ if game.view is AstraDesktopUI: return game.view.pick_card(point)
  # Selected card takes priority where the fanned hand overlaps.
  if game.selected >= 0:
   for value in cards.values():
@@ -209,7 +186,7 @@ func pick_card(point: Vector2) -> Dictionary:
 func pick_slot(point: Vector2) -> Dictionary:
  for side in ["friendly","enemy"]:
   for lane in range(4):
-   if Rect2(slot_point(side,lane)-Vector2(75,100),Vector2(150,200)).has_point(point): return {"side":side,"lane":lane}
+   if Rect2(slot_point(side,lane)-Vector2(103,72),Vector2(206,144)).has_point(point): return {"side":side,"lane":lane}
  return {}
 func feedback(events: Array) -> void:
  for event in events:
@@ -223,7 +200,7 @@ func feedback(events: Array) -> void:
   if event.kind == "death" and cards.has(key) and cards[key].mini != null: animate_model(cards[key].mini,"Death")
   if event.kind in ["deploy","hit","death","ability","core"]:
    var pos = slot_point(event.get("side","friendly"),clampi(int(event.get("lane",1)),0,3))
-   if event.kind == "core": pos = Vector2(360,229 if event.side == "enemy" else 886)
+   if event.kind == "core": pos = Vector2(595,135 if event.side == "enemy" else 655)
    for i in range(6):
     var spark = sphere(self,position_for(pos,0.8),0.035,material(Color("f6ae62") if event.get("side","") == "enemy" else Color("65d9c4"),1.4))
     transient.append({"node":spark,"velocity":Vector3(sin(i*4.7)*1.7,1.6,cos(i*4.7)*1.7),"life":0.5})
@@ -248,7 +225,7 @@ func _process(delta: float) -> void:
    if value.hand >= 0 and value.hand == game.selected: target.y += 0.4
    node.position = node.position.lerp(target,minf(1,delta*11)); node.rotation.y = lerpf(node.rotation.y,value.rot,minf(1,delta*9)); node.scale = node.scale.lerp(Vector3.ONE*value.scale,minf(1,delta*9))
   if value.mini != null:
-   value.mini.scale = value.mini.scale.lerp(Vector3.ONE*(.46 if value.entry.art == "pulse" else .30),minf(1,delta*4))
+   value.mini.scale = value.mini.scale.lerp(Vector3.ONE*(.90 if value.entry.art == "pulse" else .67),minf(1,delta*4))
    value.mini.position.y = 0.14+sin(clock*2+float(value.entry.uid))*0.025
    value.mini.rotation.y = (PI if value.side == "enemy" else 0)+sin(clock*.65)*.08
   var polygon = PackedVector2Array()
@@ -265,19 +242,21 @@ func beam(parent: Node3D, a: Vector3, b: Vector3, radius: float, mat: Material) 
  return node
 func make_arena() -> void:
  var steel = material(Color("182b34")); steel.roughness = .65
- box(arena,Vector3(0,.16,.1),Vector3(9.6,.12,13.0),steel)
+ var a = position_for(Vector2(50,172),.16); var b = position_for(Vector2(1138,615),.16)
+ box(arena,(a+b)/2,Vector3(absf(a.x-b.x),.12,absf(a.z-b.z)),steel)
  for side in ["friendly","enemy"]:
   var cyan = material(Color("38b5d4") if side == "friendly" else Color("c65b38"),.4)
   var recess = material(Color("0a151e")); recess.metallic = .45
   for lane in range(4):
    var center = position_for(slot_point(side,lane),.26)
-   box(arena,center,Vector3(2.24,.06,3.1),recess)
-   for dx in [-1.06,1.06]:
-    for dz in [-1.42,1.42]:
+   box(arena,center,Vector3(3.44,.06,2.9),recess)
+   for dx in [-1.66,1.66]:
+    for dz in [-1.38,1.38]:
      box(arena,center+Vector3(dx,.05,dz),Vector3(.13,.025,.21),cyan)
-   for dz in [-1.50,1.50]: box(arena,center+Vector3(0,.036,dz),Vector3(1.87,.025,.023),material(Color("566872")))
- var center = position_for(Vector2(360,611),.24)
- for x in range(-4,5): box(arena,center+Vector3(x,.005,0),Vector3(.28,.016,.032),material(Color("506472")))
+   for dz in [-1.44,1.44]: box(arena,center+Vector3(0,.036,dz),Vector3(3.21,.025,.023),material(Color("566872")))
+ for lane in range(4):
+  var center = position_for(Vector2(230+lane*250,402),.24)
+  box(arena,center,Vector3(3.36,.04,2.8),material(Color("101d25")))
 func make_ambience(act: int) -> void:
  if act == biome_index: return
  biome_index = act
@@ -286,13 +265,9 @@ func make_ambience(act: int) -> void:
  var bright = material(color,0.65)
  var muted = material(color.darkened(0.6))
  # The same terrain library frames combat, with a recessed central board for readable cards.
- var landscape = model("res://assets3d/diorama/world_%d.glb" % act); ambience.add_child(landscape)
- landscape.position.y = -.70; landscape.scale.x = 1.32
- for child in landscape.get_children():
-  if child is MeshInstance3D and not child.name.begins_with("Water"): child.visible = false
  for side in [-1,1]:
   for i in range(5):
-   var pos = Vector3(side*5.05,0.23,-4+i*1.75)
+   var pos = position_for(Vector2(15 if side < 0 else 1152,205+i*87),.08)
    match act:
     0:
      var a = pos+Vector3(0,0.07,-.6); var b = pos+Vector3(side*.24,.22,.6)
@@ -318,12 +293,27 @@ func make_showcase() -> void:
  stage_models.clear()
  if game.screen in ["intro","travel","ending","menu","new"]:
   var ship = model("res://assets3d/ship.glb"); showcase.add_child(ship); ship.scale = Vector3.ONE*(.50 if game.screen == "intro" else .35)
-  ship.position = position_for(Vector2(460,795 if game.screen == "intro" else (783 if game.screen == "travel" else 491)),1.0); ship.rotation.y = -.4; stage_models.ship = ship; stage_models.home = ship.position
+  ship.position = position_for(Vector2(1120,470),1.0); ship.rotation.y = -.4; stage_models.ship = ship; stage_models.home = ship.position
   var hull = int(game.run.data.get("hull",0))
   if hull > 0: paint_ship(ship,AstraCards.COLORS[(hull-1)%5].darkened(.35))
   if game.screen == "intro":
-   var carrier = model("res://assets3d/carrier.glb"); showcase.add_child(carrier); carrier.scale = Vector3.ONE*.31; carrier.position = position_for(Vector2(243,738),1); carrier.rotation.y = .7; stage_models.carrier = carrier; stage_models.carrier_home = carrier.position
-   var core = sphere(showcase,position_for(Vector2(310,748),1.1),.18,material(Color("52d8c0"),2.3)); stage_models.core = core; stage_models.core_home = core.position
+   ship.scale = Vector3.ONE*.9
+   var stage = int(game.run.data.intro)
+   var carrier = model("res://assets3d/carrier.glb"); showcase.add_child(carrier); carrier.scale = Vector3.ONE*.75; carrier.position = position_for(Vector2(630,298),1); carrier.rotation.y = .7; carrier.visible = stage > 0; stage_models.carrier = carrier; stage_models.carrier_home = carrier.position
+   var center = position_for(Vector2(850,420),.7)
+   var core = sphere(showcase,center,.58,material(Color("52d8c0"),2.3)); stage_models.core = core; stage_models.core_home = center
+   box(showcase,center-Vector3(0,.73,0),Vector3(3.3,.3,3.3),material(Color("283b48")))
+   for i in range(12):
+    var angle = i*TAU/12; sphere(showcase,center+Vector3(cos(angle)*1.1,-.5,sin(angle)*1.1),.07,material(Color("50d8f0"),1.2))
+   for i in range(3):
+    var enemy = model("res://assets3d/p0_runner.glb"); showcase.add_child(enemy); enemy.scale = Vector3.ONE*.7; enemy.position = position_for(Vector2(485+i*170,500),.1); enemy.visible = stage > 0 and stage < 3
+    animate_model(enemy,"Attack" if stage == 1 else "Walk")
+   for i in range(2):
+    var guard = model("res://assets3d/diorama/explorer.glb"); showcase.add_child(guard); guard.scale = Vector3.ONE*.90; guard.position = position_for(Vector2(905+i*135,487),.1); guard.visible = stage < 3
+    animate_model(guard,"Idle" if stage == 0 else "Death")
+   var light = OmniLight3D.new(); showcase.add_child(light); light.position = center+Vector3(0,2,0); light.light_color = Color("ff4920") if stage == 1 else Color("53ddff"); light.light_energy = 2; light.omni_range = 8
+   if stage == 1:
+    for i in range(3): beam(showcase,position_for(Vector2(485+i*170,500),.85),center,.045,material(Color("f04016"),2))
 func animate_showcase(delta: float) -> void:
  if not stage_models.has("ship"): return
  var ship: Node3D = stage_models.ship
@@ -332,9 +322,12 @@ func animate_showcase(delta: float) -> void:
  if stage_models.has("carrier"):
   var carrier: Node3D = stage_models.carrier
   var core: Node3D = stage_models.core
-  var progress = clampf(stage_clock/5.5,0,1)
-  carrier.position = stage_models.carrier_home+Vector3(-progress*.5,.15*sin(stage_clock),-progress*.35)
-  core.position = stage_models.core_home.lerp(carrier.position+Vector3(0,.5,0),smoothstep(0,1,progress)); core.rotation.y += delta
+  var progress = clampf(stage_clock/4.0,0,1); var stage = int(game.run.data.intro)
+  carrier.position = stage_models.carrier_home+Vector3(-progress*4 if stage >= 2 else sin(stage_clock)*.2,.15*sin(stage_clock),-progress*2 if stage >= 2 else 0)
+  if stage == 1: core.scale = Vector3.ONE*(1-.2*progress+sin(stage_clock*13)*.07)
+  if stage >= 2: core.position = stage_models.core_home.lerp(carrier.position+Vector3(0,.5,0),smoothstep(0,1,progress))
+  if stage == 3: ship.position = stage_models.home+Vector3(-progress*4,.1,-progress*2)
+  core.rotation.y += delta
 func paint_ship(node: Node, color: Color) -> void:
  if node is MeshInstance3D and node.mesh != null:
   for surface in range(node.mesh.get_surface_count()):

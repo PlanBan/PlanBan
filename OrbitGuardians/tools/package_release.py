@@ -1,6 +1,9 @@
 """Package the already exported game and clean Godot/Blender sources; verify ZIPs."""
 from pathlib import Path
-import hashlib, zipfile, shutil
+import argparse, hashlib, zipfile, shutil
+parser = argparse.ArgumentParser()
+parser.add_argument('--pc-only', action='store_true', help='Package desktop source/Windows; preserve the previous mobile release')
+args = parser.parse_args()
 ROOT = Path(__file__).resolve().parents[2]
 PROJECT = ROOT / 'OrbitGuardians'
 BLENDER = ROOT / 'OrbitGuardians-Blender'
@@ -22,13 +25,16 @@ with zipfile.ZipFile(ROOT / 'OrbitGuardians-Windows.zip', 'w', zipfile.ZIP_DEFLA
     archive.write(PROJECT / 'README.md', 'OrbitGuardians/README.md')
     archive.write(PROJECT / 'VALIDATION.md', 'OrbitGuardians/VALIDATION.md')
     archive.write(ROOT / 'OrbitGuardians-preview.png', 'OrbitGuardians/preview.png')
-apk = PROJECT / 'build' / 'OrbitalFront-Android.apk'
-with zipfile.ZipFile(apk) as archive:
-    assert archive.testzip() is None
-    assert 'AndroidManifest.xml' in archive.namelist()
-shutil.copy2(apk, ROOT / 'OrbitalFront-Android.apk')
+names = ['OrbitGuardians-Source.zip', 'OrbitGuardians-Windows.zip']
+if not args.pc_only:
+    apk = PROJECT / 'build' / 'OrbitalFront-Android.apk'
+    with zipfile.ZipFile(apk) as archive:
+        assert archive.testzip() is None
+        assert 'AndroidManifest.xml' in archive.namelist()
+    shutil.copy2(apk, ROOT / 'OrbitalFront-Android.apk')
+    names.append('OrbitalFront-Android.apk')
 checksums=[]
-for name in ['OrbitGuardians-Source.zip', 'OrbitGuardians-Windows.zip', 'OrbitalFront-Android.apk']:
+for name in names:
     path=ROOT/name
     assert path.stat().st_size < 100 * 1024 * 1024, f'{name} exceeds GitHub file limit'
     with zipfile.ZipFile(path) as archive:

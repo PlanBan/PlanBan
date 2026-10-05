@@ -4,7 +4,7 @@ class_name AstraCards
 const PLANETS = ["Вердия", "Борея", "Игнис", "Аурика", "Нексус"]
 const COLORS = [Color("76bd93"), Color("87cfe9"), Color("ee8d51"), Color("d6bc78"), Color("b39bea")]
 const CARDS = {
- "pulse": {"name":["Импульс","Pulse","Impuls"],"cost":1,"attack":2,"hp":2,"rarity":0,"effect":"refund","art":"pulse"},
+ "pulse": {"name":["Импульс","Pulse","Impuls"],"cost":1,"attack":2,"hp":3,"rarity":0,"effect":"refund","art":"pulse"},
  "reactor": {"name":["Реактор","Reactor","Reaktor"],"cost":2,"attack":0,"hp":4,"rarity":0,"effect":"energy","art":"reactor"},
  "shield": {"name":["Бастион","Bastion","Bastion"],"cost":3,"attack":1,"hp":6,"rarity":1,"effect":"guard","art":"shield"},
  "cryo": {"name":["Криобот","Cryobot","Kryobot"],"cost":3,"attack":2,"hp":3,"rarity":1,"effect":"freeze","art":"cryo"},
@@ -16,7 +16,7 @@ const CARDS = {
  "repair": {"name":["Ремонт","Repair","Reparatur"],"cost":1,"attack":0,"hp":0,"rarity":0,"effect":"heal","art":"repair","target":"friend"},
  "overload": {"name":["Перегрузка","Overload","Überlastung"],"cost":2,"attack":0,"hp":0,"rarity":1,"effect":"overload","art":"nova","target":"all"},
  "barrier": {"name":["Аварийный щит","Emergency shield","Notschild"],"cost":1,"attack":0,"hp":0,"rarity":0,"effect":"barrier","art":"shield","target":"friend"},
- "astra": {"name":["Импульс Астры","Astra pulse","Astra-Impuls"],"cost":0,"attack":0,"hp":0,"rarity":4,"effect":"boost","art":"reactor","target":"all"},
+ "astra": {"name":["Импульс Астры","Astra pulse","Astra-Impuls"],"cost":1,"attack":0,"hp":0,"rarity":4,"effect":"boost","art":"reactor","target":"all"},
  "emp": {"name":["ЭМИ","EMP","EMP"],"cost":2,"attack":0,"hp":0,"rarity":2,"effect":"emp","art":"cryo","target":"enemy"},
  "recall": {"name":["Пересборка","Reassembly","Neuaufbau"],"cost":0,"attack":0,"hp":0,"rarity":1,"effect":"recall","art":"repair","target":"friend"},
  "verdant": {"name":["Симбионт","Symbiont","Symbiont"],"cost":2,"attack":2,"hp":4,"rarity":2,"effect":"regen","art":"pulse","planet":0},
@@ -29,7 +29,7 @@ const EFFECTS = {
  "armor":["Броня: поглощает 2 урона","Armour: absorbs 2 damage","Panzerung: absorbiert 2 Schaden"],
  "jam":["Отключает способность цели","Disables target's ability","Schaltet Zielfähigkeit ab"],
  "refund":["За убийство: +1 энергия","On kill: +1 energy","Bei Abschuss: +1 Energie"],
- "energy":["Каждый ход: +1 энергия","Each turn: +1 energy","Pro Zug: +1 Energie"],
+ "energy":["Реакторы вместе: +1 к энергии хода","Reactors together: +1 turn energy","Reaktoren zusammen: +1 Zugenergie"],
  "guard":["Щит 2; прикрывает соседей","Shield 2; guards neighbours","Schild 2; schützt Nachbarn"],
  "freeze":["Замораживает цель на ход","Freezes target for one turn","Friert Ziel für einen Zug ein"],
  "double":["Две атаки за ход","Attacks twice each turn","Greift zweimal pro Zug an"],
@@ -40,7 +40,7 @@ const EFFECTS = {
  "heal":["Ремонт союзника: 4 здоровья","Repair ally: 4 health","Verbündeten heilen: 4 LP"],
  "overload":["Всем врагам: 2 урона","All enemies: 2 damage","Alle Gegner: 2 Schaden"],
  "barrier":["Щит союзнику на ход: 3","Ally shield for one turn: 3","Schild für einen Zug: 3"],
- "boost":["+2 энергии; добор карты","+2 energy; draw a card","+2 Energie; eine Karte ziehen"],
+ "boost":["+2 энергии; предел 5","+2 energy; limit 5","+2 Energie; Grenze 5"],
  "emp":["Отключение цели на ход","Disables target for one turn","Schaltet Ziel einen Zug ab"],
  "recall":["Вернуть союзника в руку","Return an ally to your hand","Verbündeten zurück auf die Hand"],
  "regen":["Каждый ход: +1 здоровье","Each turn: +1 health","Pro Zug: +1 LP"],
@@ -94,9 +94,9 @@ static func reward_pool(act: int, unlocked: Array) -> Array:
   if CARDS[id].get("planet", -1) == act or (not CARDS[id].has("planet") and id in unlocked): result.append(id)
  return result
 static func starter(kind: int) -> Array:
- if kind == 1: return ["pulse","pulse","pulse","shield","shield","reactor","reactor","mechanic","barrier","repair","overload","astra"]
- if kind == 2: return ["pulse","pulse","pulse","reactor","reactor","reactor","burst","repair","barrier","astra","astra","recall"]
- return STARTERS.duplicate()
+ if kind == 1: return ["pulse","pulse","shield","reactor","barrier","repair"]
+ if kind == 2: return ["pulse","pulse","reactor","mechanic","repair","astra"]
+ return ["pulse","pulse","pulse","reactor","repair","barrier"]
 static func integers(value: Variant) -> Variant:
  # JSON parses integer fields as floats. Model quantities and IDs are discrete.
  if value is float: return int(value)
