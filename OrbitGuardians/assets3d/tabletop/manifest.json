@@ -1,0 +1,186 @@
+{
+  "spark_table": {
+    "objects": 269,
+    "vertices": 17796
+  },
+  "card_pulse": {
+    "objects": 13,
+    "vertices": 1666
+  },
+  "card_reactor": {
+    "objects": 11,
+    "vertices": 2008
+  },
+  "card_shield": {
+    "objects": 11,
+    "vertices": 1300
+  },
+  "card_cryo": {
+    "objects": 9,
+    "vertices": 1866
+  },
+  "card_burst": {
+    "objects": 12,
+    "vertices": 1912
+  },
+  "card_rail": {
+    "objects": 14,
+    "vertices": 2098
+  },
+  "card_mortar": {
+    "objects": 14,
+    "vertices": 2098
+  },
+  "card_repair": {
+    "objects": 11,
+    "vertices": 1866
+  },
+  "card_nova": {
+    "objects": 11,
+    "vertices": 2008
+  },
+  "card_drone": {
+    "objects": 12,
+    "vertices": 1912
+  },
+  "card_runner": {
+    "objects": 12,
+    "vertices": 1912
+  },
+  "card_tank": {
+    "objects": 11,
+    "vertices": 1300
+  },
+  "card_disruptor": {
+    "objects": 9,
+    "vertices": 1866
+  },
+  "card_medic": {
+    "objects": 11,
+    "vertices": 1866
+  },
+  "card_boss": {
+    "objects": 14,
+    "vertices": 1732
+  },
+  "card_p0_drone": {
+    "objects": 16,
+    "vertices": 2756
+  },
+  "card_p0_runner": {
+    "objects": 16,
+    "vertices": 2756
+  },
+  "card_p0_tank": {
+    "objects": 15,
+    "vertices": 2144
+  },
+  "card_p0_disruptor": {
+    "objects": 13,
+    "vertices": 2710
+  },
+  "card_p0_medic": {
+    "objects": 15,
+    "vertices": 2710
+  },
+  "card_p0_boss": {
+    "objects": 18,
+    "vertices": 2576
+  },
+  "card_p1_drone": {
+    "objects": 15,
+    "vertices": 1942
+  },
+  "card_p1_runner": {
+    "objects": 15,
+    "vertices": 1942
+  },
+  "card_p1_tank": {
+    "objects": 14,
+    "vertices": 1330
+  },
+  "card_p1_disruptor": {
+    "objects": 12,
+    "vertices": 1896
+  },
+  "card_p1_medic": {
+    "objects": 14,
+    "vertices": 1896
+  },
+  "card_p1_boss": {
+    "objects": 17,
+    "vertices": 1762
+  },
+  "card_p2_drone": {
+    "objects": 16,
+    "vertices": 2644
+  },
+  "card_p2_runner": {
+    "objects": 16,
+    "vertices": 2644
+  },
+  "card_p2_tank": {
+    "objects": 15,
+    "vertices": 2032
+  },
+  "card_p2_disruptor": {
+    "objects": 13,
+    "vertices": 2598
+  },
+  "card_p2_medic": {
+    "objects": 15,
+    "vertices": 2598
+  },
+  "card_p2_boss": {
+    "objects": 18,
+    "vertices": 2464
+  },
+  "card_p3_drone": {
+    "objects": 14,
+    "vertices": 2024
+  },
+  "card_p3_runner": {
+    "objects": 14,
+    "vertices": 2024
+  },
+  "card_p3_tank": {
+    "objects": 13,
+    "vertices": 1412
+  },
+  "card_p3_disruptor": {
+    "objects": 11,
+    "vertices": 1978
+  },
+  "card_p3_medic": {
+    "objects": 13,
+    "vertices": 1978
+  },
+  "card_p3_boss": {
+    "objects": 16,
+    "vertices": 1844
+  },
+  "card_p4_drone": {
+    "objects": 16,
+    "vertices": 2136
+  },
+  "card_p4_runner": {
+    "objects": 16,
+    "vertices": 2136
+  },
+  "card_p4_tank": {
+    "objects": 15,
+    "vertices": 1524
+  },
+  "card_p4_disruptor": {
+    "objects": 13,
+    "vertices": 2090
+  },
+  "card_p4_medic": {
+    "objects": 15,
+    "vertices": 2090
+  },
+  "card_p4_boss": {
+    "objects": 18,
+    "vertices": 1956
+  }
+}
