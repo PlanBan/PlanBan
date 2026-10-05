@@ -65,3 +65,25 @@ older tabletop assets so that Pulse keeps the new explorer. The reference was
 used for composition and atmosphere; its image, models and artwork were not
 copied into the game. Preserve manual edits under a separate filename before
 regeneration.
+
+## Astra Forge / version 4.4
+
+`AstraForge.blend` is a new library built from original geometry: nine friendly
+machine archetypes and seven opponents. Biped shooters, multi-legged generators,
+hexagonal shields, twin turrets, missile pods and hovering repair machines have
+different silhouettes and graphite/ceramic/role-colour materials. Each of the
+sixteen exports includes a Skeleton3D-compatible rigid skin and five NLA clips:
+**Idle, Deploy, Attack, Hit, Death**. Sixteen Cycles-rendered transparent portraits
+are included. Named parts remain individually editable; exports merge by material.
+
+From `OrbitGuardians/`:
+
+```sh
+blender --background --factory-startup --python tools/generate_forge.py
+```
+
+The generator uses CPU Cycles, 64 samples and no OpenImageDenoise dependency.
+It writes its own new library/GLBs/portraits only. The game plays skeletal clips,
+projectiles, impacts and damage numbers. Older libraries are retained for the
+world, commanders, story and legacy compatibility. Save user edits separately
+before regeneration. Blender is not required to play.

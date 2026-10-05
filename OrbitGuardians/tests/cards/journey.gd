@@ -13,6 +13,16 @@ func _initialize() -> void:
    decisions += 1
    match run.data.state:
     "map":
+     var owned=run.data.deck.duplicate();owned.sort_custom(func(a,b):return AstraCards.CARDS[a.id].attack>AstraCards.CARDS[b.id].attack)
+     var selected: Array=[]
+     for entry in owned:
+      if selected.size()<3 and AstraCards.CARDS[entry.id].attack>0:selected.append(entry.uid)
+     for desired in ["reactor","core_repair","overload"]:
+      for entry in owned:
+       if entry.id==desired and entry.uid not in selected and selected.size()<6:selected.append(entry.uid);break
+     for entry in owned:
+      if selected.size()<6 and entry.uid not in selected:selected.append(entry.uid)
+     assert(run.set_loadout(selected))
      for branch in (["core","frames","systems","weapons"] if run.data.core < 12 else ["weapons","frames","systems","core"]):
       var level = int(run.data.research[branch])
       if run.buy_research(branch,level): break
@@ -75,7 +85,7 @@ static func play_turn(battle: AstraBattle) -> void:
   var best = 0.1; var choice: Dictionary = {}
   for i in range(battle.data.hand.size()):
    var entry = battle.instance(battle.data.hand[i])
-   if entry.cost > battle.data.energy: continue
+   if entry.cost > battle.data.energy or not battle.ready_command(i): continue
    for side in ["friendly","enemy"]:
     for lane in range(4):
      var score = evaluate_play(battle,entry,side,lane)
@@ -120,7 +130,7 @@ static func evaluate_play(battle: AstraBattle, entry: Dictionary, side: String, 
   "heal": return minf(4,target.max_hp-target.hp)*1.1 if side == "friendly" and target != null else -999
   "barrier": return 2 if side == "friendly" and target != null and data.enemy[lane] != null and target.temporary == 0 else -999
   "emp": return target.attack*1.5 if side == "enemy" and target != null and target.frozen == 0 else -999
-  "frost":
+  "frost","softfrost":
    var amount = 0
    for bot in data.enemy:
     if bot != null and bot.frozen == 0: amount += bot.attack

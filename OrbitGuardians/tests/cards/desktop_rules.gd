@@ -24,7 +24,7 @@ func _initialize() -> void:
  battle.end_turn(); battle.resolve_all(); run.finish_battle()
  check(run.data.state == "map" and run.data.depth == -1 and run.data.core == 20 and run.data.battles == 0,"training ends before route without free cards or consumed encounter")
  run.choose_node("0_1")
- check(battle.data.hand.size() == 3 and battle.data.energy == 3 and battle.data.ruleset == 43,"ordinary battle has restrained opening")
+ check(battle.data.hand.size() == 6 and battle.data.energy == 3 and battle.data.ruleset == 44,"ordinary battle has restrained opening")
  var index = -1
  for i in range(battle.data.hand.size()):
   if battle.data.hand[i].id == "pulse": index = i; break
@@ -32,7 +32,7 @@ func _initialize() -> void:
  check(battle.order(0,"aim") and battle.data.energy == 1,"aim competes with card deployment for energy")
  check(not battle.order(0,"guard") and not battle.order(1,"guard"),"cannot issue two orders or order an empty cell")
  battle.end_turn(); var before = battle.data.enemy_core; battle.resolve_next()
- check(battle.data.enemy_core == before-3 and battle.data.friendly[0].get("focus",0) == 0,"aim boosts exactly one strike")
+ check(battle.data.enemy_core == before and battle.data.enemy[1]==null and battle.data.friendly[0].get("focus",0) == 0,"aim boosts exactly one strike")
  run.save(); copy.load_all()
  battle.resolve_all(); copy.battle.resolve_all()
  check(JSON.stringify(battle.checkpoint()) == JSON.stringify(copy.battle.checkpoint()),"ordered attack resumes without applying bonus twice")
@@ -54,7 +54,7 @@ func _initialize() -> void:
  battle.gain_energy(100)
  check(battle.data.energy == 6 and battle.data.max_energy == 6,"temporary bonuses obey global cap and HP-style meter remains consistent")
  battle.draw_cards(100)
- check(battle.data.hand.size() <= 5,"draw and echo cannot overflow hand")
+ check(battle.data.hand.size() == 6,"draw and echo preserve the fixed command deck")
  battle.data.turn = 1; battle.plan_intent(); check(battle.data.intent.is_empty(),"opening turn gives time to establish defence")
  battle.data.turn = 2; battle.plan_intent(); check(battle.data.intent.size() <= 1,"reinforcements are paced and visible")
  var old = battle.checkpoint(); old.erase("ruleset"); old.hand.clear(); old.energy = 7; old.max_energy = 3

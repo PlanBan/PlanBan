@@ -103,7 +103,7 @@ func run_test() -> void:
  await tap(game.world.map_nodes["0_1"].point)
  check(game.selected_node == "0_1" and JSON.stringify(game.run.data) == before,"preview leaves save unchanged")
  await screenshot("map-selected"); await command("depart"); await create_timer(1.1).timeout; await frames(15)
- check(game.screen == "challenge" and game.run.battle.data.hand.size() == 3 and game.run.battle.data.energy == 3,"encounter opens opposing commander before fighting")
+ check(game.screen == "challenge" and game.run.battle.data.hand.size() == 6 and game.run.battle.data.energy == 3,"encounter opens opposing commander before fighting")
  await create_timer(1.4).timeout; await frames(6)
  check(game.world.stage_models.has("commander") and game.world.stage_models.commander.scale.x>1.3,"commander silhouette rises in 3D")
  await screenshot("challenge"); await command("fight")

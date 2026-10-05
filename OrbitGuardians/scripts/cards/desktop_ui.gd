@@ -139,7 +139,7 @@ func menu() -> void:
  for i in range(5):
   var keys = ["continue","new","collection","settings","quit"]
   button(Rect2(80,390+i*79,545,62),game.l(keys[i]),keys[i],0,i < 2,i != 0 or game.run.resume_available())
- label("RU / EN / DE   ·   DESKTOP / 4.3",Vector2(80,804),21,DIM,540)
+ label("RU / EN / DE   ·   DESKTOP / 4.4",Vector2(80,804),21,DIM,540)
 func new_run() -> void:
  title("choose_deck",game.l("small_start"))
  var keys = ["scout","citadel","engineer"]
@@ -177,7 +177,7 @@ func route() -> void:
  button(Rect2(270,397,77,36),"+","map_zoom",.05)
  health_bar(Rect2(46,449,301,68),game.l("your_core"),int(data.core),int(data.max_core))
  label(game.l("scrap")+": "+str(data.credits),Vector2(53,568),29,AMBER,290)
- button(Rect2(48,634,296,62),game.l("deck")+" · %d" % data.deck.size(),"deck")
+ button(Rect2(48,634,296,62),game.l("forge_deck")+" · %d" % data.get("loadout",data.deck).size(),"deck")
  button(Rect2(48,703,296,53),game.l("research"),"research")
  button(Rect2(48,769,296,45),game.l("planet_map"),"overview")
  button(Rect2(48,826,296,30),game.l("pause"),"pause")

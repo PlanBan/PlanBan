@@ -1,0 +1,28 @@
+{
+  "models": [
+    "pulse",
+    "reactor",
+    "shield",
+    "cryo",
+    "burst",
+    "rail",
+    "mortar",
+    "repair",
+    "nova",
+    "enemy_drone",
+    "enemy_runner",
+    "enemy_tank",
+    "enemy_medic",
+    "enemy_disruptor",
+    "enemy_elite",
+    "enemy_boss"
+  ],
+  "clips": [
+    "Idle",
+    "Deploy",
+    "Attack",
+    "Hit",
+    "Death"
+  ],
+  "original": true
+}

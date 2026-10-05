@@ -37,10 +37,13 @@ var selected_bot = -1
 var hand_page = 0
 var inspector_zoom = 1.0
 var inspection_selection = -1
+var draft_loadout: Array=[]
+var supply_return="map"
+var supply_tab=0
 func language() -> String:
  return run.store.data.language
 func l(key: String) -> String:
- return AstraDesktopWords.get_text(key,language())
+ return AstraForgeWords.get_text(key,language())
 func _ready() -> void:
  get_tree().auto_accept_quit = false
  get_tree().root.min_size = Vector2i(1024,576)
@@ -57,7 +60,7 @@ func _ready() -> void:
  )
  apply_settings()
  world = AstraTable.new(); world.game = self; add_child(world)
- view = AstraDesktopUI.new(); view.game = self; add_child(view)
+ view = AstraForgeUI.new(); view.game = self; add_child(view)
  if run.notice != "": notify(run.notice,7)
 func apply_settings() -> void:
  var prefs: Dictionary = run.store.data
@@ -94,6 +97,28 @@ func display_entries() -> Array:
 func action(command: String, value: Variant = 0) -> void:
  fx("deploy")
  match command:
+  "supplies":
+   if run.supply_access():supply_return=screen;supply_tab=0;set_screen("supplies")
+  "supplies_back":set_screen(supply_return)
+  "supply_tab":supply_tab=int(value);page=0
+  "supply_page":page=clampi(page+int(value),0,maxi(0,int((run.meta.unlocked.size()-1)/6)))
+  "supply_buy":
+   if run.buy_supply(str(value)):fx("unlock")
+   else:notify("no_alloy")
+  "blueprint_buy":
+   if run.buy_blueprint(str(value)):fx("unlock")
+   else:notify("no_alloy")
+  "supply_use":
+   if run.use_supply(str(value)):
+    world.feedback(run.battle.events if run.data.state=="battle" else []);fx("energy")
+    if run.data.state in ["reward","defeat"]:set_screen(run.data.state)
+  "loadout_toggle":
+   if int(value) in draft_loadout:draft_loadout.erase(int(value))
+   elif draft_loadout.size()<6:draft_loadout.append(int(value))
+  "loadout_save":
+   if run.set_loadout(draft_loadout):notify("loadout_saved");action("back")
+  "withdraw":
+   if run.battle.withdraw(selected_bot):world.feedback(run.battle.events);selected_bot=-1;persist()
   "fight":
    if screen == "challenge": run.battle.data.briefed = true; persist(); set_screen("battle")
   "map_zoom":
@@ -146,7 +171,7 @@ func action(command: String, value: Variant = 0) -> void:
    if screen == "battle" and inspection_selection >= 0 and inspection_selection < run.battle.data.hand.size(): selected = inspection_selection
   "collection": set_screen("collection")
   "records": previous_screen = screen; set_screen("records")
-  "deck": previous_screen = screen; set_screen("deck")
+  "deck": previous_screen = screen;draft_loadout=run.data.get("loadout",[]).duplicate();set_screen("deck")
   "language": run.store.data.language = str(value); run.store.save_settings(); apply_settings()
   "hull":
    if not run.data.is_empty(): run.data.hull = (int(run.data.hull)+1)%run.meta.hulls.size(); persist()
@@ -157,7 +182,8 @@ func action(command: String, value: Variant = 0) -> void:
    if int(value) >= 0 and int(value) < entries.size():
     if screen == "upgrade" and run.upgrade(int(entries[int(value)].uid)): set_screen(run.data.state)
     elif screen == "remove" and run.remove_card(int(entries[int(value)].uid)): set_screen(run.data.state)
-    elif screen in ["deck","collection"]:
+    elif screen == "deck":action("loadout_toggle",int(entries[int(value)].uid))
+    elif screen == "collection":
      var card = AstraCards.card(entries[int(value)].id,int(entries[int(value)].upgrade))
      open_inspector(card)
   "page": page = clampi(page+int(value),0,maxi(0,int(((run.meta.logs.size()-1)/3) if screen == "records" else ((display_entries().size()-1)/6)))); selected = -1
@@ -178,6 +204,7 @@ func play_selected(side: String, lane: int) -> void:
  if index >= run.battle.data.hand.size(): selected = -1; return
  var entry = AstraCards.card(run.battle.data.hand[index].id,int(run.battle.data.hand[index].upgrade))
  if entry.cost > run.battle.data.energy: notify("no_energy"); return
+ if not run.battle.ready_command(index):selected=-1;return
  if run.battle.play(index,side,lane):
   selected = -1; drag_key = ""; drag_index = -1; lock_clock = 0.4
   world.feedback(run.battle.events); fx("deploy" if entry.hp > 0 else "energy"); persist()
@@ -189,7 +216,10 @@ func update_slider(point: Vector2) -> void:
  apply_settings(); view.queue_redraw()
 func open_inspector(entry: Dictionary) -> void:
  inspection_selection = selected; inspector_zoom = 1.0
- previous_screen = screen; inspect_entry = entry.duplicate(true); set_screen("inspect"); hold_entry.clear()
+ previous_screen = screen; inspect_entry = entry.duplicate(true)
+ if screen in ["deck","collection","supplies"] or (screen=="battle" and run.battle.commands()):
+  inspect_entry.brief=[AstraForgeWords.description(entry,"ru"),AstraForgeWords.description(entry,"en"),AstraForgeWords.description(entry,"de")]
+ set_screen("inspect");hold_entry.clear()
 func pointer_down(point: Vector2, identity: int) -> void:
  if pointer_id != -99: return
  pointer_id = identity; pointer = point; pointer_start = point; dragging = false; pressed = {}; cast_on_release = false; hold_entry.clear(); hold_clock = 0
@@ -203,6 +233,8 @@ func pointer_down(point: Vector2, identity: int) -> void:
   if not card.is_empty(): hold_entry = card.entry.duplicate(true)
   if not card.is_empty() and card.hand >= 0:
    var index = int(card.hand)
+   if run.battle.commands() and not run.battle.ready_command(index):
+    selected=-1;drag_index=-1;selected_bot=-1;return
    cast_on_release = selected == index
    selected = index; drag_index = index; drag_key = card.key
    selected_bot = -1
@@ -238,6 +270,8 @@ func pointer_up(point: Vector2, identity: int) -> void:
    var slot = world.pick_slot(point)
    if not slot.is_empty() and selected >= 0: play_selected(slot.side,int(slot.lane))
    elif selected < 0:
+    if selected_bot>=0 and slot.get("side","")=="enemy" and run.battle.choose_target(selected_bot,int(slot.lane)):
+     persist();pointer_id=-99;view.queue_redraw();return
     var card = world.pick_card(point)
     if not card.is_empty():
      hovered_entry = card.entry.duplicate(true)
@@ -257,15 +291,16 @@ func _input(event: InputEvent) -> void:
    elif screen == "pause": action("resume")
    elif screen in ["battle","map","challenge"]: action("pause")
    elif screen in ["settings","deck","research"]: action("back")
+   elif screen=="supplies":action("supplies_back")
    elif screen == "overview": action("overview_back")
    else: action("menu")
   elif event.ctrl_pressed and event.keycode in [KEY_EQUAL,KEY_PLUS,KEY_KP_ADD]: action("ui_scale",.05)
   elif event.ctrl_pressed and event.keycode in [KEY_MINUS,KEY_KP_SUBTRACT]: action("ui_scale",-.05)
   elif event.keycode == KEY_E and not hovered_entry.is_empty() and screen != "inspect": open_inspector(hovered_entry)
   elif event.keycode == KEY_SPACE and screen == "battle": action("turn")
-  elif event.keycode >= KEY_1 and event.keycode <= KEY_5 and screen == "battle":
-   var index = int(event.keycode-KEY_1)+hand_page*5
-   if index < run.battle.data.hand.size(): selected = index; selected_bot = -1
+  elif event.keycode >= KEY_1 and event.keycode <= (KEY_6 if run.battle.commands() else KEY_5) and screen == "battle":
+   var index = int(event.keycode-KEY_1)+(0 if run.battle.commands() else hand_page*5)
+   if index < run.battle.data.hand.size(): selected = index if run.battle.ready_command(index) else -1; selected_bot = -1
   return
  var point = Vector2.ZERO
  if event is InputEventScreenTouch or event is InputEventScreenDrag or event is InputEventMouseButton or event is InputEventMouseMotion: point = view.get_global_transform_with_canvas().affine_inverse()*event.position
@@ -298,6 +333,7 @@ func _notification(what: int) -> void:
   elif screen == "inspect" or screen == "records": action("inspect_back")
   elif screen in ["settings","deck","research"]: action("back")
   elif screen == "overview": action("overview_back")
+  elif screen=="supplies":action("supplies_back")
   else: action("menu")
  if what in [NOTIFICATION_APPLICATION_PAUSED,NOTIFICATION_APPLICATION_FOCUS_OUT] and not run.data.is_empty():
   pointer_id = -99; drag_key = ""; drag_index = -1; hold_entry.clear()

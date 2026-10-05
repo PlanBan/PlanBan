@@ -89,7 +89,8 @@ func route_point(node: Dictionary) -> Vector2:
  return Vector2(135 + int(node.col)*225, 908 - int(node.depth)*84)
 func make_card(key: String, entry: Dictionary, hostile: bool) -> Dictionary:
  var card_node = Node3D.new(); add_child(card_node)
- box(card_node,Vector3.ZERO,Vector3(1.86,0.10,2.66),material(Color("1c2220") if hostile else Color("756e54")))
+ var base=box(card_node,Vector3.ZERO,Vector3(1.86,0.10,2.66),material(Color("1c2220") if hostile else Color("756e54")))
+ base.visible=not game.run.battle.commands()
  var outline = box(card_node,Vector3(0,-0.017,0),Vector3(1.94,0.045,2.74),material(Color("e2774e") if hostile else Color("53c7b5"),0.45))
  var viewport = SubViewport.new(); viewport.size = Vector2i(300,430); viewport.transparent_bg = false; viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
  card_node.add_child(viewport)
@@ -113,14 +114,18 @@ func bind_card(key: String, entry: Dictionary, point: Vector2, scale_value: floa
  if record.entry != entry or record.language != game.language():
   if record.mini != null and record.entry.art != entry.art:
    record.mini.queue_free(); record.mini = null
-  if record.mini != null: AstraRoles.paint(record.mini,entry)
+  if record.mini != null:
+   if ResourceLoader.exists(AstraForgeModels.model_path(entry)):AstraForgeModels.paint(record.mini,entry,int(game.run.data.get("act",0)))
+   else:AstraRoles.paint(record.mini,entry)
   record.entry = entry.duplicate(true); record.face.card = entry.duplicate(true); record.face.language = game.language(); record.language = game.language(); record.face.queue_redraw(); record.viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
- record.outline.visible = (hand >= 0 and hand == game.selected) or game.drag_key == key
+ record.outline.visible = not game.run.battle.commands() and ((hand >= 0 and hand == game.selected) or game.drag_key == key)
  if side in ["friendly","enemy"] and record.mini == null and entry.hp > 0:
   var path = "res://assets3d/diorama/explorer.glb" if entry.art == "pulse" else "res://assets3d/tabletop/card_%s.glb" % entry.art
+  if ResourceLoader.exists(AstraForgeModels.model_path(entry)):path=AstraForgeModels.model_path(entry)
   if ResourceLoader.exists(path):
-   record.mini = model(path); record.node.add_child(record.mini); record.mini.scale = Vector3.ONE*0.01; record.mini.position = Vector3(0,0.12,.16); record.mini.rotation.y = PI if side == "enemy" else 0
-   AstraRoles.paint(record.mini,entry)
+   record.mini = model(path); record.node.add_child(record.mini); record.mini.scale = Vector3.ONE*0.01; record.mini.position = Vector3(0,0.12,.16); record.mini.rotation.y = .25 if side == "enemy" else -.20
+   if ResourceLoader.exists(AstraForgeModels.model_path(entry)):AstraForgeModels.paint(record.mini,entry,int(game.run.data.get("act",0)))
+   else:AstraRoles.paint(record.mini,entry)
    animate_model(record.mini,"Deploy")
  masks.append(key)
 func sync_cards() -> void:
@@ -135,7 +140,7 @@ func sync_cards() -> void:
      bind_card(("e" if side == "enemy" else "c")+str(entry.uid),entry,slot_point(side,lane),1.3,0,side,lane)
  for key in cards.keys():
   if key not in masks and not cards[key].dying:
-   cards[key].dying = true; cards[key].life = 0.6
+   cards[key].dying = true; cards[key].life = 0.8
 func set_stage() -> void:
  var act = int(game.run.data.get("act",0))
  var signature = "%s/%d/%s/%d/%d" % [game.screen,act,game.language(),int(game.run.data.get("hull",0)),int(game.run.data.get("intro",0))]+"/"+str(game.run.store.data.map_zoom)
@@ -191,6 +196,7 @@ func pick_slot(point: Vector2) -> Dictionary:
    if Rect2(slot_point(side,lane)-Vector2(103,72),Vector2(206,144)).has_point(point): return {"side":side,"lane":lane}
  return {}
 func feedback(events: Array) -> void:
+ if game.view is AstraForgeUI:game.view.feedback(events)
  for event in events:
   var key = ("e" if event.get("side","") == "enemy" else "c")+str(event.get("uid",-1))
   if event.kind == "attack" and cards.has(key):
@@ -199,6 +205,15 @@ func feedback(events: Array) -> void:
    var target: Vector3 = cards[key].target
    var tween = create_tween(); tween.tween_property(node,"position",target+Vector3(0,0.48,-0.75 if event.side == "friendly" else 0.75),0.13).set_trans(Tween.TRANS_QUAD); tween.tween_property(node,"position",target,0.22)
    cards[key].life = 0.36
+  if event.kind=="hit" and cards.has(key) and cards[key].mini!=null:animate_model(cards[key].mini,"Hit")
+  if event.kind=="attack":
+   var a=position_for(slot_point(event.side,event.lane),1.05)
+   var end_point=Vector2(595,135 if event.side=="friendly" else 655) if event.get("core_target",false) else slot_point("enemy" if event.side=="friendly" else "friendly",int(event.get("target_lane",event.lane)))
+   var b=position_for(end_point,.9)
+   var shot=sphere(self,a,.045,material(AstraRoles.ATTACK if event.side=="enemy" else Color("65daff"),2))
+   var tween=create_tween();tween.tween_property(shot,"position",b,.16);tween.tween_callback(shot.queue_free)
+   var trail=beam(self,a,b,.024,material(AstraRoles.ATTACK if event.side=="enemy" else Color("65daff"),1.5))
+   var fade=create_tween();fade.tween_property(trail,"scale",Vector3(.1,.1,1),.20);fade.tween_callback(trail.queue_free)
   if event.kind == "death" and cards.has(key) and cards[key].mini != null: animate_model(cards[key].mini,"Death")
   if event.kind in ["deploy","hit","death","ability","core","heal_core"]:
    var pos = slot_point(event.get("side","friendly"),clampi(int(event.get("lane",1)),0,3))
@@ -227,9 +242,9 @@ func _process(delta: float) -> void:
    if value.hand >= 0 and value.hand == game.selected: target.y += 0.4
    node.position = node.position.lerp(target,minf(1,delta*11)); node.rotation.y = lerpf(node.rotation.y,value.rot,minf(1,delta*9)); node.scale = node.scale.lerp(Vector3.ONE*value.scale,minf(1,delta*9))
   if value.mini != null:
-   value.mini.scale = value.mini.scale.lerp(Vector3.ONE*(1.03 if value.entry.art == "pulse" else .78),minf(1,delta*4))
+   value.mini.scale = value.mini.scale.lerp(Vector3.ONE*(.94 if ResourceLoader.exists(AstraForgeModels.model_path(value.entry)) else (1.03 if value.entry.art == "pulse" else .78)),minf(1,delta*4))
    value.mini.position.y = 0.14+sin(clock*2+float(value.entry.uid))*0.025
-   value.mini.rotation.y = (PI if value.side == "enemy" else 0)+sin(clock*.65)*.08
+   value.mini.rotation.y = (.25 if value.side == "enemy" else -.20)+sin(clock*.65)*.04
   var polygon = PackedVector2Array()
   for point in [Vector3(-.97,.12,-1.37),Vector3(.97,.12,-1.37),Vector3(.97,.12,1.37),Vector3(-.97,.12,1.37)]: polygon.append(project(node.to_global(point)))
   value.polygon = polygon
@@ -243,6 +258,7 @@ func beam(parent: Node3D, a: Vector3, b: Vector3, radius: float, mat: Material) 
  node.look_at(b,Vector3.UP)
  return node
 func make_arena() -> void:
+ if game.run.battle.commands():make_forge_arena();return
  var steel = material(Color("182b34")); steel.roughness = .65
  var a = position_for(Vector2(50,172),.16); var b = position_for(Vector2(1138,615),.16)
  box(arena,(a+b)/2,Vector3(absf(a.x-b.x),.12,absf(a.z-b.z)),steel)
@@ -315,10 +331,10 @@ func make_showcase() -> void:
    for i in range(12):
     var angle = i*TAU/12; sphere(showcase,center+Vector3(cos(angle)*1.1,-.5,sin(angle)*1.1),.07,material(Color("50d8f0"),1.2))
    for i in range(3):
-    var enemy = model("res://assets3d/p0_runner.glb"); showcase.add_child(enemy); enemy.scale = Vector3.ONE*.7; enemy.position = position_for(Vector2(485+i*170,500),.1); enemy.visible = stage > 0 and stage < 3
-    animate_model(enemy,"Attack" if stage == 1 else "Walk")
+    var enemy = model("res://assets3d/forge/enemy_runner.glb"); showcase.add_child(enemy); enemy.scale = Vector3.ONE*.7; enemy.position = position_for(Vector2(485+i*170,500),.1); enemy.visible = stage > 0 and stage < 3
+    animate_model(enemy,"Attack" if stage == 1 else "Idle")
    for i in range(2):
-    var guard = model("res://assets3d/diorama/explorer.glb"); showcase.add_child(guard); guard.scale = Vector3.ONE*.90; guard.position = position_for(Vector2(905+i*135,487),.1); guard.visible = stage < 3
+    var guard = model("res://assets3d/forge/pulse.glb"); showcase.add_child(guard); guard.scale = Vector3.ONE*.90; guard.position = position_for(Vector2(905+i*135,487),.1); guard.visible = stage < 3
     animate_model(guard,"Idle" if stage == 0 else "Death")
    var light = OmniLight3D.new(); showcase.add_child(light); light.position = center+Vector3(0,2,0); light.light_color = Color("ff4920") if stage == 1 else Color("53ddff"); light.light_energy = 2; light.omni_range = 8
    if stage == 1:
@@ -350,3 +366,18 @@ func paint_ship(node: Node, color: Color) -> void:
    if mat is StandardMaterial3D and (mat.resource_name.to_lower().contains("armor") or mat.resource_name.to_lower().contains("hull")):
     var custom = mat.duplicate(); custom.albedo_color = color; node.set_surface_override_material(surface,custom)
  for child in node.get_children(): paint_ship(child,color)
+
+func make_forge_arena() -> void:
+ var a=position_for(Vector2(48,173),.12);var b=position_for(Vector2(1139,624),.12)
+ box(arena,(a+b)/2,Vector3(absf(a.x-b.x),.15,absf(a.z-b.z)),material(Color("122b3b")))
+ for side in ["friendly","enemy"]:
+  var glow=material(Color("278fab") if side=="friendly" else Color("934b44"),.5)
+  for lane in range(4):
+   var p=position_for(slot_point(side,lane),.24)
+   var pad=MeshInstance3D.new();var shape=CylinderMesh.new();shape.top_radius=.95;shape.bottom_radius=.99;shape.height=.10;shape.radial_segments=40
+   pad.mesh=shape;pad.material_override=material(Color("1c3544"));arena.add_child(pad);pad.position=p
+   var trim=MeshInstance3D.new();var torus=TorusMesh.new();torus.inner_radius=.91;torus.outer_radius=.955;torus.rings=32;torus.ring_segments=10
+   trim.mesh=torus;trim.material_override=glow;arena.add_child(trim);trim.position=p+Vector3(0,.06,0)
+ for lane in range(4):
+  var p=position_for(Vector2(230+lane*250,398),.24)
+  for j in range(3):box(arena,p+Vector3(0,0,(j-1)*.33),Vector3(.065,.026,.15),material(Color("365b6b")))

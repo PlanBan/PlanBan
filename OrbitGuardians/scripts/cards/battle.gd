@@ -42,6 +42,51 @@ func begin(deck: Array, core: int, act: int, kind: String, seed_value: int, maxi
  if kind == "boss": spawn("boss", 2)
  plan_intent()
  checkpoint()
+func commands() -> bool:
+ return int(data.get("ruleset",41))>=44 and not data.get("tutorial",false)
+func begin_commands(deck: Array, core: int, act: int, kind: String, seed_value: int, maximum: int = 20, technology: Dictionary = {}) -> void:
+ begin(deck,core,act,kind,seed_value,maximum,technology)
+ data.ruleset=44;data.hand=deck.duplicate(true);data.draw.clear();data.discard.clear();data.used=[]
+ data.enemy=[null,null,null,null];events.clear();spawn("drone",1)
+ if kind=="elite":spawn("elite",2)
+ if kind=="boss":spawn("boss",2)
+ plan_intent();checkpoint()
+func ready_command(index: int) -> bool:
+ return index>=0 and index<data.hand.size() and (not commands() or data.hand[index].uid not in data.get("used",[]))
+func choose_target(lane: int, target: int) -> bool:
+ if not commands() or data.phase!="player" or lane<0 or lane>3 or target<0 or target>3: return false
+ if data.friendly[lane]==null or data.enemy[target]==null or data.friendly[lane].attack<=0:return false
+ data.friendly[lane].target_lane=target;checkpoint();return true
+func withdraw(lane: int) -> bool:
+ if not commands() or data.phase!="player" or lane<0 or lane>3 or data.friendly[lane]==null:return false
+ var bot: Dictionary=data.friendly[lane];data.friendly[lane]=null;gain_energy(int(bot.cost/2))
+ events=[{"kind":"withdraw","side":"friendly","lane":lane,"uid":bot.uid}];checkpoint();return true
+func use_supply(kind: String) -> bool:
+ if data.phase!="player" or data.get("tutorial",false):return false
+ events.clear()
+ match kind:
+  "medkit":
+   if data.core>=data.max_core:return false
+   var before=int(data.core);data.core=mini(data.max_core,data.core+8)
+   events.append({"kind":"heal_core","side":"friendly","damage":data.core-before})
+  "battery":
+   if data.energy>=energy_limit():return false
+   gain_energy(2);events.append({"kind":"ability","effect":"boost","side":"friendly","lane":1})
+  "purge":
+   var affected=false
+   for bot in data.friendly:
+    if bot!=null and (bot.frozen+bot.jammed+bot.burn+bot.get("slowed",0)>0):affected=true
+   if not affected:return false
+   for bot in data.friendly:
+    if bot!=null:
+     bot.frozen=0;bot.jammed=0;bot.burn=0;bot.slowed=0;bot.chill_until=data.turn+1
+   events.append({"kind":"ability","effect":"cleanse","side":"friendly","lane":1})
+  "bomb":
+   if data.enemy.all(func(bot):return bot==null):return false
+   for i in range(4):hurt("enemy",i,2,"")
+   events.append({"kind":"ability","effect":"overload","side":"enemy","lane":1})
+  _:return false
+ evaluate();checkpoint();return true
 func start_training(deck: Array, seed_value: int) -> void:
  begin(deck,20,0,"battle",seed_value)
  data.tutorial = true; data.tutorial_step = 0
@@ -57,6 +102,7 @@ func shuffle(items: Array) -> void:
   var j = rng.randi_range(0, i)
   var item = items[i]; items[i] = items[j]; items[j] = item
 func draw_cards(count: int) -> void:
+ if commands():return
  for _i in range(count):
   if data.hand.size() >= (5 if modern() else 7): return
   if data.draw.is_empty():
@@ -70,6 +116,9 @@ func instance(entry: Dictionary) -> Dictionary:
   if value.attack > 0: value.attack += int(data.get("tech",{}).get("attack",0))
  if value.effect=="coreheal": value.healing += int(data.get("tech",{}).get("healing",0))
  value.armor = int(data.get("tech",{}).get("armor",0)) if value.hp > 0 else 0
+ if commands() and value.effect=="freeze":value.effect="chill"
+ if commands() and value.effect=="frost":value.effect="softfrost"
+ value.slowed=0;value.chill_until=0;value.target_lane=-1
  value.uid = entry.uid; value.max_hp = value.hp; value.shield = 0; value.temporary = 0; value.frozen = 0; value.jammed = 0; value.burn = 0
  if value.effect == "guard": value.shield = 2
  return value
@@ -87,7 +136,10 @@ func spawn(kind: String, lane: int) -> void:
  if data.act == 2 and kind == "drone": value.effect = "burn"
  if data.act == 4 and kind == "runner": value.effect = "pierce"
  value.max_hp = value.hp; value.uid = data.serial; data.serial += 1
- value.shield = 2 if kind == "tank" or data.act == 1 else 0
+ if commands() and value.effect=="freeze":value.effect="chill"
+ if commands() and value.effect=="frost":value.effect="softfrost"
+ value.slowed=0;value.chill_until=0;value.target_lane=-1
+ value.shield = 2 if kind == "tank" or (data.act == 1 and not commands()) else 0
  value.temporary = 0; value.frozen = 0; value.jammed = 0; value.burn = 0
  data.enemy[lane] = value
  events.append({"kind":"spawn","side":"enemy","lane":lane,"uid":value.uid})
@@ -115,7 +167,7 @@ func play(hand_index: int, side: String, lane: int) -> bool:
   var step = int(data.tutorial_step)
   if step == 0 and (value.id != "pulse" or lane != 1): return false
   if step in [1,2,4] or (step == 3 and value.id != "reactor"): return false
- if value.cost > data.energy: return false
+ if value.cost > data.energy or not ready_command(hand_index): return false
  if value.effect == "coreheal" and data.core >= data.max_core: return false
  if value.hp > 0:
   if side != "friendly" or lane < 0 or lane > 3 or data.friendly[lane] != null: return false
@@ -123,8 +175,11 @@ func play(hand_index: int, side: String, lane: int) -> bool:
   var target = value.get("target", "all")
   if target != "all" and (side != ("friendly" if target == "friend" else "enemy") or lane < 0 or lane > 3 or data[side][lane] == null): return false
  data.energy -= value.cost
- data.hand.remove_at(hand_index)
+ if commands():data.used.append(entry.uid)
+ else:data.hand.remove_at(hand_index)
  if value.hp > 0:
+  if commands():
+   value.blueprint_uid=entry.uid;value.uid=data.serial;data.serial+=1
   data.friendly[lane] = value
   events.append({"kind":"deploy","side":"friendly","lane":lane,"uid":value.uid})
  else:
@@ -143,13 +198,17 @@ func play(hand_index: int, side: String, lane: int) -> bool:
    "emp": data.enemy[lane].jammed = 1; data.enemy[lane].frozen = 1
    "recall":
     var bot: Dictionary = data.friendly[lane]
-    data.hand.append({"id":bot.id,"uid":bot.uid,"upgrade":bot.upgrade})
+    if commands():gain_energy(int(bot.cost/2))
+    else:data.hand.append({"id":bot.id,"uid":bot.uid,"upgrade":bot.upgrade})
     data.friendly[lane] = null
-   "frost":
+    events.append({"kind":"withdraw","side":"friendly","lane":lane,"uid":bot.uid})
+   "frost","softfrost":
     for bot in data.enemy:
-     if bot != null: bot.frozen = 1
+     if bot != null:
+      if commands():bot.slowed=1
+      else:bot.frozen=1
    "storm": gain_energy(3); data.core -= 1
-  data.discard.append(entry)
+  if not commands():data.discard.append(entry)
   events.append({"kind":"ability","effect":value.effect,"side":side,"lane":lane,"uid":entry.uid})
  if data.get("tutorial",false):
   if data.tutorial_step == 0: data.tutorial_step = 1
@@ -203,27 +262,37 @@ func strike(side: String, lane: int) -> void:
  var other = "enemy" if side == "friendly" else "friendly"
  var bot: Dictionary = data[side][lane]
  var effect: String = bot.effect if bot.jammed == 0 else ""
- var target: Variant = data[other][lane]
- var damage = int(bot.attack)+int(bot.get("focus",0))
+ var target_lane=lane
+ if commands() and side=="friendly":
+  var chosen=int(bot.get("target_lane",-1))
+  if chosen>=0 and chosen<4 and data.enemy[chosen]!=null:target_lane=chosen
+  elif data.enemy[lane]==null:
+   for i in range(4):
+    if data.enemy[i]!=null:target_lane=i;break
+ var target: Variant = data[other][target_lane]
+ var damage = maxi(0,int(bot.attack)+int(bot.get("focus",0))-int(bot.get("slowed",0)))
+ bot.slowed=0
  bot.focus = 0
- events.append({"kind":"attack","side":side,"lane":lane,"uid":bot.uid})
+ events.append({"kind":"attack","side":side,"lane":lane,"target_lane":target_lane,"core_target":target==null,"damage":damage,"uid":bot.uid})
  if target == null:
   data["enemy_core" if side == "friendly" else "core"] -= damage
   events.append({"kind":"core","side":other,"damage":damage})
   if effect == "echo" and side == "friendly": draw_cards(1)
  else:
   var target_uid = target.uid
-  hurt(other, lane, damage, side)
-  if data[other][lane] == null and effect == "refund" and side == "friendly":
+  hurt(other, target_lane, damage, side)
+  if data[other][target_lane] == null and effect == "refund" and side == "friendly":
    if data.phase == "resolving": data.carry = mini(1,data.carry+1) if modern() else data.carry+1
    else: gain_energy(1)
-  elif data[other][lane] != null and data[other][lane].uid == target_uid:
-   if effect == "freeze": data[other][lane].frozen = 1
-   if effect == "burn": data[other][lane].burn = 2
-   if effect == "jam": data[other][lane].jammed = 1
+  elif data[other][target_lane] != null and data[other][target_lane].uid == target_uid:
+   if effect == "freeze": data[other][target_lane].frozen = 1
+   if effect == "chill" and (side=="friendly" or data.turn%3==0) and data[other][target_lane].get("chill_until",0)<data.turn:
+    data[other][target_lane].slowed=1;data[other][target_lane].chill_until=data.turn+2
+   if effect == "burn": data[other][target_lane].burn = 2
+   if effect == "jam": data[other][target_lane].jammed = 1
   if effect == "pierce": data["enemy_core" if side == "friendly" else "core"] -= 1
   if effect == "splash":
-   for neighbour in [lane - 1, lane + 1]:
+   for neighbour in [target_lane - 1, target_lane + 1]:
     if neighbour >= 0 and neighbour < 4: hurt(other, neighbour, 1, side)
 func hurt(side: String, lane: int, amount: int, source_side: String) -> void:
  var bot: Variant = data[side][lane]
@@ -240,7 +309,7 @@ func hurt(side: String, lane: int, amount: int, source_side: String) -> void:
  if bot.hp <= 0:
   data[side][lane] = null
   events.append({"kind":"death","side":side,"lane":lane,"uid":bot.uid})
-  if side == "friendly": data.discard.append({"id":bot.id,"uid":bot.uid,"upgrade":bot.upgrade})
+  if side == "friendly" and not commands(): data.discard.append({"id":bot.id,"uid":bot.uid,"upgrade":bot.upgrade})
   if bot.effect == "deathburst" and bot.jammed == 0:
    var other = "enemy" if side == "friendly" else "friendly"
    for i in range(4): hurt(other, i, 2, source_side)
@@ -279,7 +348,7 @@ func next_round() -> void:
  if data.act == 2 and data.turn % 3 == 0:
   for i in range(4):
    if data.friendly[i] != null: hurt("friendly", i, 1, "")
- if data.act == 1 and data.turn % 4 == 0:
+ if data.act == 1 and data.turn % 4 == 0 and not commands():
   for bot in data.friendly:
    if bot != null: bot.frozen = 1; break
  if data.act == 4 and data.turn % 4 == 0:
@@ -297,6 +366,7 @@ func next_round() -> void:
  else:
   draw_cards(1 if modern() else 2)
   if data.get("tutorial",false): data.tutorial_step = 5
+ if commands():data.used.clear()
  plan_intent(); data.phase = "player"
  events.append({"kind":"round","turn":data.turn})
 func evaluate() -> void:

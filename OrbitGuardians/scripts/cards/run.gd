@@ -28,6 +28,8 @@ func load_all() -> void:
  if valid_save(payload):
   data = AstraCards.integers(payload.run)
   if not data.has("research"): data.research = AstraResearch.defaults()
+  if not data.has("loadout"):data.loadout=default_loadout(data.deck)
+  if not data.has("supplies"):data.supplies=supply_defaults()
   rng.state = int(data.rng)
   if not data.battle.is_empty(): battle.restore(data.battle)
 func migrate_legacy(sources: Array = []) -> void:
@@ -58,8 +60,9 @@ func resume_available() -> bool:
 func new_run(seed_value: int = 0, deck_kind: int = 0) -> void:
  if deck_kind not in meta.decks: deck_kind = 0
  rng.seed = seed_value if seed_value != 0 else int(Time.get_unix_time_from_system()) ^ Time.get_ticks_usec()
- data = {"state":"intro","act":0,"depth":-1,"column":1,"current":"","visited":[],"map":[],"deck":[],"serial":1,"core":20,"max_core":20,"credits":30,"battles":0,"reward":[],"stock":[],"battle":{},"rng":"0","intro":0,"seed":str(rng.seed),"deck_kind":deck_kind,"ended":false,"hull":0,"research":AstraResearch.defaults()}
+ data = {"state":"intro","act":0,"depth":-1,"column":1,"current":"","visited":[],"map":[],"deck":[],"serial":1,"core":20,"max_core":20,"credits":30,"battles":0,"reward":[],"stock":[],"battle":{},"rng":"0","intro":0,"seed":str(rng.seed),"deck_kind":deck_kind,"ended":false,"hull":0,"research":AstraResearch.defaults(),"loadout":[],"supplies":supply_defaults()}
  for id in AstraCards.starter(deck_kind): add_card(id)
+ data.loadout=default_loadout(data.deck);data.supplies.medkit=1
  meta.runs += 1
  build_map(); save()
 func add_card(id: String) -> void:
@@ -103,7 +106,7 @@ func choose_node(id: String) -> bool:
  var kind: String = picked.kind
  match kind:
   "battle","elite","boss":
-   battle.begin(data.deck, int(data.core), int(data.act), kind, rng.randi(),int(data.max_core),AstraResearch.bonuses(data.get("research",{})))
+   battle.begin_commands(active_deck(), int(data.core), int(data.act), kind, rng.randi(),int(data.max_core),AstraResearch.bonuses(data.get("research",{})))
    data.battle = battle.checkpoint(); data.state = "battle"
   "reward": prepare_reward(false)
   "shop": data.state = "shop"; data.stock = offers(3)
@@ -161,7 +164,12 @@ func upgrade(uid: int) -> bool:
 func remove_card(uid: int) -> bool:
  if data.state != "remove" or data.deck.size() <= 6: return false
  for i in range(data.deck.size()):
-  if int(data.deck[i].uid) == uid: data.deck.remove_at(i); finish_node(); return true
+  if int(data.deck[i].uid)==uid:
+   data.deck.remove_at(i)
+   if data.has("loadout"):
+    data.loadout.erase(uid)
+    if not valid_loadout(data.loadout,data.deck):data.loadout=default_loadout(data.deck)
+   finish_node();return true
  return false
 func rest() -> bool:
  if data.state != "rest": return false
@@ -190,6 +198,64 @@ func buy_research(branch: String, rank: int) -> bool:
  data.credits -= AstraResearch.COSTS[level]; data.research[branch] = level+1
  if branch == "core": data.max_core += 4; data.core = mini(data.max_core,data.core+4)
  save(); return true
+const SUPPLY_PRICES={"medkit":12,"battery":10,"purge":8,"bomb":18}
+static func supply_defaults() -> Dictionary:
+ return {"medkit":0,"battery":0,"purge":0,"bomb":0}
+static func default_loadout(inventory: Array) -> Array:
+ var result: Array=[]
+ for entry in inventory:
+  if AstraCards.CARDS[entry.id].attack>0:result.append(entry.uid)
+  if result.size()>=3:break
+ for entry in inventory:
+  if entry.uid not in result and entry.id in ["reactor","core_repair","barrier"] and result.size()<6:result.append(entry.uid)
+ for entry in inventory:
+  if entry.uid not in result and result.size()<6:result.append(entry.uid)
+ return result
+func active_deck() -> Array:
+ var result: Array=[]
+ for uid in data.get("loadout",default_loadout(data.deck)):
+  for entry in data.deck:
+   if entry.uid==uid:result.append(entry.duplicate(true));break
+ return result
+func set_loadout(ids: Array) -> bool:
+ if data.is_empty() or data.state in ["intro","ending","defeat"]:return false
+ if data.state=="battle" and battle.data.get("tutorial",false):return false
+ if not valid_loadout(ids,data.deck):return false
+ data.loadout=ids.duplicate();save();return true
+static func valid_loadout(ids: Variant, inventory: Array) -> bool:
+ if not ids is Array or ids.size()<3 or ids.size()>6:return false
+ var seen: Array=[];var attackers=0
+ for uid in ids:
+  if not numeric(uid,1,1000000) or uid in seen:return false
+  var found=false
+  for entry in inventory:
+   if entry.uid==uid:found=true;attackers+=int(AstraCards.CARDS[entry.id].attack>0);break
+  if not found:return false
+  seen.append(uid)
+ return attackers>0
+func supply_access() -> bool:
+ if data.is_empty() or data.state in ["intro","ending","defeat"]:return false
+ return data.state!="battle" or (not battle.data.get("tutorial",false) and battle.data.phase=="player")
+func buy_supply(kind: String) -> bool:
+ if not supply_access() or kind not in SUPPLY_PRICES:return false
+ if not data.has("supplies"):data.supplies=supply_defaults()
+ if data.credits<SUPPLY_PRICES[kind] or data.supplies[kind]>=99:return false
+ data.credits-=SUPPLY_PRICES[kind];data.supplies[kind]+=1;save();return true
+func use_supply(kind: String) -> bool:
+ if not supply_access() or kind not in SUPPLY_PRICES or data.get("supplies",{}).get(kind,0)<=0:return false
+ if data.state=="battle":
+  if not battle.use_supply(kind):return false
+ else:
+  if kind!="medkit" or data.core>=data.max_core:return false
+  data.core=mini(data.max_core,data.core+8)
+ data.supplies[kind]-=1
+ if data.state=="battle" and battle.data.phase in ["won","lost"]:finish_battle()
+ save();return true
+func buy_blueprint(id: String) -> bool:
+ if not supply_access() or id not in meta.unlocked or id not in AstraCards.CARDS or data.deck.size()>=80:return false
+ var price=22+int(AstraCards.CARDS[id].rarity)*8
+ if data.credits<price:return false
+ data.credits-=price;add_card(id);save();return true
 func valid_meta(value: Variant) -> bool:
  if not value is Dictionary or value.get("version",0) != 4: return false
  for key in ["unlocked","logs","decks","hulls"]:
@@ -230,6 +296,11 @@ func valid_save(payload: Variant) -> bool:
  for entry in run.deck:
   if not valid_entry(entry) or entry.uid in seen: return false
   seen.append(entry.uid)
+ if run.has("loadout") and not valid_loadout(run.loadout,run.deck):return false
+ if run.has("supplies"):
+  if not run.supplies is Dictionary or run.supplies.size()!=4:return false
+  for kind in SUPPLY_PRICES:
+   if not numeric(run.supplies.get(kind),0,99):return false
  if run.map.size() != 17: return false
  var ids: Array = []
  for node in run.map:
@@ -256,7 +327,7 @@ func valid_battle(value: Dictionary, owned: Array) -> bool:
  for key in ["hand","draw","discard","friendly","enemy","pending","intent"]:
   if not value.get(key) is Array or value[key].size() > 100: return false
  if value.friendly.size() != 4 or value.enemy.size() != 4 or value.hand.size() > 7: return false
- if value.has("ruleset") and (not numeric(value.ruleset,41,43)): return false
+ if value.has("ruleset") and (not numeric(value.ruleset,41,44)): return false
  if int(value.get("ruleset",41)) == 42 and (value.hand.size() > 5 or value.energy > value.max_energy or value.max_energy > 5): return false
  if int(value.get("ruleset",41)) == 43 and (value.hand.size()>5 or value.energy>value.max_energy or value.max_energy>6): return false
  if value.core>value.max_core or value.enemy_core>value.max_enemy_core: return false
@@ -264,7 +335,20 @@ func valid_battle(value: Dictionary, owned: Array) -> bool:
  if value.has("briefed") and not value.briefed is bool: return false
  if value.has("taunt") and not numeric(value.taunt,0,2): return false
  if value.has("tutorial") and (not value.tutorial is bool or not numeric(value.get("tutorial_step"),0,5)): return false
+ var command_mode=int(value.get("ruleset",41))>=44
+ if command_mode:
+  if value.hand.size()<3 or value.hand.size()>6 or not value.draw.is_empty() or not value.discard.is_empty():return false
+  if value.energy>value.max_energy or value.max_energy>6 or not value.get("used") is Array:return false
+  var command_ids: Array=[]
+  for entry in value.hand:
+   if not valid_entry(entry):return false
+   command_ids.append(entry.uid)
+  var consumed: Array=[]
+  for uid in value.used:
+   if uid not in command_ids or uid in consumed:return false
+   consumed.append(uid)
  var located: Array = []
+ var deployed: Array=[]
  for entry in value.hand + value.draw + value.discard:
   if not valid_entry(entry) or entry.uid not in owned or entry.uid in located: return false
   located.append(entry.uid)
@@ -276,9 +360,18 @@ func valid_battle(value: Dictionary, owned: Array) -> bool:
    for text in bot.name:
     if not text is String: return false
    if side == "friendly":
-    if not valid_entry(bot) or bot.uid not in owned or bot.uid in located: return false
-    if AstraCards.CARDS[bot.id].hp <= 0 or bot.art != AstraCards.CARDS[bot.id].art or bot.get("effect") != AstraCards.CARDS[bot.id].effect: return false
-    located.append(bot.uid)
+    if not valid_entry(bot):return false
+    if command_mode:
+     if bot.uid<1000 or bot.uid>=value.serial or bot.uid in deployed or bot.get("blueprint_uid",-1) not in located:return false
+     var matched=false
+     for entry in value.hand:
+      if entry.uid==bot.blueprint_uid and entry.id==bot.id and entry.upgrade==bot.upgrade:matched=true;break
+     if not matched:return false
+     deployed.append(bot.uid)
+    elif bot.uid not in owned or bot.uid in located:return false
+    var expected="chill" if command_mode and AstraCards.CARDS[bot.id].effect=="freeze" else AstraCards.CARDS[bot.id].effect
+    if AstraCards.CARDS[bot.id].hp<=0 or bot.art!=AstraCards.CARDS[bot.id].art or bot.get("effect")!=expected:return false
+    if not command_mode:located.append(bot.uid)
    elif bot.get("id","") not in AstraCards.ENEMIES: return false
    elif bot.art != "p%d_%s" % [int(value.act),AstraCards.ENEMIES[bot.id].art]: return false
    for key in ["hp","max_hp","attack","shield","temporary","frozen","jammed","burn","uid"]:
@@ -286,9 +379,12 @@ func valid_battle(value: Dictionary, owned: Array) -> bool:
    if bot.hp <= 0 or bot.hp > bot.max_hp or not bot.get("effect") is String: return false
    if not numeric(bot.get("cost"),0,12) or not numeric(bot.get("rarity"),0,4): return false
    if bot.has("armor") and not numeric(bot.armor,0,1): return false
+   if bot.has("slowed") and not numeric(bot.slowed,0,1):return false
+   if bot.has("chill_until") and not numeric(bot.chill_until,0,10002):return false
+   if bot.has("target_lane") and not numeric(bot.target_lane,-1,3):return false
    if bot.has("focus") and not numeric(bot.focus,0,2): return false
    if bot.has("ordered_turn") and not numeric(bot.ordered_turn,1,10000): return false
- if located.size() != owned.size(): return false
+ if not command_mode and located.size() != owned.size(): return false
  for action in value.pending:
   if not action is Dictionary or action.get("side","") not in ["friendly","enemy","round"]: return false
   if action.side != "round" and (not numeric(action.get("lane"),0,3) or not numeric(action.get("uid"),0,1000000)): return false

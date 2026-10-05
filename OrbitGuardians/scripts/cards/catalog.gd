@@ -33,6 +33,7 @@ const EFFECTS = {
  "refund":["За убийство: +1 энергия","On kill: +1 energy","Bei Abschuss: +1 Energie"],
  "energy":["Реакторы вместе: +1 к энергии хода","Reactors together: +1 turn energy","Reaktoren zusammen: +1 Zugenergie"],
  "guard":["Щит 2; прикрывает соседей","Shield 2; guards neighbours","Schild 2; schützt Nachbarn"],
+ "chill":["Холод: −1 атака на один удар","Chill: −1 attack for one strike","Kälte: −1 Angriff für einen Schlag"],
  "freeze":["Замораживает цель на ход","Freezes target for one turn","Friert Ziel für einen Zug ein"],
  "double":["Две атаки за ход","Attacks twice each turn","Greift zweimal pro Zug an"],
  "pierce":["Пробивает: 1 урон ядру","Pierces: 1 core damage","Durchschlag: 1 Kernschaden"],
@@ -46,6 +47,7 @@ const EFFECTS = {
  "emp":["Отключение цели на ход","Disables target for one turn","Schaltet Ziel einen Zug ab"],
  "recall":["Вернуть союзника в руку","Return an ally to your hand","Verbündeten zurück auf die Hand"],
  "regen":["Каждый ход: +1 здоровье","Each turn: +1 health","Pro Zug: +1 LP"],
+ "softfrost":["Враги: −1 атака на один удар","Enemies: −1 attack for one strike","Gegner: −1 Angriff für einen Schlag"],
  "frost":["Враги пропускают атаку","Enemies skip their attacks","Gegner setzen Angriffe aus"],
  "burn":["Поджигает: 1 урон за ход","Ignites: 1 damage each turn","Entzündet: 1 Schaden pro Zug"],
  "storm":["+3 энергии; ядру −1 HP","+3 energy; core loses 1 HP","+3 Energie; Kern verliert 1 LP"],
@@ -92,6 +94,7 @@ static func card(id: String, upgrade: int = 0) -> Dictionary:
  if result.effect == "coreheal": result.healing = 8+4*upgrade
  return result
 static func description(entry: Dictionary, language: String) -> String:
+ if entry.get("brief") is Array:return word(entry.brief,language)
  if entry.effect == "coreheal":
   return word(["Восстанавливает ядру %d HP","Restores %d core HP","Stellt %d Kern-LP wieder her"],language) % int(entry.get("healing",8))
  return word(EFFECTS.get(entry.effect,["","",""]),language)

@@ -7,7 +7,7 @@ static func color(entry: Dictionary) -> Color:
  if entry.get("armor",0)+entry.get("shield",0)+entry.get("temporary",0)>0 or entry.get("effect","") in ["guard","armor","barrier"]: return DEFENCE
  match entry.get("effect",""):
   "heal","mend","coreheal","regen": return Color("6feba0")
-  "freeze","frost","emp": return Color("5ccbff")
+  "freeze","frost","emp","chill","softfrost": return Color("5ccbff")
   "energy","boost","storm": return Color("65f2cf")
   "refund","double","burn","splash": return Color("ff7754")
   "pierce","deathburst","overload","echo": return Color("c08aff")

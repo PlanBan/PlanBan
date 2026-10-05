@@ -23,6 +23,8 @@ func _initialize() -> void:
  check(copy.data.research==run.data.research and copy.data.core==12 and copy.data.max_core==32,"tree and HP survive restart")
  run.data.act=0;run.choose_node("0_1")
  var battle=run.battle
+ # This suite also retains the previous encounter model; command combat is covered in forge_rules.
+ battle.begin(run.data.deck,run.data.core,0,"battle",1234,run.data.max_core,AstraResearch.bonuses(run.data.research))
  check(battle.data.energy==5 and battle.data.max_core==32 and battle.data.core==12,"first-turn research energy and expanded core are used by combat")
  check(not battle.data.briefed and battle.data.taunt>=0 and battle.data.taunt<3,"every fresh encounter has a stable pre-battle commander line")
  var unit=battle.instance({"id":"pulse","uid":run.data.deck[0].uid,"upgrade":0})

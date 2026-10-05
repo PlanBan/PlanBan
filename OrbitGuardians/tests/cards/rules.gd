@@ -13,7 +13,7 @@ func _initialize() -> void:
  run.data.state = "map"
  check(run.choose_node("0_1"),"first encounter")
  var battle = run.battle
- check(battle.data.hand.size() == 3 and battle.data.energy == 3,"opening hand and energy")
+ check(battle.data.hand.size() == 6 and battle.data.energy == 3,"six selected blueprints and opening energy")
  check(not battle.play(0,"enemy",0),"robot must be placed in friendly slot")
  var pulse_index = -1
  for i in range(battle.data.hand.size()):
@@ -24,14 +24,14 @@ func _initialize() -> void:
  check(battle.end_turn(),"begin combat")
  var before = battle.data.enemy_core
  battle.resolve_next()
- check(battle.data.enemy_core == before - 2,"unopposed attack hits core")
+ check(battle.data.enemy_core == before and battle.data.enemy[1].hp==1,"command attack targets a live enemy before the core")
  check(not battle.play(0,"friendly",3),"cannot play during enemy phase")
  check(run.save(),"atomic autosave mid-resolution")
  var copy = AstraRun.new(); copy.path = run.path; copy.meta_path = run.meta_path; copy.load_all()
  check(not copy.data.is_empty() and copy.battle.data.phase == "resolving","load pending combat")
  battle.resolve_all(); copy.battle.resolve_all()
  check(JSON.stringify(battle.checkpoint()) == JSON.stringify(copy.battle.checkpoint()),"resume produces identical next turn including RNG")
- check(battle.data.energy == 3 and battle.data.hand.size() <= 5,"refresh and hand limit")
+ check(battle.data.energy == 3 and battle.data.hand.size() == 6 and battle.data.used.is_empty(),"refresh and hand limit")
  var initial = run.data.deck.duplicate(true)
  battle.begin(initial,20,0,"battle",123)
  battle.data.enemy = [null,null,null,null]
