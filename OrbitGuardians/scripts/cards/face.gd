@@ -17,22 +17,23 @@ func line(text: String, point: Vector2, size_value: int, color: Color, width: fl
  while font.get_string_size(text,HORIZONTAL_ALIGNMENT_LEFT,-1,fitted).x > width and fitted > 14: fitted -= 1
  draw_string(font,point,text,HORIZONTAL_ALIGNMENT_LEFT,width,fitted,color)
 func _draw() -> void:
- var ink = Color("ece5d1") if hostile else Color("1c292b")
- var accent = Color("ed8559") if hostile else Color("307e77")
- var face = Color("252824") if hostile else Color("c3cabe")
- draw_rect(Rect2(0,0,W,H),Color("111a1a"))
+ var ink = Color("e6edf0")
+ var accent = Color("ff8250") if hostile else Color("53d5e9")
+ var face = Color("222124") if hostile else Color("15242d")
+ draw_rect(Rect2(0,0,W,H),Color("050c12"))
  draw_rect(Rect2(7,7,W-14,H-14),face)
  for i in range(15):
   var y = 13+i*28
   draw_line(Vector2(10,y),Vector2(W-10,y+10),Color(0.2,0.2,0.15,0.07),1)
  draw_rect(Rect2(13,13,W-26,H-26),accent,false,2)
- draw_rect(Rect2(22,63,256,220),Color("111d1e") if hostile else Color("374643"))
+ draw_rect(Rect2(22,63,256,220),Color("111519") if hostile else Color("0a1720"))
+ for i in range(10): draw_line(Vector2(23,75+i*22),Vector2(277,75+i*22),Color(accent,.04),1)
  if art != null: draw_texture_rect(art,Rect2(30,69,240,208),false)
  draw_rect(Rect2(22,63,256,220),accent,false,1)
  for corner in [Vector2(17,17),Vector2(283,17),Vector2(17,413),Vector2(283,413)]:
   draw_circle(corner,3,Color("8a8167")); draw_line(corner-Vector2(2,0),corner+Vector2(2,0),ink,1)
  line(AstraCards.word(card.name,language),Vector2(25,45),25,ink,226)
- draw_circle(Vector2(260,87),25,Color("e5ba62") if hostile else Color("5fd4c3"))
+ draw_circle(Vector2(260,87),25,Color("ff9552") if hostile else Color("65e6f4"))
  line(("Ω" if card.id == "boss" else "!") if hostile else str(card.cost),Vector2(246,102),38,Color("102321"),45)
  if card.hp > 0:
   line("× " + str(card.attack),Vector2(26,328),39,ink,112)

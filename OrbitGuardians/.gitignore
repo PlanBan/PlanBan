@@ -1,3 +1,8 @@
 .godot/
 build/
 *.tmp
+# Godot regenerates these textures from the images embedded in the diorama GLBs.
+assets3d/diorama/*.png
+assets3d/diorama/*.png.import
+__pycache__/
+*.blend1

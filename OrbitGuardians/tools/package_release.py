@@ -10,6 +10,10 @@ with zipfile.ZipFile(ROOT / 'OrbitGuardians-Source.zip', 'w', zipfile.ZIP_DEFLAT
             if not path.is_file(): continue
             if any(part in ('.godot', 'build', '__pycache__') for part in path.relative_to(folder).parts): continue
             if path.suffix in ('.tmp', '.blend1') or path.name.startswith('qa_'): continue
+            # Godot extracts these copies from the embedded GLB images on import.
+            # The editable Blender library also packs every texture; keeping a
+            # third copy would exceed GitHub's 100 MiB limit for the source ZIP.
+            if path.parent == PROJECT / 'assets3d' / 'diorama' and path.name.endswith(('.png', '.png.import')): continue
             archive.write(path, path.relative_to(ROOT))
 with zipfile.ZipFile(ROOT / 'OrbitGuardians-Windows.zip', 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
     executable = PROJECT / 'build' / 'OrbitGuardians.exe'
@@ -26,6 +30,7 @@ shutil.copy2(apk, ROOT / 'OrbitalFront-Android.apk')
 checksums=[]
 for name in ['OrbitGuardians-Source.zip', 'OrbitGuardians-Windows.zip', 'OrbitalFront-Android.apk']:
     path=ROOT/name
+    assert path.stat().st_size < 100 * 1024 * 1024, f'{name} exceeds GitHub file limit'
     with zipfile.ZipFile(path) as archive:
         assert archive.testzip() is None
         names=archive.namelist()

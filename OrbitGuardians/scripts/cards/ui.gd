@@ -4,11 +4,11 @@ class_name AstraTableUI
 var game: AstraGame
 var buttons: Array = []
 var font: Font = ThemeDB.fallback_font
-const INK = Color("e7ddbb")
-const DIM = Color("a6ad98")
-const CYAN = Color("70d6c1")
-const AMBER = Color("d9ac65")
-const RED = Color("ee8b64")
+const INK = Color("e6edf0")
+const DIM = Color("90a8b4")
+const CYAN = Color("52e7ff")
+const AMBER = Color("dca56a")
+const RED = Color("ff8051")
 func _ready() -> void:
  size = Vector2(720,1280); mouse_filter = Control.MOUSE_FILTER_IGNORE
 func label(value: String, point: Vector2, size_value: int = 24, color: Color = INK, width: float = 640, centered: bool = false) -> void:
@@ -25,15 +25,26 @@ func words(value: String, point: Vector2, width: float = 592, size_value: int = 
   else: line = (line+" "+word).strip_edges()
  if line != "": label(line,Vector2(point.x,y),size_value,color,width)
  return y+size_value*1.45
+func frame(rect: Rect2, color: Color = CYAN, fill: float = .88, glow: bool = false) -> void:
+ var x = rect.position.x; var y = rect.position.y; var w = rect.size.x; var h = rect.size.y; var cut = minf(16,h*.2)
+ var points = PackedVector2Array([Vector2(x+cut,y),Vector2(x+w-cut,y),Vector2(x+w,y+cut),Vector2(x+w,y+h-cut),Vector2(x+w-cut,y+h),Vector2(x+cut,y+h),Vector2(x,y+h-cut),Vector2(x,y+cut)])
+ draw_colored_polygon(points,Color(.012,.033,.047,fill))
+ var edge = points.duplicate(); edge.append(points[0])
+ if glow:
+  draw_polyline(edge,Color(color,.045),13,true); draw_polyline(edge,Color(color,.12),6,true)
+ draw_polyline(edge,Color(color,.8 if glow else .34),2 if glow else 1.2,true)
+ draw_line(Vector2(x+cut+9,y+6),Vector2(x+cut+39,y+6),Color(color,.45),1)
+ draw_line(Vector2(x+w-cut-9,y+h-6),Vector2(x+w-cut-39,y+h-6),Color(color,.4),1)
+ for i in range(3): draw_circle(Vector2(x+w-cut-12-i*6,y+9),1,Color(color,.3))
 func button(rect: Rect2, text: String, command: String, value: Variant = 0, accent: bool = false, enabled: bool = true) -> void:
- var style = StyleBoxFlat.new(); style.bg_color = Color("28342e") if accent else Color(0.055,0.072,0.061,0.90)
- style.border_color = CYAN if accent else Color("77765a"); style.set_border_width_all(2); style.set_corner_radius_all(8)
- if not enabled: style.border_color = Color("41473e"); style.bg_color.a = 0.68
- draw_style_box(style,rect)
- draw_line(rect.position+Vector2(10,9),rect.position+Vector2(30,9),AMBER if enabled else DIM,2)
- label(text,rect.get_center()+Vector2(0,9),25,INK if enabled else Color("687266"),rect.size.x-30,true)
+ var color = CYAN if accent else DIM
+ if not enabled: color = Color("43545c")
+ frame(rect,color,.90,accent and enabled)
+ if enabled and game.pressed.get("command","") == command: draw_rect(rect.grow(-6),Color(CYAN,.08))
+ label(text,rect.get_center()+Vector2(0,9),25,INK if enabled else Color("6b7b83"),rect.size.x-26,true)
  if enabled: buttons.append({"rect":rect,"command":command,"value":value})
 func title(key: String, sub: String = "") -> void:
+ frame(Rect2(28,24,664,199 if sub != "" else 134),CYAN,.80)
  label(game.l("table"),Vector2(54,65),17,AMBER,610)
  label(game.l(key),Vector2(54,128),36,INK,610)
  if sub != "": words(sub,Vector2(54,181),605,23)
@@ -46,7 +57,8 @@ func footer() -> void:
  label("▤ %d" % data.deck.size(),Vector2(533,1168),28,INK)
  label(game.l("autosave"),Vector2(360,1232),17,DIM,610,true)
 func menu() -> void:
- draw_rect(Rect2(0,0,720,1280),Color(0.01,0.025,0.018,0.37))
+ draw_rect(Rect2(0,0,720,1280),Color(0.006,0.02,0.034,0.40))
+ frame(Rect2(33,55,654,267),CYAN,.79)
  label("ORBITAL",Vector2(57,166),67,INK,610)
  label("FRONT",Vector2(54,235),78,CYAN,610)
  label(game.l("subtitle"),Vector2(59,281),20,AMBER,610)
@@ -56,7 +68,7 @@ func menu() -> void:
  button(Rect2(65,789,590,80),game.l("collection"),"collection")
  button(Rect2(65,889,590,80),game.l("settings"),"settings")
  button(Rect2(65,989,590,80),game.l("quit"),"quit")
- label("RU / EN / DE    ·    ASTRA TABLETOP / 4.0",Vector2(360,1200),17,DIM,610,true)
+ label("RU / EN / DE    ·    ASTRA DIORAMA / 4.1",Vector2(360,1200),17,DIM,610,true)
 func new_run() -> void:
  title("choose_deck")
  var ids = ["scout","citadel","engineer"]
@@ -74,40 +86,72 @@ func intro() -> void:
  for i in range(3): draw_circle(Vector2(326+i*34,922),5,CYAN if i == stage else DIM)
  button(Rect2(65,1003,590,96),game.l("begin" if stage == 2 else "next"),"intro",0,true)
 func route() -> void:
- title("route",game.l("select_node"))
  var data: Dictionary = game.run.data
- for i in range(5):
-  var x = 88+i*136
-  draw_circle(Vector2(x,258),13,AstraCards.COLORS[i] if i <= int(data.act) else Color("485047"))
-  label(game.l(AstraCards.PLANETS[i]),Vector2(x,298),19,AstraCards.COLORS[i] if i == int(data.act) else DIM,129,true)
- label("ACT %s  /  %s" % [["I","II","III","IV","V"][int(data.act)],AstraCards.word(AstraCards.BOSSES[int(data.act)],game.language())],Vector2(360,357),22,AMBER,610,true)
+ var act = int(data.act)
+ frame(Rect2(25,25,470,220),CYAN,.70)
+ label(game.l(AstraCards.PLANETS[act]).to_upper(),Vector2(48,69),32,CYAN,420)
+ label(game.l("location%d" % act),Vector2(48,107),22,INK,420)
+ draw_line(Vector2(48,127),Vector2(232,127),Color(CYAN,.5),1)
+ label("%d / 5" % (act+1),Vector2(48,174),39,CYAN,170)
+ label(game.l("planet_count"),Vector2(48,204),17,DIM,200)
+ label("◇ %d" % int(data.credits),Vector2(315,202),23,AMBER,150)
+ frame(Rect2(520,25,175,220),CYAN,.28)
+ label(game.l("world_unlock"),Vector2(607,56),16,CYAN,156,true)
+ var special = AstraCards.card(["verdant","frost","ember","storm","echo"][act])
+ label(AstraCards.word(special.name,game.language()),Vector2(607,208),21,INK,158,true)
+ label(game.l("after_archon"),Vector2(607,233),14,DIM,159,true)
+ button(Rect2(623,259,72,61),"Ⅱ","pause")
+ # All tokens, paths, icons, the explorer and the landscape beneath them are real 3D objects.
  var available = game.run.available_nodes()
- var previous: Variant = null
- for id in data.visited:
-  if not game.world.map_nodes.has(id): continue
-  var point: Vector2 = game.world.map_nodes[id].point
-  if previous != null: draw_line(previous,point,CYAN,3)
-  previous = point
- for id in game.world.map_nodes:
-  var record: Dictionary = game.world.map_nodes[id]
-  var point: Vector2 = record.point
-  var chosen = id in data.visited
-  var lit = id in available
-  var color = CYAN if chosen or lit else Color("727e62")
-  draw_arc(point,34 if lit else 27,0,TAU,32,color,3 if lit else 1)
-  if lit: draw_circle(point,29,Color(0.05,0.1,0.08,0.8))
-  label(AstraCards.GLYPHS[record.node.kind],point+Vector2(0,10),32,color,65,true)
-  if lit: label(AstraCards.word(AstraCards.NODE_NAMES[record.node.kind],game.language()),point+Vector2(0,54),18,INK,205,true)
- label(game.l("node_tip"),Vector2(360,1042),19,DIM,610,true)
- button(Rect2(56,1060,270,62),game.l("deck"),"deck")
- button(Rect2(394,1060,270,62),game.l("pause"),"pause")
- footer()
+ if game.selected_node in available and game.world.map_nodes.has(game.selected_node):
+  var kind: String = game.world.map_nodes[game.selected_node].node.kind
+  frame(Rect2(109,990,502,56),CYAN,.91)
+  label(AstraCards.word(AstraCards.NODE_NAMES[kind],game.language()),Vector2(360,1027),25,CYAN,460,true)
+ else:
+  frame(Rect2(109,990,502,56),CYAN,.84)
+  label(game.l("select_node"),Vector2(360,1027),22,DIM,468,true)
+ instrument(Rect2(24,1063,321,75),game.l("core"),"%d / 20" % int(data.core),float(data.core)/20.0,false)
+ instrument(Rect2(375,1063,321,75),game.l("energy"),"3 / 3",1.0,true)
+ button(Rect2(215,1160,290,92),game.l("depart")+"  ›","depart",0,true,game.selected_node in available and game.route_travel <= 0)
+ button(Rect2(24,1175,167,73),game.l("deck")+" · %d" % data.deck.size(),"deck")
+ button(Rect2(529,1175,167,73),game.l("planet_map"),"overview")
+func instrument(rect: Rect2, title_value: String, value: String, fraction: float, energy: bool) -> void:
+ frame(rect,CYAN,.93)
+ var center = rect.position+Vector2(42,36)
+ draw_circle(center,24,Color(CYAN,.035)); draw_arc(center,25,0,TAU,48,Color(CYAN,.65),1.5,true)
+ draw_arc(center,32,game.clock*.35,game.clock*.35+PI*1.4,32,Color(CYAN,.26),2,true)
+ if energy: label("ϟ",center+Vector2(0,12),36,CYAN,50,true)
+ else:
+  draw_circle(center,9,Color(CYAN,.12)); draw_circle(center,5,CYAN)
+  for i in range(8):
+   var direction = Vector2.from_angle(i*TAU/8)
+   draw_line(center+direction*16,center+direction*23,Color(CYAN,.65),2)
+ label(title_value.to_upper(),rect.position+Vector2(81,25),15,CYAN,rect.size.x-95)
+ label(value,rect.position+Vector2(81,56),29,INK,155)
+ for i in range(5): draw_rect(Rect2(rect.position+Vector2(235+i*11,48),Vector2(7,11)),CYAN if fraction >= (i+1)*.2 else Color("173843"))
+func overview() -> void:
+ draw_rect(Rect2(0,0,720,1280),Color(.004,.018,.029,.89))
+ title("planet_map",game.l("route_future"))
+ var act = int(game.run.data.act)
+ for i in range(5):
+  var y = 264+i*160
+  var color: Color = AstraCards.COLORS[i] if i <= act else DIM.darkened(.4)
+  frame(Rect2(45,y,630,140),color,.75,i == act)
+  draw_circle(Vector2(98,y+62),27,Color(color,.14)); draw_arc(Vector2(98,y+62),29,0,TAU,40,color,2,true)
+  label(str(i+1),Vector2(98,y+73),29,color,60,true)
+  label(game.l(AstraCards.PLANETS[i]),Vector2(150,y+39),27,color,475)
+  label(game.l("location%d" % i),Vector2(150,y+74),20,INK,475)
+  label(game.l("world_done" if i < act else ("world_current" if i == act else "world_future")),Vector2(150,y+113),17,DIM,475)
+  if i<4: draw_line(Vector2(98,y+142),Vector2(98,y+158),Color(CYAN,.3),2)
+ button(Rect2(65,1150,590,94),game.l("back"),"overview_back",0,true)
 func battle() -> void:
  var data: Dictionary = game.run.battle.data
+ frame(Rect2(24,22,671,146),CYAN,.91)
  label(game.l(AstraCards.PLANETS[int(data.act)])+" / "+AstraCards.word(AstraCards.NODE_NAMES[data.kind],game.language()),Vector2(40,63),22,AMBER,515)
  button(Rect2(570,25,112,65),"Ⅱ","pause")
  label(game.l("turn")+" %02d" % int(data.turn),Vector2(42,111),26,INK)
  label(AstraCards.word(AstraCards.RULES[int(data.act)],game.language()),Vector2(42,145),18,DIM,640)
+ frame(Rect2(104,186,512,94),RED,.85)
  label("Ω  %d / %d" % [int(data.enemy_core),int(data.max_enemy_core)],Vector2(360,229),35,RED,610,true)
  var core_ratio = float(data.enemy_core)/float(data.max_enemy_core)
  draw_rect(Rect2(130,252,460,5),Color("3b2d23")); draw_rect(Rect2(130,252,460*core_ratio,5),RED)
@@ -122,7 +166,7 @@ func battle() -> void:
    var point = game.world.slot_point(side,lane)
    var bot: Variant = data[side][lane]
    if bot == null:
-    var ink = CYAN if side == "friendly" and game.selected >= 0 else Color("61694f")
+    var ink = CYAN if side == "friendly" and game.selected >= 0 else Color("586e7b")
     for dx in [-65,65]:
      draw_line(point+Vector2(dx,-79),point+Vector2(dx,-55),ink,2)
      draw_line(point+Vector2(dx,79),point+Vector2(dx,55),ink,2)
@@ -132,8 +176,10 @@ func battle() -> void:
     if status != "": label(status,point+Vector2(57,-62),25,CYAN if bot.frozen > 0 else RED,50,true)
     var counter = "%d  /  %d" % [int(bot.attack),int(bot.hp)]
     label(counter,point+Vector2(0,101),24,INK,145,true)
- label("♥ %d / 20" % int(data.core),Vector2(49,886),30,CYAN,340)
- label("ϟ %d / %d" % [int(data.energy),int(data.max_energy)],Vector2(488,886),33,AMBER,192)
+ frame(Rect2(26,846,316,62),CYAN,.92)
+ frame(Rect2(379,846,316,62),CYAN,.92)
+ label("♥ %d / 20" % int(data.core),Vector2(49,886),30,CYAN,280)
+ label("ϟ %d / %d" % [int(data.energy),int(data.max_energy)],Vector2(426,886),33,CYAN,255)
  if game.selected >= 0 and game.selected < data.hand.size():
   var entry = AstraCards.card(data.hand[game.selected].id,int(data.hand[game.selected].upgrade))
   var target: String = entry.get("target","slot")
@@ -248,6 +294,7 @@ func _draw() -> void:
   "new": new_run()
   "intro": intro()
   "map": route()
+  "overview": overview()
   "battle": battle()
   "pause": pause()
   "reward": reward()

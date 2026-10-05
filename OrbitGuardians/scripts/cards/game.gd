@@ -29,6 +29,8 @@ var slider = ""
 var inspect_entry: Dictionary = {}
 var hold_entry: Dictionary = {}
 var hold_clock = 0.0
+var selected_node = ""
+var route_travel = 0.0
 func language() -> String:
  return run.store.data.language
 func l(key: String) -> String:
@@ -61,6 +63,8 @@ func persist() -> void:
  if not run.save(): notify("save_failed",8)
 func set_screen(value: String) -> void:
  screen = value; selected = -1; page = 0; drag_key = ""; drag_index = -1; dragging = false; slider = ""; pointer_id = -99; pressed = {}; hold_entry.clear()
+ route_travel = 0.0
+ if screen == "map" and selected_node not in run.available_nodes(): selected_node = ""
  if view != null: view.queue_redraw()
 func display_entries() -> Array:
  if screen == "collection":
@@ -83,8 +87,13 @@ func action(command: String, value: Variant = 0) -> void:
    if run.data.intro >= 3: run.data.state = "map"
    persist(); set_screen(run.data.state)
   "node":
-   if run.choose_node(str(value)): phase_clock = 0; set_screen(run.data.state)
+   if screen == "map" and route_travel <= 0 and str(value) in run.available_nodes(): selected_node = str(value)
    else: notify("route_locked")
+  "depart":
+   if screen == "map" and route_travel <= 0 and selected_node in run.available_nodes():
+    route_travel = .85; world.diorama.travel_to(selected_node,.80)
+  "overview": previous_screen = screen; set_screen("overview")
+  "overview_back": set_screen("map")
   "turn":
    if screen == "battle" and lock_clock <= 0 and run.battle.end_turn(): selected = -1; phase_clock = 0.4; persist()
   "cast":
@@ -214,6 +223,7 @@ func _notification(what: int) -> void:
   elif screen == "pause": action("resume")
   elif screen == "inspect" or screen == "records": action("inspect_back")
   elif screen in ["settings","deck"]: action("back")
+  elif screen == "overview": action("overview_back")
   else: action("menu")
  if what in [NOTIFICATION_APPLICATION_PAUSED,NOTIFICATION_APPLICATION_FOCUS_OUT] and not run.data.is_empty():
   pointer_id = -99; drag_key = ""; drag_index = -1; hold_entry.clear()
@@ -222,6 +232,11 @@ func _notification(what: int) -> void:
   if screen == "battle": previous_screen = "battle"; set_screen("pause")
 func _process(delta: float) -> void:
  clock += delta; lock_clock = maxf(0,lock_clock-delta); toast_clock = maxf(0,toast_clock-delta)
+ if screen == "map" and route_travel > 0:
+  route_travel -= delta
+  if route_travel <= 0:
+   if run.choose_node(selected_node): phase_clock = 0; set_screen(run.data.state)
+   else: notify("route_locked")
  if pointer_id != -99 and not dragging and not hold_entry.is_empty():
   hold_clock += delta
   if hold_clock > 0.65: open_inspector(hold_entry)

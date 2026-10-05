@@ -2,7 +2,7 @@ config_version=5
 
 [application]
 config/name="Орбитальный рубеж"
-config/version="4.0.0"
+config/version="4.1.0"
 run/main_scene="res://scenes/Tabletop.tscn"
 config/icon="res://assets3d/icons/pulse.png"
 

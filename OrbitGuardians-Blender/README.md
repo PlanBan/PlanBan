@@ -36,3 +36,32 @@ blender --background --factory-startup --python tools/generate_tabletop.py -- --
 Save edited work under another filename before regeneration. Cycles uses CPU
 rendering and does not need OpenImageDenoise. The older `AstraLibrary.blend`
 remains available, including the original animated robots and ships.
+
+## Astra Diorama / version 4.1
+
+`AstraDioramas.blend` contains five miniature worlds: Verdia's forest and
+waterfalls, Borea's glaciers, Ignis's lava, Aurica's desert ruins and Nexus's
+machinery. It also contains the worn command desk, route token, Archon gate and
+an original articulated explorer. The explorer has Idle, Walk, Attack, Deploy
+and Death NLA clips. Its hands are bound to the arm joints, including the lower
+knuckles; 572 hand vertices were checked after export preparation.
+
+Ground albedo and normal maps, paths, metal grain and scratches are generated
+and packed in the library. All geometry is editable. Static exports are batched
+by material; Godot instances the route tokens and dotted links with MultiMesh.
+The original explorer also appears on the Pulse card and its battlefield plate.
+
+Regenerate from `OrbitGuardians/`:
+
+```sh
+blender --background --factory-startup --python tools/generate_dioramas.py
+python3 tools/generate_route_icons.py
+blender --background --factory-startup --python tools/render_explorer.py
+```
+
+This writes nine GLBs, the route-coordinate manifest, ten original SVG engravings
+and the updated explorer portrait. Run the portrait step after re-generating the
+older tabletop assets so that Pulse keeps the new explorer. The reference was
+used for composition and atmosphere; its image, models and artwork were not
+copied into the game. Preserve manual edits under a separate filename before
+regeneration.

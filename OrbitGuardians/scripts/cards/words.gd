@@ -1,6 +1,22 @@
 extends RefCounted
 class_name AstraWords
 const TEXT = {
+ "depart":["В ПУТЬ","SET COURSE","AUFBRECHEN"],
+ "planet_map":["Карта миров","World map","Weltenkarte"],
+ "planet_count":["ПЛАНЕТА","PLANET","PLANET"],
+ "world_unlock":["ОТКРЫТИЕ МИРА","WORLD DISCOVERY","WELTENTDECKUNG"],
+ "after_archon":["После Архонта","After the Archon","Nach dem Archon"],
+ "route_here":["ВЫ ЗДЕСЬ","YOU ARE HERE","DU BIST HIER"],
+ "route_selected":["СЛЕДУЮЩАЯ ВСТРЕЧА","NEXT ENCOUNTER","NÄCHSTE BEGEGNUNG"],
+ "route_future":["След ядра ведёт через пять миров","The core's trail crosses five worlds","Die Spur des Kerns führt durch fünf Welten"],
+ "world_done":["Архонт побеждён","Archon defeated","Archon besiegt"],
+ "world_current":["Текущий маршрут","Current route","Aktuelle Route"],
+ "world_future":["Впереди","Ahead","Vor dir"],
+ "location0":["Долина папоротников","Fern valley","Farntal"],
+ "location1":["Ледниковый разлом","Glacial rift","Gletscherspalte"],
+ "location2":["Сломанная кузница","Broken forge","Zerbrochene Schmiede"],
+ "location3":["Погребённое реле","Buried relay","Verschüttetes Relais"],
+ "location4":["Разлом памяти","Memory fracture","Erinnerungsbruch"],
  "route_locked":["Следуйте по светящимся связям","Follow the illuminated connections","Folge den leuchtenden Verbindungen"],
  "no_alloy":["Недостаточно сплава","Not enough alloy","Nicht genug Legierung"],
  "subtitle":["АСТРА · ПАМЯТЬ МАШИН","ASTRA · MEMORY OF MACHINES","ASTRA · GEDÄCHTNIS DER MASCHINEN"],

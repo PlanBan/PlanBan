@@ -43,10 +43,29 @@ func run_test() -> void:
  await screenshot("intro")
  for i in range(3): await command("intro")
  check(game.screen == "map" and game.world.map_nodes.size() == 17,"physical branching map")
+ check(game.world.diorama != null and game.world.diorama.tokens.size() == 17,"Blender landscape with seventeen physical sockets")
+ var animator: AnimationPlayer = game.world.diorama.player.find_children("*","AnimationPlayer",true,false)[0]
+ check(animator.get_animation_list().size() >= 5 and animator.current_animation.ends_with("Idle"),"original articulated explorer has five Blender animations")
+ check(game.selected_node == "" and game.run.data.current == "","map starts with unconfirmed destination")
+ var route_state = game.run.data.duplicate(true)
+ await tap(game.world.map_nodes["6_1"].point)
+ check(game.screen == "map" and game.selected_node == "" and game.run.data == route_state,"future boss cannot be selected or change the save")
+ game.toast_clock = 0
+ await command("overview"); check(game.screen == "overview" and game.run.data == route_state,"world overview is read-only")
+ game._notification(Node.NOTIFICATION_WM_GO_BACK_REQUEST); await frames(8)
+ check(game.screen == "map","system Back returns from world overview")
  await screenshot("map")
  var node = game.world.map_nodes["0_1"].point
- await tap(node); await frames(30)
- check(game.screen == "battle","node tap enters card battle")
+ await tap(node)
+ check(game.screen == "map" and game.selected_node == "0_1" and game.run.data == route_state,"tap previews destination without consuming a route choice")
+ await screenshot("map-selected")
+ var player_start = game.world.diorama.player.position
+ await command("depart"); await create_timer(.25).timeout
+ check(game.screen == "map" and game.world.diorama.player.position.distance_to(player_start) > .05,"explorer moves before entering encounter")
+ var walking: AnimationPlayer = game.world.diorama.player.find_children("*","AnimationPlayer",true,false)[0]
+ check(walking.current_animation.ends_with("Walk"),"route movement plays the actual rigged walk")
+ await create_timer(.8).timeout; await frames(20)
+ check(game.screen == "battle","Set course confirms one card battle")
  check(game.world.cards.size() >= 6,"real physical hand and enemy plates")
  for side in ["friendly","enemy"]:
   for lane in range(4):
@@ -106,6 +125,7 @@ func run_test() -> void:
   ai.play_turn(game.run.battle); game.run.battle.end_turn(); game.run.battle.resolve_all(); turns += 1
  check(game.run.battle.data.phase == "won","vertical slice fight is winnable using normal cards")
  game.run.finish_battle(); game.set_screen(game.run.data.state); await frames(30)
+ game.set_process(true)
  check(game.screen == "reward","battle victory presents real reward")
  await screenshot("reward")
  var old_count = game.run.data.deck.size()
@@ -114,7 +134,9 @@ func run_test() -> void:
  var choices = game.run.available_nodes()
  check(choices.size() == 3,"three real next route choices")
  var next_node = game.world.map_nodes[choices[0]]
- await tap(next_node.point); check(game.screen != "map","next node opens an event or station")
+ await tap(next_node.point); check(game.screen == "map" and game.selected_node == next_node.node.id,"next branch preview")
+ await command("depart"); await create_timer(1).timeout; await frames(5)
+ check(game.screen != "map","confirmed branch opens its event or station")
  game.run.data.state = "map"; game.set_screen("map")
  await command("pause"); check(game.screen == "pause","pause via touch")
  await command("settings"); await command("language","de")
@@ -126,6 +148,8 @@ func run_test() -> void:
  # Each world is rendered and its unique enemy clan is loaded.
  for act in range(5):
   game.run.data.act = act
+  game.run.data.state = "map"; game.set_screen("map"); await frames(15)
+  await screenshot("map-world-%d" % act)
   game.run.battle.begin(game.run.data.deck,20,act,"boss",41293+act)
   game.run.data.state = "battle"; game.set_screen("battle"); await frames(25)
   check(game.world.biome_index == act,"planet atmosphere "+str(act))
@@ -138,6 +162,11 @@ func run_test() -> void:
    var projected = game.world.project(game.world.position_for(point))
    if projected.distance_to(point) >= .5: print("PROJECTION DIAGNOSTIC: ",resolution," ",point," -> ",projected," canvas=",game.view.get_global_transform_with_canvas()," final=",root.get_final_transform())
    check(projected.distance_to(point) < .5,"projection at "+str(resolution)+" lane "+str(lane))
+  game.run.data.state = "map"; game.run.build_map(); game.set_screen("map"); await frames(15)
+  for item in game.world.map_nodes.values():
+   var expected = game.world.route_point(item.node)
+   check(expected.distance_to(item.point) < .5 and Rect2(40,280,640,708).has_point(item.point),"physical node picking at "+str(resolution)+" / "+item.node.id)
+  game.set_screen("battle"); await frames(8)
  for code in ["ru","en","de"]:
   game.run.store.data.language = code; game.run.data.state = "map"; game.run.build_map(); game.set_screen("map"); await frames(25)
   for item in game.view.buttons: check(item.rect.size.y >= 60,"touch control size")
