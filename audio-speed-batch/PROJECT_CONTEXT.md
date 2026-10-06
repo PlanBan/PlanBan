@@ -1,6 +1,6 @@
 # Media Batch Studio / audio-speed-batch
 
-Current snapshot: **v9.0.0** (2026-10-06).
+Current snapshot: **v10.0.0** (2026-10-06).
 
 This is a local Node.js + FFmpeg app developed in ChatGPT for batch media creation. The user's local Windows project folder is typically `H:\KI YouTube\audio-speed-batch`; PowerShell may need `npm.cmd` instead of `npm` when execution policy blocks `npm.ps1`.
 
@@ -16,13 +16,31 @@ This is a local Node.js + FFmpeg app developed in ChatGPT for batch media creati
 - AI Sound Designer for finished video: transcript + sampled frames + scene cuts + user editorial brief -> timestamp/effect/gain suggestions -> user previews/edits -> FFmpeg mixes the chosen SFX.
 - Curated Kenney CC0 library plus project built-ins and optional user SFX.
 
+## v10 SFX loudness changes
+
+The user reported that AI commonly suggested gains around 14%, and the effects were nearly inaudible in the final narration mix. There were two causes: the suggested per-effect gain was too low, and the global SFX master defaulted to 75%, making a 14% suggestion effectively about 10.5% before source-file loudness differences.
+
+v10 changes this behavior:
+
+- `very_subtle` now has a 26% gain floor and 38% ceiling;
+- `subtle` uses 32–46%;
+- `balanced` uses 38–60%;
+- calm/warm/documentary profile ceilings were raised so quiet styles can remain gentle without disappearing;
+- the OpenAI JSON schema itself enforces the selected profile minimum, so the model cannot return whisper-quiet values below the floor;
+- exact-count fallback SFX use the same audible floor;
+- global SFX master defaults to 100% instead of 75%, with range 50–125%;
+- individual effect sliders allow 10–80%;
+- before the selected gain is applied, every SFX is normalized with FFmpeg `loudnorm=I=-18:TP=-2:LRA=7`, making percentages more consistent across different WAV/OGG source files.
+
+Keep these audible floors unless the user explicitly requests a quieter mix. Do not revert the global master to 75%.
+
 ## v9 sound-design changes
 
 The user reported that the visual AI montage works very well, but sound design still felt semantically wrong for calm English-language educational/explainer videos: sharp transition sounds, sci-fi/game-like beeps and heavy impacts damaged the warm 2D atmosphere. v9 therefore changes the AI Sound Designer from cut-driven selection to context/style-driven selection.
 
 ### Editorial brief UI
 
-The AI Sound Designer now accepts:
+The AI Sound Designer accepts:
 
 - sound style profile;
 - SFX intensity;
@@ -42,7 +60,7 @@ Profiles currently available:
 - `playful_educational`
 - `energetic`
 
-Each profile has allowed categories, banned terms, preferred fallback categories and a maximum recommended gain.
+Each profile has allowed categories, banned terms, preferred fallback categories and gain limits.
 
 ### Hard library filtering
 
@@ -52,7 +70,7 @@ The calm educational profile removes or excludes things such as laser/zap, sci-f
 
 ### New calm built-in SFX
 
-v9 adds locally bundled soft effects created specifically for restrained explainer videos:
+v9 added locally bundled soft effects created specifically for restrained explainer videos:
 
 - `air-soft.wav` — Air Soft
 - `brush-soft.wav` — Soft Brush
@@ -65,18 +83,17 @@ These require no additional download and remain available even if the Kenney cac
 
 ### Context-first prompt behavior
 
-OpenAI now receives the user's script/description and sound notes alongside the transcript, scene cuts and sampled frames. The prompt explicitly says:
+OpenAI receives the user's script/description and sound notes alongside the transcript, scene cuts and sampled frames. The prompt explicitly says:
 
 - narration and meaning are more important than cut frequency;
 - a scene cut alone is not a reason to add sound;
 - calm educational videos may leave most cuts silent;
 - choose SFX that support semantics and atmosphere;
-- avoid game/sci-fi/trailer/meme feeling when the selected profile is calm;
-- keep gains low according to style/intensity limits.
+- avoid game/sci-fi/trailer/meme feeling when the selected profile is calm.
 
 ### Exact SFX count remains
 
-The numeric exact-count control (1–120) remains. If OpenAI returns fewer than requested, calm profiles prefer speech/semantic points before scene cuts and fill only from the profile's soft palette at reduced gain. Energetic mode may still prioritize cut-driven accents.
+The numeric exact-count control (1–120) remains. If OpenAI returns fewer than requested, calm profiles prefer speech/semantic points before scene cuts and fill only from the profile's soft palette. Energetic mode may still prioritize cut-driven accents.
 
 ## v8 visual behavior that must remain
 
@@ -104,8 +121,8 @@ The curated manifest includes selected Kenney CC0 effects from Interface Sounds,
 - AI Sound Designer must still let the user preview/uncheck/change SFX before final mixing.
 - For calm educational and warm 2D profiles, semantic/context fit is more important than marking scene cuts.
 - Do not re-enable sci-fi/heavy SFX for calm profiles merely by changing prompt wording; preserve backend filtering.
-- Prefer subtle camera motion and subtle SFX; avoid constant motion or constant audible transitions.
+- Prefer subtle camera motion and context-fitting SFX, but do not make SFX effectively inaudible.
 
 ## Dependencies
 
-`express`, `multer`, `adm-zip`, `ffmpeg-static`; Node >=18. v9 adds no new npm dependency.
+`express`, `multer`, `adm-zip`, `ffmpeg-static`; Node >=18. v10 adds no new npm dependency.
