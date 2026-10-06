@@ -1,51 +1,73 @@
 # Media Batch Studio / audio-speed-batch
 
-Current snapshot: **v7.0.0** (2026-10-06).
+Current snapshot: **v8.0.0** (2026-10-06).
 
-This is a local Node.js + FFmpeg app developed in ChatGPT for batch media creation. The user's local Windows project folder is typically `H:\KI YouTube\audio-speed-batch` and PowerShell should use `npm.cmd` rather than `npm` when execution policy blocks `npm.ps1`.
+This is a local Node.js + FFmpeg app developed in ChatGPT for batch media creation. The user's local Windows project folder is typically `H:\KI YouTube\audio-speed-batch`; PowerShell may need `npm.cmd` instead of `npm` when execution policy blocks `npm.ps1`.
 
-## Current features
+## Core features
 
 - Batch audio speed change without changing pitch.
-- Separate photo and audio upload areas; pairs matched by numeric/name stem (`15.jpg` + `15.mp3`, `001.mp3` treated like `1`).
-- Builds one final MP4, holding each image for the duration of its matching audio.
-- Drag-and-drop for images/audio, plus normal file picker.
-- Visual per-frame gallery: each uploaded image can independently use no motion, zoom-in, or zoom-out, with strength 5/8/12/15%.
-- Optional fade-in at the beginning and fade-out at the end of the final video.
-- AI Sound Designer tab: final video + optional custom SFX -> OpenAI analysis -> suggested timestamp/effect/gain -> user previews and confirms -> FFmpeg mixes final MP4.
-- OpenAI API key is not intended to be persisted by the app; it can be entered for the request or supplied as `OPENAI_API_KEY`.
+- Separate photo/audio upload; pairs matched by stem (`15.jpg` + `15.mp3`, numeric `001` equals `1`).
+- One final MP4, each image lasting exactly as long as its matching audio.
+- Drag-and-drop plus normal file picker.
+- Visual per-frame editor with effect strength 5/8/12/15%.
+- Optional fade-in at the beginning and fade-out at the end.
+- AI Sound Designer for finished video: transcript + sampled frames + scene cuts -> timestamp/effect/gain suggestions -> user previews/edits -> FFmpeg mixes the chosen SFX.
+- Curated Kenney CC0 library plus project built-ins and optional user SFX.
 
-## v7 sound-design changes
+## v8 changes requested by the user
 
-The user reported that some effects felt late or did not land on the expected edit beat. v7 therefore adds two separate timing improvements:
+### 1. Exact SFX count
 
-1. **Scene-cut detection.** FFmpeg scans the source video with the `scene` metric and extracts precise scene-change timestamps. These timestamps are passed to the AI prompt, and transition/impact suggestions are instructed to use exact edit points instead of approximate sampled-frame times.
-2. **SFX transient alignment.** Before final mixing, FFmpeg decodes the chosen SFX to low-rate mono PCM. The app analyzes short RMS windows to estimate the main transient/peak. The SFX start is shifted so its important hit lands on the target timestamp. Whoosh/riser-like sounds align their peak; sharp one-shots bias toward the onset of the main transient.
+The old preset selector (8/12/20/30 etc.) is removed. The AI Sound Designer now uses a numeric field **“Сколько SFX поставить”** and accepts 1–120. The model is explicitly asked for exactly that count. If it returns fewer, the app fills missing entries using detected scene cuts, speech-segment endings, and finally evenly spaced fallback points so the result count matches the requested number. The user can still uncheck entries before rendering.
 
-For transition-like categories (`whoosh`, `riser`, `transition`, `impact`) the renderer may also snap an AI suggestion to a nearby detected scene cut (within a small tolerance).
+### 2. Smooth photo zoom / no jitter
 
-## CC0 sound library
+The user reported visible shaking during zoom. The cause was FFmpeg `zoompan` coordinate rounding when motion was calculated directly on the final-resolution canvas. v8 renders motion on an internal canvas **4× larger than the target resolution** and then outputs the final size. This strongly reduces one-pixel center jumps. Keep this high-resolution motion approach in future versions unless replacing `zoompan` with an equivalently smooth method.
 
-v7 adds a curated manifest of Kenney CC0 effects from these packs:
+### 3. More visual motion effects
 
-- Kenney Interface Sounds
-- Kenney Impact Sounds
-- Kenney Sci-Fi Sounds
+Per-frame effect types now include:
 
-The local app keeps its original small built-in fallback library. On the first AI analysis, it attempts to download curated CC0 files from the public GitHub index/mirror `Mcamento8/open-game-sfx-index` and caches them under `sounds/cache/kenney-cc0`. If network download fails, AI can still use local built-ins and user-provided SFX.
+- `none`
+- `zoomIn`
+- `zoomOut`
+- `panLeft`
+- `panRight`
+- `panUp`
+- `panDown`
+- `cinematicLeft`
+- `cinematicRight`
 
-The v7 local manifest contains 25 selected effects: multiple UI clicks, light accents, punch/metal/bell/soft impacts, crunchy impacts, low booms, and short electronic zaps. Do not remove the fallback built-ins.
+The last two are restrained zoom-in variants biased toward the left/right side of the composition.
 
-## Important implementation notes for future versions
+### 4. AI Montage for photo + audio mode
 
-- Keep all non-AI audio/video processing local.
-- Never automatically add AI effects before the user can preview/confirm them.
-- Preserve per-frame visual settings rather than reverting to comma-separated frame numbers.
-- Preserve drag-and-drop prevention at the page level so dropped files do not open in browser tabs.
-- Prefer a diverse SFX library; avoid repeating the same sound for adjacent suggestions.
-- For scene transitions, timing accuracy is more important than merely selecting a semantically related sound.
-- Keep source/license documentation in `SFX_SOURCES.md` and the local `sounds/cc0-manifest.json`.
+The “Фото + аудио” section has an **AI-анализ монтажа** button. It sends the uploaded images to OpenAI in batches of 16 after local 512×512 preview generation. The model sees each frame plus the duration of its matching audio and chooses one of the supported motion types and 5/8/12/15% strength. AI results are written into the same `frameEffectSettings` used by the manual gallery, so the user can inspect and override every decision before rendering.
 
-## Current Node dependencies
+AI montage intentionally keeps a meaningful share of frames static (prompt target about 20–40%) to avoid constant motion.
 
-`express`, `multer`, `adm-zip`, `ffmpeg-static`. Node >=18. No new npm dependency was required for v7; Node's built-in `fetch` is used for CC0 caching.
+## v7 timing behavior that must remain
+
+- FFmpeg scene-cut detection provides precise edit timestamps.
+- Transition-like SFX can snap to a nearby detected scene cut.
+- SFX transient/peak alignment shifts each sound so its perceptual hit lands on the target timestamp.
+- Whoosh/riser effects align near their peak; sharp one-shots bias toward transient onset.
+
+## Sound library
+
+The curated manifest includes selected Kenney CC0 effects from Interface Sounds, Impact Sounds, and Sci-Fi Sounds. They are cached under `sounds/cache/kenney-cc0` on first use. If the download fails, project built-ins and user-provided SFX remain available. Keep license/source documentation in `SFX_SOURCES.md` and `sounds/cc0-manifest.json`.
+
+## Implementation rules for future versions
+
+- Keep non-AI media processing local.
+- Do not persist the user's OpenAI API key.
+- Preserve the manual per-frame gallery and drag-and-drop behavior.
+- AI montage may auto-fill visual settings because the user explicitly triggers it, but the settings must remain editable before final render.
+- AI Sound Designer must still let the user preview/uncheck/change SFX before final mixing.
+- Prefer subtle camera motion; avoid visual movement on every frame.
+- For scene transitions, timing accuracy is more important than only semantic SFX matching.
+
+## Dependencies
+
+`express`, `multer`, `adm-zip`, `ffmpeg-static`; Node >=18. v8 adds no new npm dependency.
