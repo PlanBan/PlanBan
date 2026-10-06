@@ -1,6 +1,6 @@
 # Media Batch Studio / audio-speed-batch
 
-Current snapshot: **v8.0.0** (2026-10-06).
+Current snapshot: **v9.0.0** (2026-10-06).
 
 This is a local Node.js + FFmpeg app developed in ChatGPT for batch media creation. The user's local Windows project folder is typically `H:\KI YouTube\audio-speed-batch`; PowerShell may need `npm.cmd` instead of `npm` when execution policy blocks `npm.ps1`.
 
@@ -10,42 +10,79 @@ This is a local Node.js + FFmpeg app developed in ChatGPT for batch media creati
 - Separate photo/audio upload; pairs matched by stem (`15.jpg` + `15.mp3`, numeric `001` equals `1`).
 - One final MP4, each image lasting exactly as long as its matching audio.
 - Drag-and-drop plus normal file picker.
-- Visual per-frame editor with effect strength 5/8/12/15%.
-- Optional fade-in at the beginning and fade-out at the end.
-- AI Sound Designer for finished video: transcript + sampled frames + scene cuts -> timestamp/effect/gain suggestions -> user previews/edits -> FFmpeg mixes the chosen SFX.
+- Visual per-frame editor with smooth 4x internal-canvas camera motion and effect strength 5/8/12/15%.
+- Motion types: none, zoom in/out, pan left/right/up/down, cinematic left/right.
+- AI Montage for photo + audio mode: AI selects motion per frame; user can review and override before render.
+- AI Sound Designer for finished video: transcript + sampled frames + scene cuts + user editorial brief -> timestamp/effect/gain suggestions -> user previews/edits -> FFmpeg mixes the chosen SFX.
 - Curated Kenney CC0 library plus project built-ins and optional user SFX.
 
-## v8 changes requested by the user
+## v9 sound-design changes
 
-### 1. Exact SFX count
+The user reported that the visual AI montage works very well, but sound design still felt semantically wrong for calm English-language educational/explainer videos: sharp transition sounds, sci-fi/game-like beeps and heavy impacts damaged the warm 2D atmosphere. v9 therefore changes the AI Sound Designer from cut-driven selection to context/style-driven selection.
 
-The old preset selector (8/12/20/30 etc.) is removed. The AI Sound Designer now uses a numeric field **“Сколько SFX поставить”** and accepts 1–120. The model is explicitly asked for exactly that count. If it returns fewer, the app fills missing entries using detected scene cuts, speech-segment endings, and finally evenly spaced fallback points so the result count matches the requested number. The user can still uncheck entries before rendering.
+### Editorial brief UI
 
-### 2. Smooth photo zoom / no jitter
+The AI Sound Designer now accepts:
 
-The user reported visible shaking during zoom. The cause was FFmpeg `zoompan` coordinate rounding when motion was calculated directly on the final-resolution canvas. v8 renders motion on an internal canvas **4× larger than the target resolution** and then outputs the final size. This strongly reduces one-pixel center jumps. Keep this high-resolution motion approach in future versions unless replacing `zoompan` with an equivalently smooth method.
+- sound style profile;
+- SFX intensity;
+- audience/language;
+- optional full script or video description;
+- optional sound notes / explicit bans.
 
-### 3. More visual motion effects
+Default profile is **calm educational / health**, default audience is **English**, and default intensity is **very subtle**.
 
-Per-frame effect types now include:
+### Sound profiles
 
-- `none`
-- `zoomIn`
-- `zoomOut`
-- `panLeft`
-- `panRight`
-- `panUp`
-- `panDown`
-- `cinematicLeft`
-- `cinematicRight`
+Profiles currently available:
 
-The last two are restrained zoom-in variants biased toward the left/right side of the composition.
+- `calm_educational`
+- `warm_2d`
+- `documentary`
+- `playful_educational`
+- `energetic`
 
-### 4. AI Montage for photo + audio mode
+Each profile has allowed categories, banned terms, preferred fallback categories and a maximum recommended gain.
 
-The “Фото + аудио” section has an **AI-анализ монтажа** button. It sends the uploaded images to OpenAI in batches of 16 after local 512×512 preview generation. The model sees each frame plus the duration of its matching audio and chooses one of the supported motion types and 5/8/12/15% strength. AI results are written into the same `frameEffectSettings` used by the manual gallery, so the user can inspect and override every decision before rendering.
+### Hard library filtering
 
-AI montage intentionally keeps a meaningful share of frames static (prompt target about 20–40%) to avoid constant motion.
+For calm profiles the backend filters the built-in/CC0 library before sending it to OpenAI. This is intentional: prompt text alone was not reliable enough when the model could still see inappropriate effects.
+
+The calm educational profile removes or excludes things such as laser/zap, sci-fi, explosions/crunch, heavy punch/metal, low boom, reverse/riser-like sounds, heavy bell/bong and similar aggressive options. User-provided custom SFX remain available because their presence is assumed to be intentional.
+
+### New calm built-in SFX
+
+v9 adds locally bundled soft effects created specifically for restrained explainer videos:
+
+- `air-soft.wav` — Air Soft
+- `brush-soft.wav` — Soft Brush
+- `paper-soft.wav` — Paper Soft
+- `tap-soft.wav` — Soft Tap
+- `chime-warm.wav` — Warm Chime
+- `blip-soft.wav` — Soft Blip
+
+These require no additional download and remain available even if the Kenney cache is unavailable.
+
+### Context-first prompt behavior
+
+OpenAI now receives the user's script/description and sound notes alongside the transcript, scene cuts and sampled frames. The prompt explicitly says:
+
+- narration and meaning are more important than cut frequency;
+- a scene cut alone is not a reason to add sound;
+- calm educational videos may leave most cuts silent;
+- choose SFX that support semantics and atmosphere;
+- avoid game/sci-fi/trailer/meme feeling when the selected profile is calm;
+- keep gains low according to style/intensity limits.
+
+### Exact SFX count remains
+
+The numeric exact-count control (1–120) remains. If OpenAI returns fewer than requested, calm profiles prefer speech/semantic points before scene cuts and fill only from the profile's soft palette at reduced gain. Energetic mode may still prioritize cut-driven accents.
+
+## v8 visual behavior that must remain
+
+- Smooth zoom/pan is calculated on an internal canvas 4× larger than output to reduce zoompan rounding jitter.
+- AI Montage sends image previews in batches and writes decisions into the same editable per-frame settings used by the manual gallery.
+- The manual frame editor remains available after AI analysis.
 
 ## v7 timing behavior that must remain
 
@@ -65,9 +102,10 @@ The curated manifest includes selected Kenney CC0 effects from Interface Sounds,
 - Preserve the manual per-frame gallery and drag-and-drop behavior.
 - AI montage may auto-fill visual settings because the user explicitly triggers it, but the settings must remain editable before final render.
 - AI Sound Designer must still let the user preview/uncheck/change SFX before final mixing.
-- Prefer subtle camera motion; avoid visual movement on every frame.
-- For scene transitions, timing accuracy is more important than only semantic SFX matching.
+- For calm educational and warm 2D profiles, semantic/context fit is more important than marking scene cuts.
+- Do not re-enable sci-fi/heavy SFX for calm profiles merely by changing prompt wording; preserve backend filtering.
+- Prefer subtle camera motion and subtle SFX; avoid constant motion or constant audible transitions.
 
 ## Dependencies
 
-`express`, `multer`, `adm-zip`, `ffmpeg-static`; Node >=18. v8 adds no new npm dependency.
+`express`, `multer`, `adm-zip`, `ffmpeg-static`; Node >=18. v9 adds no new npm dependency.
