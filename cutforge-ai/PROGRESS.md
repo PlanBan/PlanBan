@@ -25,7 +25,9 @@ Use `README.md` to install Python dependencies and FFmpeg, launch on `127.0.0.1:
 - Video without source audio -> silent output audio: **PASS**.
 - JS syntax and backend Python compilation: **PASS**.
 - Static `index.html`, `app.css`, `app.js`: **HTTP 200**.
-- Browser-driven visual test **not run** (headless Chromium unavailable in working environment).
+- Desktop/mobile static Chromium render tested; responsive 390px viewport has **no horizontal overflow**. UI mode toggle test passed with no JS exceptions.
+- Full Playwright browser-to-local-server test blocked by environment network policy; real Chrome/Edge import and export QA remains for the user.
+- GitHub Actions workflow for PR head `810e5bff` completed **SUCCESS** on 2026-10-25.
 
 ## Expected limitations / follow-up fixes
 
