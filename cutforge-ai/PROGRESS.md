@@ -49,3 +49,11 @@ Use `README.md` to install Python dependencies and FFmpeg, launch on `127.0.0.1:
 6. If a bug occurs: reproduce -> capture exact error -> add failing test -> fix -> rerun tests -> commit -> mark checkpoint.
 
 **Next recommended action:** User opens local app and checks import/auto-cuts on a representative 5–10 minute video; then verify hour-long export and preview behavior. Finish visual QA and fix any issues before investing in Whisper.
+
+## 2026-10-25 — Windows launcher repair (v0.1.1)
+
+- User reported clicking Start did not open the app; exact Windows error not yet available.
+- Replaced starter with diagnostics for incomplete ZIP extraction, Python 3.10+, FFmpeg+FFprobe, virtualenv setup, pip errors, and occupied localhost port.
+- Added Windows troubleshooting file and root-level `START_CUTFORGE_WINDOWS.cmd`.
+- Keeps terminal open after exit, prints actionable error messages; browser auto-opens after launch when available.
+- Recheck on the user's Windows PC; Linux tests cannot emulate all Windows launcher behaviors.
