@@ -91,11 +91,37 @@
       $('project-list').querySelectorAll('[data-project]').forEach(el=>el.onclick=()=>openProject(el.dataset.project));
     }catch{notify('Сервер не отвечает');}
   }
+  // Node engine uses 8 MiB resumable chunks, compatible with Cloudflare proxy upload limits.
+  // The original Python engine keeps using multipart upload without changing its API.
+  let enginePromise;
+  async function uploadFile(file, kind){
+    if (!enginePromise) enginePromise=request('/api/health').then(info=>info.engine||'python').catch(()=> 'python');
+    const engine=await enginePromise;
+    if(engine!=='node'){
+      const form=new FormData();form.append('file',file);
+      return request(kind==='video'?'/api/projects':'/api/effects',{method:'POST',body:form});
+    }
+    const session=await jsonRequest('/api/uploads','POST',{name:file.name,size:file.size,kind});
+    const size=session.chunk_size;
+    for(let offset=0,index=0;offset<file.size;offset+=size,index++){
+      const chunk=file.slice(offset,Math.min(file.size,offset+size));
+      let error;
+      for(let attempt=0;attempt<3;attempt++){
+        try{
+          await request(`/api/uploads/${session.id}/chunks/${index}`,{method:'PUT',headers:{'content-type':'application/octet-stream'},body:chunk});
+          error=null;break;
+        }catch(err){error=err; if(attempt<2)await new Promise(resolve=>setTimeout(resolve,700*(attempt+1)));}
+      }
+      if(error)throw error;
+      if(kind==='video')$('save-status').textContent=`↑ Загрузка ${Math.min(100,Math.round((offset+chunk.size)/file.size*100))}%`;
+    }
+    return jsonRequest(`/api/uploads/${session.id}/complete`,'POST',{});
+  }
   async function uploadVideo(file){
     if(!file)return;
     notify('Загрузка видео. Большой файл может загружаться долго…');
     $('upload-start').disabled=true;
-    try{const form=new FormData();form.append('file',file);const p=await request('/api/projects',{method:'POST',body:form});await openProject(p.id);}
+    try{const p=await uploadFile(file,'video');await openProject(p.id);}
     catch(err){notify('Ошибка загрузки: '+err.message);}finally{$('upload-start').disabled=false;}
   }
   function setMode(mode){state.mode=mode;$('mode-auto').classList.toggle('active',mode==='auto');$('mode-manual').classList.toggle('active',mode==='manual');$('auto-panel').classList.toggle('hidden',mode!=='auto');$('manual-panel').classList.toggle('hidden',mode!=='manual');}
@@ -163,7 +189,7 @@
     const items=[...files].filter(f=>/\.(wav|mp3|ogg|m4a|aac)$/i.test(f.name));
     if(!items.length){notify('В папке нет поддерживаемых звуков');return;}
     let successes=0;
-    for(const file of items){try{const form=new FormData();form.append('file',file);await request('/api/effects',{method:'POST',body:form});successes++;}catch(err){notify('Ошибка эффекта '+file.name+': '+err.message);}}
+    for(const file of items){try{await uploadFile(file,'effect');successes++;}catch(err){notify('Ошибка эффекта '+file.name+': '+err.message);}}
     await loadEffects();notify(`В библиотеку добавлено звуков: ${successes}`);
   }
   async function exportVideo(){
