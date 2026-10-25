@@ -137,20 +137,29 @@
   }
   function renderSuggestions(){
     const area=$('suggestions-area');if(!state.suggestions.length){area.innerHTML='<div class="tip"><span>✧</span>Нет найденных пауз. Попробуй другие настройки анализа.</div>';return;}
-    area.innerHTML=`<div class="suggestions-head"><span>Найдено пауз: <strong>${state.suggestions.length}</strong></span><span>Выбери нужные</span></div><div class="suggestions-list">${state.suggestions.slice(0,200).map((s,i)=>`<div class="suggestion"><label><input type="checkbox" data-suggestion="${i}" ${state.checked[i]?'checked':''}/> ${fmt(s.start)} – ${fmt(s.end)}</label><span>${(s.end-s.start).toFixed(1)} c</span></div>`).join('')}</div><button class="btn btn-accent full" id="apply-suggestions">✂ Применить выбранные</button>`;
+    area.innerHTML=`<div class="suggestions-head"><span>Найдено пауз: <strong>${state.suggestions.length}</strong></span><span>Выбери нужные</span></div><div class="suggestions-list">${state.suggestions.map((s,i)=>`<div class="suggestion"><label><input type="checkbox" data-suggestion="${i}" ${state.checked[i]?'checked':''}/> ${fmt(s.start)} – ${fmt(s.end)}</label><span>${(s.end-s.start).toFixed(1)} c</span></div>`).join('')}</div><button class="btn btn-accent full" id="apply-suggestions">✂ Применить выбранные</button>`;
     area.querySelectorAll('[data-suggestion]').forEach(el=>el.onchange=()=>state.checked[+el.dataset.suggestion]=el.checked);
     $('apply-suggestions').onclick=()=>{
       const ranges=state.suggestions.filter((_,i)=>state.checked[i]);
       if(!ranges.length){notify('Не выбрано ни одной паузы');return;}
       const clips=subtractSilences(state.project.duration,ranges);
-      if(!clips.length||clips.length>120){notify('Не удалось применить: слишком много клипов (максимум 120)');return;}
+      if(!clips.length||clips.length>500){notify('Не удалось применить: слишком много клипов (максимум 500)');return;}
       checkpoint();state.project.segments=clips;state.selected=0;video.pause();seekToSource(clips[0].start);renderTimeline();refreshSelection();scheduleSave();setMode('manual');notify(`Монтаж создан: ${clips.length} клипов`);
     };
   }
   async function analyze(){
     if(!state.project){notify('Сначала загрузи видео');return;}
     const button=$('analyze-button');button.disabled=true;button.textContent='◌ Анализируем аудио…';
-    try{const threshold=+$('sensitivity').value,minPause=+$('pause-length').value;const result=await request(`/api/projects/${state.project.id}/analyze?threshold=${threshold}&min_pause=${minPause}`,{method:'POST'});
+    try{
+      const threshold=+$('sensitivity').value,minPause=+$('pause-length').value;
+      const job=await request(`/api/projects/${state.project.id}/analyze-async?threshold=${threshold}&min_pause=${minPause}`,{method:'POST'});
+      let result;
+      for(;;){
+        await new Promise(resolve=>setTimeout(resolve,900));
+        const status=await request(`/api/jobs/${job.id}`);
+        if(status.state==='error')throw new Error(status.error||'Ошибка Python-анализа');
+        if(status.state==='done'){result=status.result;break;}
+      }
       state.suggestions=result.suggestions;state.checked=state.suggestions.map(()=>true);state.project.suggestions=state.suggestions;renderSuggestions();notify(`Найдено пауз: ${result.suggestions.length}`);
     }catch(err){notify('Ошибка анализа: '+err.message);}finally{button.disabled=false;button.textContent='✦ Найти паузы';}
   }
@@ -159,7 +168,7 @@
     const t=video.currentTime;
     const index=state.project.segments.findIndex(s=>t>s.start+.07&&t<s.end-.07);
     if(index===-1){notify('Поставь курсор внутри клипа');return;}
-    if(state.project.segments.length>=120){notify('Максимум 120 клипов');return;}
+    if(state.project.segments.length>=500){notify('Максимум 500 клипов');return;}
     checkpoint();const old=state.project.segments[index];state.project.segments.splice(index,1,{start:old.start,end:+t.toFixed(3)},{start:+t.toFixed(3),end:old.end});state.selected=index+1;renderTimeline();refreshSelection();scheduleSave();notify('Клип разделён');
   }
   function deleteClip(){
