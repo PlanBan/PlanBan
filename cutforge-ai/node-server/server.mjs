@@ -9,6 +9,7 @@ import {randomUUID} from 'node:crypto';
 import {spawn, spawnSync} from 'node:child_process';
 import {pipeline} from 'node:stream/promises';
 import {Transform} from 'node:stream';
+import {detectPython} from '../scripts/check-python.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const HEX = /^[a-f0-9]{32}$/;
@@ -65,7 +66,7 @@ async function readJson(req){
 async function jsonFrom(file){try{return JSON.parse(await fs.readFile(file,'utf8'))}catch(e){if(e.code==='ENOENT')throw new HttpError(404,'Not found');throw e}}
 async function saveJson(file,value){const tmp=file+'.'+randomUUID()+'.tmp';await fs.writeFile(tmp,JSON.stringify(value,null,2),'utf8');await fs.rename(tmp,file)}
 function validateEdits(e,duration,FX){
-  if(!e||!Array.isArray(e.segments)||e.segments.length<1||e.segments.length>120)throw new HttpError(422,'Expected 1–120 video segments');
+  if(!e||!Array.isArray(e.segments)||e.segments.length<1||e.segments.length>500)throw new HttpError(422,'Expected 1–500 video segments');
   if(!Object.hasOwn(STYLES,e.style))throw new HttpError(422,'Unknown color preset');
   if(!Array.isArray(e.effects)||e.effects.length>40)throw new HttpError(422,'Maximum 40 sound effects');
   let prev=0,total=0;
@@ -95,6 +96,7 @@ async function sendFile(req,res,filepath,filename){
 export function createApp({root=ROOT,data=process.env.CUTFORGE_DATA||path.join(ROOT,'data'),ffmpeg=ffBinary('ffmpeg'),ffprobe=ffBinary('ffprobe')}={}){
   const folders={projects:path.join(data,'projects'),effects:path.join(data,'effects'),uploads:path.join(data,'uploads')};
   const jobs=new Map();
+  const python=detectPython();
   const ready=Promise.all(Object.values(folders).map(f=>fs.mkdir(f,{recursive:true})));
   const projectDir=id=>path.join(folders.projects,safeId(id));
   const projectFile=id=>path.join(projectDir(id),'project.json');
@@ -146,6 +148,36 @@ export function createApp({root=ROOT,data=process.env.CUTFORGE_DATA||path.join(R
     }catch(err){job.state='error';job.error=String(err.message||err).slice(0,700);await fs.rm(output,{force:true});}
     finally{await fs.rm(script,{force:true})}
   }
+  async function analyzeProject(project,threshold,minPause){
+    if(!project.has_audio)return {suggestions:[],note:'Video has no audio track'};
+    const source=path.join(projectDir(project.id),project.source);
+    let result;
+    if(python){
+      const script=path.join(root,'python-workers','silence.py');
+      const proc=await run(python.binary,[...python.prefix,script,source,String(threshold),String(minPause),String(project.duration),ffmpeg],{logLimit:8*1024*1024});
+      if(proc.code!==0)throw new Error('Python/FFmpeg analysis failed: '+proc.error.slice(-700));
+      try {result=JSON.parse(proc.output)}catch{throw new Error('Python returned invalid analysis data');}
+    } else {
+      // Legacy Node-only fallback is preserved for existing installations.
+      const proc=await run(ffmpeg,['-hide_banner','-nostdin','-i',source,'-vn','-af',`silencedetect=noise=${threshold}dB:d=${minPause}`,'-f','null','-'],{logLimit:8*1024*1024});
+      if(proc.code!==0)throw new Error('FFmpeg silence detection failed');
+      const suggestions=parseSilence(proc.error,project.duration,minPause);
+      result={suggestions,note:`Found ${suggestions.length} silence regions`};
+    }
+    const saved=await load(project.id);
+    saved.suggestions=result.suggestions;
+    await saveJson(projectFile(project.id),saved);
+    return result;
+  }
+  function analyzeInBackground(project,threshold,minPause){
+    const id=randomUUID().replace(/-/g,'');
+    const job={id,project_id:project.id,type:'analysis',state:'working',progress:0,error:null};
+    jobs.set(id,job);
+    void analyzeProject(project,threshold,minPause).then(result=>{
+      job.result=result;job.progress=100;job.state='done';
+    }).catch(error=>{job.state='error';job.error=String(error.message||error).slice(0,700);});
+    return job;
+  }
   const server=http.createServer(async(req,res)=>{
     try{
       await ready;
@@ -157,7 +189,7 @@ export function createApp({root=ROOT,data=process.env.CUTFORGE_DATA||path.join(R
         try {if(new URL(req.headers.origin).host.toLowerCase()!==host)throw new Error('Bad origin')}catch{throw new HttpError(403,'Cross-origin requests blocked')}
       }
       const url=new URL(req.url,'http://localhost');const route=url.pathname;const method=req.method;
-      if(method==='GET'&&route==='/api/health')return respond(res,200,{ok:true,engine:'node',ffmpeg:!!ffmpeg,ffprobe:!!ffprobe});
+      if(method==='GET'&&route==='/api/health')return respond(res,200,{ok:true,engine:'node',python:!!python,python_version:python?.version??null,ffmpeg:!!ffmpeg,ffprobe:!!ffprobe});
       if(method==='GET'&&route==='/api/projects'){
         const dirs=await fs.readdir(folders.projects);const result=[];for(const dir of dirs){if(!HEX.test(dir))continue;try{const p=await load(dir);result.push({id:p.id,name:p.name,duration:p.duration})}catch{}}return respond(res,200,result.sort((a,b)=>a.name.localeCompare(b.name)));
       }
@@ -186,14 +218,15 @@ export function createApp({root=ROOT,data=process.env.CUTFORGE_DATA||path.join(R
       if(m&&method==='GET')return respond(res,200,await load(m[1]));
       m=route.match(/^\/api\/projects\/([a-f0-9]{32})\/media$/);
       if(m&&method==='GET'){const p=await load(m[1]);return await sendFile(req,res,path.join(projectDir(p.id),p.source));}
-      m=route.match(/^\/api\/projects\/([a-f0-9]{32})\/analyze$/);
+      m=route.match(/^\/api\/projects\/([a-f0-9]{32})\/(analyze|analyze-async)$/);
       if(m&&method==='POST'){
         const p=await load(m[1]);const threshold=Number(url.searchParams.get('threshold')??-36),minPause=Number(url.searchParams.get('min_pause')??.6);
         if(threshold< -65||threshold> -15||minPause<.2||minPause>10||!Number.isFinite(threshold)||!Number.isFinite(minPause))throw new HttpError(422,'Invalid detection settings');
-        if(!p.has_audio)return respond(res,200,{suggestions:[],note:'Video has no audio track'});
-        const r=await run(ffmpeg,['-hide_banner','-nostdin','-i',path.join(projectDir(p.id),p.source),'-vn','-af',`silencedetect=noise=${threshold}dB:d=${minPause}`,'-f','null','-'],{timeout:15*60*1000});
-        if(r.code!==0)throw new HttpError(500,'Silence detection failed');p.suggestions=parseSilence(r.error,p.duration,minPause);await saveJson(projectFile(p.id),p);
-        return respond(res,200,{suggestions:p.suggestions,note:`Found ${p.suggestions.length} silence regions`});
+        if(m[2]==='analyze-async'){
+          if([...jobs.values()].some(j=>j.project_id===p.id&&j.type==='analysis'&&j.state==='working'))throw new HttpError(409,'Analysis already running');
+          return respond(res,200,analyzeInBackground(p,threshold,minPause));
+        }
+        return respond(res,200,await analyzeProject(p,threshold,minPause));
       }
       m=route.match(/^\/api\/projects\/([a-f0-9]{32})\/edit$/);
       if(m&&method==='PUT'){
@@ -218,7 +251,7 @@ export function createApp({root=ROOT,data=process.env.CUTFORGE_DATA||path.join(R
       // Only explicitly allow static files. Never expose local data, .env or backend files.
       const statics={'/':'index.html','/index.html':'index.html','/app.js':'app.js','/app.css':'app.css'};
       if(method==='GET'&&Object.hasOwn(statics,route)){
-        const file=path.join(root,'frontend',statics[route]);const buf=await fs.readFile(file);
+        const file=path.join(root,process.env.CUTFORGE_SERVE_BUILD==='1'?'dist':'frontend',statics[route]);const buf=await fs.readFile(file);
         const type=route.endsWith('.js')?'text/javascript':route.endsWith('.css')?'text/css':'text/html';
         res.writeHead(200,{'content-type':type+'; charset=utf-8','content-length':buf.length,'x-content-type-options':'nosniff','cache-control':'no-cache'});res.end(buf);return;
       }
