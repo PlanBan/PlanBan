@@ -1,0 +1,31 @@
+CUT FORGE AI — WINDOWS START GUIDE (v0.1.1)
+==========================================
+
+1) RIGHT-CLICK THE DOWNLOADED ZIP -> "Extract All...".
+   Do not run the .bat file while browsing inside the ZIP archive.
+2) Open the extracted cutforge-ai folder.
+3) Double-click START_CUTFORGE_WINDOWS.cmd or start-windows.bat. Keep the console open.
+4) After startup open http://127.0.0.1:8000 in Chrome or Edge.
+
+WHAT IF IT DOES NOT START?
+--------------------------
+* Python missing? Install Python 3.10+ from https://www.python.org/downloads/windows/ .
+  Enable "Add python.exe to PATH" during installation.
+* FFmpeg missing? Open Windows Terminal and run:
+    winget install --id Gyan.FFmpeg -e
+  Then CLOSE and REOPEN the terminal and launcher so PATH updates.
+  You can verify by running: ffmpeg -version  and  ffprobe -version
+* No winget? See https://ffmpeg.org/download.html for Windows builds.
+* Libraries fail to install? Check Internet; review pip-install.log in the app folder.
+* Error about missing backend/app.py? You are likely starting within the ZIP
+  rather than an extracted folder. Extract all files to a short folder such as C:\CutForge.
+* Browser doesn't open? Try typing http://127.0.0.1:8000 manually.
+* Windows blocks the file? Check Windows Security warning and file properties;
+  only run files you trust. If an error appears, capture its text.
+* The terminal vanishes too fast? Open CMD in the extracted cutforge-ai folder
+  and run: cmd /k start-windows.bat
+
+To send a bug report: screenshot the terminal error, or copy the last
+10–20 lines. Avoid sharing passwords, API keys or other private information.
+
+No videos are uploaded to GitHub or any cloud by this program.
