@@ -1,0 +1,32 @@
+name: CutForge MVP checks
+
+on:
+  push:
+    branches: [feat/cutforge-ai-mvp]
+    paths:
+      - "cutforge-ai/**"
+      - ".github/workflows/cutforge-mvp-ci.yml"
+  pull_request:
+    paths:
+      - "cutforge-ai/**"
+      - ".github/workflows/cutforge-mvp-ci.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install FFmpeg & dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          python -m pip install -r cutforge-ai/backend/requirements.txt pytest httpx
+      - name: Validate JavaScript
+        run: node --check cutforge-ai/frontend/app.js
+      - name: Test video import and renders
+        env:
+          PYTHONPATH: cutforge-ai
+        run: python -m pytest -q cutforge-ai/tests
