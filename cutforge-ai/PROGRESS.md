@@ -72,3 +72,16 @@ Use `README.md` to install Python dependencies and FFmpeg, launch on `127.0.0.1:
 - [ ] Large video downloads through public Cloudflare routes have service-specific conditions; local use or private network is preferable.
 
 **If user says `продолжай`**: check GitHub branch `feat/cutforge-ai-mvp`, inspect this section, run `cd cutforge-ai/node-server && node --test`, confirm Cloudflare Access gate before changing any public tunnel configuration, and fix the next uncompleted checkpoint.
+
+## 2026-10-25 — Stage 7 planned: true 90+ minute cloud editor
+
+- User requires 60–90+ minute input, private HTTPS, preferably **no home computer required**.
+- Verified Cloudflare Containers (Workers Paid) exist for full Linux/FFmpeg runtime; usual Workers alone are not a long-running transcoder.
+- Cloudflare Container ephemeral disk currently max 20 GB, so video renders must process bounded windows with durable R2 inputs/outputs; do not pretend a 25GB source will fit in one container.
+- Full implementation specification and checkpoints: [CLOUDFLARE_LONG_VIDEO_ARCHITECTURE.md](CLOUDFLARE_LONG_VIDEO_ARCHITECTURE.md).
+- [x] Architecture and Cloudflare official documentation researched and recorded.
+- [ ] Durable signed multipart R2 uploads, Access isolation, persistent project/job state.
+- [ ] Actual Cloudflare Containers deployment and end-to-end async FFmpeg pipelines.
+- [ ] 90-minute original, >200 cuts, >10 GB upload and export tested with recoverable render.
+
+**Important:** This is a design checkpoint only, not a deployed cloud service. Continue from Stage 7, retaining earlier working local Node.js implementation.
