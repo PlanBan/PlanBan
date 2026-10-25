@@ -57,3 +57,18 @@ Use `README.md` to install Python dependencies and FFmpeg, launch on `127.0.0.1:
 - Added Windows troubleshooting file and root-level `START_CUTFORGE_WINDOWS.cmd`.
 - Keeps terminal open after exit, prints actionable error messages; browser auto-opens after launch when available.
 - Recheck on the user's Windows PC; Linux tests cannot emulate all Windows launcher behaviors.
+
+
+## 2026-10-25 — Stage 6: Node.js runtime + private Cloudflare HTTPS
+
+- [x] Dependency-free Node.js 20 HTTP backend, same local project JSON as Python, no Python/npm install required. FFmpeg + ffprobe are still required for media tasks.
+- [x] Chunked 8 MiB uploads to work with Cloudflare request-size limits; local streaming prevents whole-video buffering in RAM.
+- [x] Local FFmpeg silence analysis, nondestructive manual edits, personal WAV/MP3/etc SFX, background H.264/AAC render, progress status, HTTP Range serving.
+- [x] Frontend auto-switches upload method depending on `/api/health` Node vs Python engine; earlier Python mode is retained.
+- [x] Security defaults: binds to 127.0.0.1, Host allowlist, same-origin mutation requests, explicit public hostname opt-in; Cloudflare Access mandatory for a public hostname.
+- [x] Node integration tests: 2/2 pass (includes upload/analyze/edit/export and SFX on silent footage), JS syntax check passed.
+- [ ] Need real Windows launch test and user Cloudflare domain/Access configuration; no public site was deployed.
+- [ ] For long remote analyses: move silence detection to background jobs to avoid edge timeouts.
+- [ ] Large video downloads through public Cloudflare routes have service-specific conditions; local use or private network is preferable.
+
+**If user says `продолжай`**: check GitHub branch `feat/cutforge-ai-mvp`, inspect this section, run `cd cutforge-ai/node-server && node --test`, confirm Cloudflare Access gate before changing any public tunnel configuration, and fix the next uncompleted checkpoint.
