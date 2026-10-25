@@ -59,3 +59,12 @@ python -m uvicorn backend.app:app --host 127.0.0.1 --port 8000
 5. Если есть ошибка, пришлите скриншот окна запуска или последние строки; личные данные и ключи отправлять не нужно.
 
 Подробнее: `WINDOWS-HELP.txt`. Диагностика настроена без удаления личных видео и проектов.
+
+
+## Node.js runtime (новый, без Python)
+
+Нужны **Node.js 20+** и **FFmpeg/ffprobe**. Никаких npm-зависимостей: `START_NODE_WINDOWS.cmd` (Windows) или `bash start-node.sh` (macOS/Linux), затем `http://127.0.0.1:8000`.
+
+Node API использует 8-MiB блоки для больших загрузок, совместим с прежним интерфейсом и сохранёнными проектами. Для личной HTTPS-ссылки через Cloudflare Tunnel **сначала включи Cloudflare Access** и установи `CUTFORGE_PUBLIC_HOST`, подробности в [`CLOUDFLARE_NODE_GUIDE.md`](CLOUDFLARE_NODE_GUIDE.md). Cloudflare Pages *без* Node/FFmpeg backend не выполняет долгий монтаж.
+
+Проверка Node: `cd node-server && node --test`. Старый Python backend остаётся доступным.
