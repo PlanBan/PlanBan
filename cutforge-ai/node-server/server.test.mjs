@@ -73,3 +73,20 @@ test('Node: sound effects, silent source, invalid media and access restrictions'
     assert.equal((await req('/.env')).status,404);
   });
 });
+
+test('Node + Python: asynchronous pause analysis with persisted results', async()=>{
+  await withApp(async({req,data})=>{
+    const health=await req('/api/health');
+    assert.equal(health.body.python,true,'Python worker must be available');
+    const file=path.join(data,'async-demo.mp4');demo(file,true);
+    const project=await upload(req,'video','async-demo.mp4',await readFile(file));
+    const response=await req(`/api/projects/${project.id}/analyze-async?threshold=-28&min_pause=0.4`,{method:'POST'});
+    assert.equal(response.status,200);
+    assert.equal(response.body.type,'analysis');
+    const done=await waitDone(req,response.body.id);
+    assert.equal(done.state,'done',done.error);
+    assert.ok(done.result.suggestions.some(s=>s.start>.7 && s.end>2.8));
+    const saved=(await req(`/api/projects/${project.id}`)).body;
+    assert.deepEqual(saved.suggestions,done.result.suggestions);
+  });
+});
