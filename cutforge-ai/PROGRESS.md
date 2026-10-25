@@ -73,15 +73,19 @@ Use `README.md` to install Python dependencies and FFmpeg, launch on `127.0.0.1:
 
 **If user says `продолжай`**: check GitHub branch `feat/cutforge-ai-mvp`, inspect this section, run `cd cutforge-ai/node-server && node --test`, confirm Cloudflare Access gate before changing any public tunnel configuration, and fix the next uncompleted checkpoint.
 
-## 2026-10-25 — Stage 7 planned: true 90+ minute cloud editor
+## 2026-10-25 — Stage 8: Windows PowerShell npm.cmd developer workflow (v0.3)
 
-- User requires 60–90+ minute input, private HTTPS, preferably **no home computer required**.
-- Verified Cloudflare Containers (Workers Paid) exist for full Linux/FFmpeg runtime; usual Workers alone are not a long-running transcoder.
-- Cloudflare Container ephemeral disk currently max 20 GB, so video renders must process bounded windows with durable R2 inputs/outputs; do not pretend a 25GB source will fit in one container.
-- Full implementation specification and checkpoints: [CLOUDFLARE_LONG_VIDEO_ARCHITECTURE.md](CLOUDFLARE_LONG_VIDEO_ARCHITECTURE.md).
-- [x] Architecture and Cloudflare official documentation researched and recorded.
-- [ ] Durable signed multipart R2 uploads, Access isolation, persistent project/job state.
-- [ ] Actual Cloudflare Containers deployment and end-to-end async FFmpeg pipelines.
-- [ ] 90-minute original, >200 cuts, >10 GB upload and export tested with recoverable render.
+**User goal:** local-first Node.js + Python app; launch from extracted folder with `npm.cmd install`, `npm.cmd run build`, `npm.cmd run dev`; preserve editing workflow (manual and audio silence), no Cloudflare/VPS required.
 
-**Important:** This is a design checkpoint only, not a deployed cloud service. Continue from Stage 7, retaining earlier working local Node.js implementation.
+- [x] New root `package.json` and `package-lock.json` with **no external npm dependencies**; scripts: `dev`, `build`, `start`, `test`, `check`.
+- [x] `scripts/check-python.mjs` resolves Windows `py -3` or `python` and checks Python 3.10+.
+- [x] `scripts/build.mjs` performs Node syntax/Python worker validation and writes `dist/` static assets.
+- [x] `scripts/dev.mjs` starts local Node server on 127.0.0.1:8000 and checks FFmpeg + FFprobe + Python.
+- [x] `python-workers/silence.py` uses streaming stderr FFmpeg detection, JSON result; **no pip dependencies**.
+- [x] Node backend calls Python on audio analysis, retains Node-only FFmpeg fallback for old mode; long analysis now uses `/analyze-async` background job.
+- [x] Frontend polls analysis job, preserves existing media handling, trim, undo, SFX and export; segment cap increased from 120 to **500**.
+- [x] Local: `npm install --package-lock-only --offline`, `npm run build`, `npm test` **3/3 Node API tests** plus Python unittest; HTTP smoke `/api/health` verifies Node engine and Python available.
+- [x] Python worker analyzed synthetic video **5400 seconds (90 minutes)** with silence; no 90-minute full render stress test yet.
+- [ ] Verify real installation/PowerShell path on user's Windows and at least 90-minute real-video full export; tune memory and CPU if needed.
+
+**Continue:** inspect this branch and npm scripts first, then fix observed Windows/runtime issues. Do NOT replace npm commands with Windows .bat-only launcher; keep both Node and Python components.
