@@ -1,0 +1,15 @@
+{
+  "name": "cutforge-ai-local",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "description": "Local Node.js and Python video editor with FFmpeg",
+  "engines": {"node": ">=20"},
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "node scripts/build.mjs",
+    "start": "node scripts/dev.mjs",
+    "test": "node --test node-server/server.test.mjs && node scripts/check-python.mjs --test",
+    "check": "node scripts/build.mjs --check-only && npm run test"
+  }
+}

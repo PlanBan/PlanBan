@@ -1,0 +1,31 @@
+name: CutForge Node + Python npm checks
+on:
+  push:
+    branches: [feat/cutforge-ai-mvp]
+    paths:
+      - "cutforge-ai/**"
+      - ".github/workflows/cutforge-npm-ci.yml"
+  pull_request:
+    paths:
+      - "cutforge-ai/**"
+      - ".github/workflows/cutforge-npm-ci.yml"
+
+jobs:
+  npm-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install FFmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y ffmpeg
+      - name: Install, validate, and test Node + Python
+        working-directory: cutforge-ai
+        run: |
+          npm ci --offline
+          npm run build
+          npm test
